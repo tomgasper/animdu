@@ -1,4 +1,4 @@
-export function createShader(gl, type, source)
+function createShader(gl, type, source)
 {
     var shader = gl.createShader(type);
     gl.shaderSource(shader,source);
@@ -15,7 +15,7 @@ export function createShader(gl, type, source)
     return undefined;
 }
 
-export function createProgram(gl, vertexShader, fragmentShader) {
+function createProgram(gl, vertexShader, fragmentShader) {
     var program = gl.createProgram();
     gl.attachShader(program, vertexShader);
     gl.attachShader(program, fragmentShader);
@@ -29,4 +29,13 @@ export function createProgram(gl, vertexShader, fragmentShader) {
     console.log(gl.getProgramInfoLog(program));  // eslint-disable-line
     gl.deleteProgram(program);
     return undefined;
+  }
+
+  export function initShaderProgram(gl, vertexShaderSource, fragmentShaderSource)
+  {
+    // create GLSL shaders, upload the GLSL source, compile the shaders
+    const vertexShader = createShader(gl, gl.VERTEX_SHADER, vertexShaderSource);
+    const fragmentShader = createShader(gl, gl.FRAGMENT_SHADER, fragmentShaderSource);
+
+    return createProgram(gl, vertexShader, fragmentShader);
   }
