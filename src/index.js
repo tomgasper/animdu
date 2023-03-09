@@ -8,6 +8,8 @@ import { CircleBuffer } from "./Primitives/CircleBuffer.js";
 import { TriangleObject } from "./Primitives/TriangleObject.js";
 import { CircleObject } from "./Primitives/CircleObject.js";
 
+import { RenderLoop } from "./RenderLoop.js";
+
 var vertexShaderSource = `#version 300 es
 // an attribute is an input (in) to a vertex shader
 // It will receive data from a buffer
@@ -97,11 +99,17 @@ function main()
 
     const sceneObjects = [obj1, obj2, obj3];
 
-    drawScene();
+    const renderLoop = new RenderLoop(drawScene);
+
+    // Start render
+    renderLoop.step(undefined);
 
     // currying - function inside a function
-    function drawScene()
+    function drawScene(elapsedTime)
     {
+    // convert elapsed time in ms to s
+    const time = elapsedTime * 0.001;
+
     resizeCanvasToDisplaySize(gl.canvas);
 
     // Conver from clip space to pixels
@@ -120,7 +128,7 @@ function main()
 
         // Upload data to current buffer
         // This actually adds data to the current buffer
-        const translation = [200+i*100,200];
+        const translation = [time,0];
         const scale = [1,1];
         const angle = 0;
         const origin = [0,0];
@@ -131,12 +139,14 @@ function main()
 
         obj.projection = projection;
         obj.transform = transform;
+        obj.color = color;
         
         renderObject(gl, obj);
         // renderObject(myTriangleBuffer,gl, obj2);
 
     })
     }
+
 }
 
 // render generic object
