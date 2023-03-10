@@ -3,7 +3,6 @@ in vec2 a_vertexPosition;
 uniform mat3 u_transform;
 uniform mat3 u_projection;
 
-
 // all shaders have a main function
 void main()
 {

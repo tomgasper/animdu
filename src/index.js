@@ -56,6 +56,51 @@ function main()
 
     const programsInfo = [ programInfo, pickingProgramInfo ];
 
+    // Add frame buffer
+
+
+    // Create a texture to render to
+    const targetTexture = gl.createTexture();
+    gl.bindTexture(gl.TEXTURE_2D, targetTexture );
+    gl.texParameter(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+    gl.texParameter(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    gl.texParameter(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+
+    // Create a depth renderbuffer
+    const depthBuffer = gl.createRenderbuffer();
+    gl.bindRenderBuffer(gl.RENDERBUFFER, depthBuffer);
+
+    function setFramebufferAttachmentSizes(width, height) {
+      gl.bindTexture(gl.TEXTURE_2D, targetTexture);
+
+      const level = 0;
+      const internalFormat = gl.RGBA;
+      const border = 0;
+      const format = gl.RGBA;
+      const type = gl.UNSIGNED_BYTE;
+      const data = null;
+
+      gl.texImage2D(gl.TEXTURE_2D, level, internalFormat,
+                      width, height, border, format, type, data);
+
+      gl.bindRenderBuffer(gl.RENDERBUFFER, depthBuffer);
+      gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTHH_COMPONENT16,width,height);
+
+    }
+
+    // Create and bind the framebuffer
+    const fb = gl.createFramebuffer();
+    gl.bindFramebuffer(gl.FRAMEBUFFER, fb);
+
+    // attache the texture as the first color attachment
+    const attachmentPoint = gl.COLOR_ATTACHMENT0;
+    const level = 0;
+    gl.framebufferTexture2D(gl.FRAMEBUFFER, attachmentPoint, gl.TEXTURE_2D, targetTexture, level);
+
+    // make a depth buffer and the same size as the target
+    gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.RENDERBUFFER, depthBuffer);
+
+    setFramebufferAttachmentSizes(gl.canvas.width, gl.canvas.height);
     
     // Set up scene
     const myScene = new Scene(gl,canvas,programsInfo);

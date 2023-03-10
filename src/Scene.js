@@ -76,11 +76,41 @@ export class Scene
         this.gl.enable(gl.CULL_FACE);
         this.gl.enable(gl.DEPTH_TEST);
 
-        
         this.prepareForRender();
-        // Tell WebGl to use our shader program
-        this.gl.useProgram(this.programInfo.program);
-        
+
+         // ----- Temp copy --------
+         this.gl.viewport(0,0, this.gl.canvas.width, this.gl.canvas.height);
+ 
+         // Tell WebGl to use our picking program
+         this.gl.useProgram(this.programInfo[1].program);
+         // Draw a lot of objs
+         this.sceneObjects.forEach((obj, i) => {
+             const ii = i +1;
+ 
+             // Create new data for our objects
+             const translation = [time+ii*50,150];
+             const angle = 0;
+             const scale = [1,1];
+             const origin = [0,0];
+             const u_id = [
+                 ( ((ii) >> 0) & 0xff) / 0xFF,
+                 ( ((ii) >> 8) & 0xff) / 0xFF,
+                 ( ((ii) >> 16) & 0xff) / 0xFF,
+                 ( ((ii) >> 24) & 0xff) / 0xFF
+             ];
+ 
+             const projection = m3.projection(this.gl.canvas.clientWidth, this.gl.canvas.clientHeight);
+ 
+             // Sets parameters internally inside the object and always computes new matrix for new parameter
+             obj.setPosRotScaleOrigin(translation,angle,scale,origin);
+             obj.setProjection(projection);
+             
+             renderObject(this.gl, obj);
+         })
+
+        // Tell WebGl to use our picking program
+        this.gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+        this.gl.useProgram(this.programInfo[0].program);
         // Draw a lot of objs
         this.sceneObjects.forEach((obj, i) => {
 
@@ -99,5 +129,11 @@ export class Scene
             
             renderObject(this.gl, obj);
         })
+
+        gl.canvas.addEventListener('mousemove', (e) => {
+            const rect = canvas.getBoundingClientRect();
+            mouseX = e.clientX - rect.left;
+            mouseY = e.clientY - rect.top;
+         });
     }
 }
