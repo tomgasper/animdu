@@ -3,16 +3,16 @@ import { m3, resizeCanvasToDisplaySize, renderObject, computeTransform  } from "
 import { TriangleBuffer } from "./Primitives/TriangleBuffer.js";
 import { CircleBuffer } from "./Primitives/CircleBuffer.js";
 
-import { TriangleObject } from "./Primitives/TriangleObject.js";
-import { CircleObject } from "./Primitives/CircleObject.js";
+import { GeometryObject } from "./Primitives/GeometryObject.js";
 
 export class Scene
 {
-    constructor(gl, programInfo)
+    constructor(gl, canvas, programsInfo)
     {
         // save gl for local use
         this.gl = gl;
-        this.programInfo = programInfo;
+        this.programs = programsInfo;
+        this.canvas = canvas;
 
         this.sceneObjects = [];
     }
@@ -40,49 +40,64 @@ export class Scene
         const myCircleBuffer = new CircleBuffer(this.gl,this.programInfo);
         myCircleBuffer.initialize();
 
-        const obj1 = new TriangleObject(myTriangleBuffer.getBufferInfo(), myTriangleBuffer.getVertexArrInfo(), myTriangleBuffer.getDrawInfo(), this.programInfo);
+        const obj1 = new GeometryObject(myTriangleBuffer.getBufferInfo(), myTriangleBuffer.getVertexArrInfo(), myTriangleBuffer.getDrawInfo(), this.programInfo);
         obj1.transform = computeTransform(this.gl, [250, 500]);
 
-        const obj2 = new TriangleObject(myTriangleBuffer.getBufferInfo(), myTriangleBuffer.getVertexArrInfo(), myTriangleBuffer.getDrawInfo(), this.programInfo);
+        const obj2 = new GeometryObject(myTriangleBuffer.getBufferInfo(), myTriangleBuffer.getVertexArrInfo(), myTriangleBuffer.getDrawInfo(), this.programInfo);
         obj2.transform = computeTransform(this.gl, [350, 500]);
 
-        const obj3 = new CircleObject(myCircleBuffer.getBufferInfo(), myCircleBuffer.getVertexArrInfo(), myCircleBuffer.getDrawInfo(), this.programInfo);
+        const obj3 = new GeometryObject(myCircleBuffer.getBufferInfo(), myCircleBuffer.getVertexArrInfo(), myCircleBuffer.getDrawInfo(), this.programInfo);
         obj3.transform = computeTransform(this.gl, [100,100]);
 
-        this.sceneObjects.push(obj1,obj2,obj3);
+        this.addObjToScene(obj1);
+        // this.addObjToScene(obj2);
+        // this.addObjToScene(obj3);
+    }
+
+    addObjToScene(obj)
+    {
+        // To do
+        // Appropriate checks for valid obj
+        if (obj) { this.sceneObjects.push(obj); }
+    }
+
+    getSceneObjs() {
+        return this.sceneObjects;
     }
 
     draw(elapsedTime)
     {
-    // convert elapsed time in ms to s
-    const time = elapsedTime * 0.001;
+        // convert elapsed time in ms to s
+        const time = elapsedTime * 0.001;
 
-    this.prepareForRender();
+        // Draw the objects to the texture
+        this.gl.bindFramebuffer(gl.FRAMEBUFFER, fb);
 
-    // Tell WebGl to use our shader program
-    this.gl.useProgram(this.programInfo.program);
-    
-    // Draw a lot of objs
-    this.sceneObjects.forEach((obj, i) => {
+        this.gl.enable(gl.CULL_FACE);
+        this.gl.enable(gl.DEPTH_TEST);
 
-        // Create new data for our objects
-        const translation = [time+i*50,150];
-        const scale = [1,1];
-        const angle = 0;
-        const origin = [0,0];
-
-        const color = [Math.random(), Math.random(), Math.random(), 1];
-
-        // Compute projection matrix first
-        const projection = m3.projection(this.gl.canvas.clientWidth, this.gl.canvas.clientHeight);
-        const transform =  computeTransform(this.gl, translation, angle+time, scale, origin);
-
-        // Modify objects properties here
-        obj.projection = projection;
-        obj.transform = transform;
-        obj.color = color;
         
-        renderObject(this.gl, obj);
-    })
+        this.prepareForRender();
+        // Tell WebGl to use our shader program
+        this.gl.useProgram(this.programInfo.program);
+        
+        // Draw a lot of objs
+        this.sceneObjects.forEach((obj, i) => {
+
+            // Create new data for our objects
+            const translation = [time+i*50,150];
+            const angle = 0;
+            const scale = [1,1];
+            const origin = [0,0];
+            const color = [Math.random(), Math.random(), Math.random(), 1];
+
+            const projection = m3.projection(this.gl.canvas.clientWidth, this.gl.canvas.clientHeight);
+
+            // Sets parameters internally inside the object and always computes new matrix for new parameter
+            obj.setPosRotScaleOrigin(translation,angle,scale,origin);
+            obj.setProjection(projection);
+            
+            renderObject(this.gl, obj);
+        })
     }
 }

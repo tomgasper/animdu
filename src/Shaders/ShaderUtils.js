@@ -28,6 +28,7 @@ function createProgram(gl, vertexShader, fragmentShader) {
   
     console.log(gl.getProgramInfoLog(program));  // eslint-disable-line
     gl.deleteProgram(program);
+    
     return undefined;
   }
 

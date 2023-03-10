@@ -16,7 +16,7 @@ export function renderObject(gl, obj)
     gl.bindVertexArray(obj.vertexArrInfo.VAO);
     gl.bindBuffer(gl.ARRAY_BUFFER, obj.bufferInfo.VBO);
 
-    gl.uniformMatrix3fv(obj.programInfo.uniformLocations.projection, false, obj.projection);
+    gl.uniformMatrix3fv(obj.programInfo.uniformLocations.projection, false, obj.projectionMat);
     gl.uniformMatrix3fv(obj.programInfo.uniformLocations.transform, false, obj.transform);
 
     gl.uniform4fv(obj.programInfo.uniformLocations.color, obj.color);
@@ -25,7 +25,7 @@ export function renderObject(gl, obj)
     gl.drawArrays(obj.drawInfo.primitiveType, obj.drawInfo.offset, obj.drawInfo.count);
 }
 
-export function computeTransform(gl, translation =[0,0],angle = 0, scale = [1,1], origin = [0,0])
+export function computeTransform(translation =[0,0],angle = 0, scale = [1,1], origin = [0,0])
 {
     // Note that the order of the matrix operations is reversed
     // The transformation described by projetionMatrix is applied as the last one
