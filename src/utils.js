@@ -14,15 +14,26 @@ export function resizeCanvasToDisplaySize(canvas, multiplier) {
 export function renderObject(gl, obj)
 {
     gl.bindVertexArray(obj.vertexArrInfo.VAO);
-    gl.bindBuffer(gl.ARRAY_BUFFER, obj.bufferInfo.VBO);
+    // binding not needed after creating vertex array and bninding it to the vertex buffer
+    // gl.bindTexture(gl.ARRAY_BUFFER, obj.texture);
 
     gl.uniformMatrix3fv(obj.programInfo.uniformLocations.projection, false, obj.projectionMat);
     gl.uniformMatrix3fv(obj.programInfo.uniformLocations.transform, false, obj.transform);
 
-    gl.uniform4fv(obj.programInfo.uniformLocations.color, obj.color);
+    if (obj.programInfo.uniformLocations.color)
+    {
+        gl.uniform4fv(obj.programInfo.uniformLocations.color, obj.color);
+    }
+
+    // check whether we are dealing with a shader that takes in ID
+    if (obj.programInfo.uniformLocations.id)
+    {
+        gl.uniform4fv(obj.programInfo.uniformLocations.id, obj.id);
+    }
 
     // Finally render
-    gl.drawArrays(obj.drawInfo.primitiveType, obj.drawInfo.offset, obj.drawInfo.count);
+    // gl.drawArrays(obj.drawInfo.primitiveType, obj.drawInfo.offset, obj.drawInfo.count);
+    obj.drawInfo.drawCall();
 }
 
 export function computeTransform(translation =[0,0],angle = 0, scale = [1,1], origin = [0,0])

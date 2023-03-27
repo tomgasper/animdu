@@ -13,7 +13,7 @@ export class GeometryObject
         this.drawInfo = drawInfo;
         this.programInfo = programInfo;
 
-        this.ID = "Geometry Object";
+        this.id = [0,0,0,1];
 
         // local copy of shader for this object
         this.color = [0.5, 0.7, 0.2, 1];
@@ -30,6 +30,11 @@ export class GeometryObject
         ];
 
         this.projectionMat;
+    }
+
+    setID(id)
+    {
+        this.id = id;
     }
 
     setPosition(pos)
