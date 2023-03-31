@@ -1,101 +1,168 @@
 "use strict";
-import { m3, resizeCanvasToDisplaySize } from "./utils.js"
-
 import { vertexShaderSource, fragmentShaderSource } from "./Shaders/BasicShaders.js";
 import { pickVertexShaderSource, pickfragmentShaderSource } from "./Shaders/PickerShader.js";
+import { textVertexShaderSource, textFragmentShaderSource } from "./Shaders/TextShader.js";
 import { initShaderProgram } from "./Shaders/ShaderUtils.js";
 
+import { textSDFVertexShader, textSDFFragmentShader } from "./Shaders/TextShader2.js";
+
 import { RenderLoop } from "./RenderLoop.js";
-import { Scene } from "./Scene.js";
+import { SceneManager } from "./SceneManager.js";
+
+import { setUpPickingFramebuffer, createDepthBuffer, createPickingTargetTexture } from "./pickingFramebuffer.js";
 
 // attribute = global variable
 function main()
   {
+    const originalRes = [1280,720];
+    window.originalRes = originalRes;
     // Initialize the GL context
     const canvas = document.querySelector("#glcanvas")
     const gl = canvas.getContext("webgl2");
 
     // Only continue if WebGL is available and working
     if (gl === null) {
-        alert(
-        "Unable to initialize WebGL. Your browser or machine may not support it."
-        );
+        alert("Unable to initialize WebGL. Your browser or machine may not support it.");
         return;
     }
 
-    // Initalize basic shader program
+    // Initalize shader programs
     const shaderProgram = initShaderProgram(gl, vertexShaderSource, fragmentShaderSource);
     const pickingProgram = initShaderProgram(gl, pickVertexShaderSource, pickfragmentShaderSource);
+    const textProgram = initShaderProgram(gl, textVertexShaderSource, textFragmentShaderSource);
+    const textSDFProgram = initShaderProgram(gl, textSDFVertexShader, textSDFFragmentShader);
 
     // Shader properties
+    const pickingProgramInfo = {
+      program: pickingProgram,
+      attribLocations: {
+        vertexPosition: gl.getAttribLocation(pickingProgram, "a_vertexPosition"),
+      },
+      uniforms: {
+        id: {
+          location: gl.getUniformLocation(pickingProgram, "u_id"),
+          type: "4fv"
+        },
+        transform:
+        {
+          location: gl.getUniformLocation(pickingProgram, "u_transform"),
+          type: "m3fv"
+        },
+        projection:
+        { location: gl.getUniformLocation(pickingProgram, "u_projection"),
+          type: "m3fv"
+      }
+    }
+    };
+
     const programInfo = {
         program: shaderProgram,
         attribLocations: {
             vertexPosition: gl.getAttribLocation(shaderProgram, "a_vertexPosition"),
             texcoordPosition: gl.getAttribLocation(shaderProgram, "a_texcoord")
         },
-        uniformLocations: {
-            color: gl.getUniformLocation(shaderProgram, "u_color"),
-            transform: gl.getUniformLocation(shaderProgram, "u_transform"),
-            projection: gl.getUniformLocation(shaderProgram, "u_projection")
+        uniforms: {
+            color:
+            {
+              location: gl.getUniformLocation(shaderProgram, "u_color"),
+              type: "4fv"
+            },
+            transform:
+            {
+              location: gl.getUniformLocation(shaderProgram, "u_transform"),
+              type: "m3fv"
+            },
+            projection:
+            { location: gl.getUniformLocation(shaderProgram, "u_projection"),
+              type: "m3fv"
+          }
+        }
+      };
+      
+      const textProgramInfo = {
+        program: textProgram,
+        attribLocations: {
+            vertexPosition: gl.getAttribLocation(textProgram, "a_vertexPosition"),
+            texcoordPosition: gl.getAttribLocation(textProgram, "a_texcoord")
+        },
+        uniforms: {
+            transform:
+            {
+              location: gl.getUniformLocation(textProgram, "u_transform"),
+              type: "m3fv"
+            },
+            projection:
+            { location: gl.getUniformLocation(textProgram, "u_projection"),
+              type: "m3fv"
+          }
         }
       };
 
-    const pickingProgramInfo = {
-      program: pickingProgram,
-      attribLocations: {
-        vertexPosition: gl.getAttribLocation(pickingProgram, "a_vertexPosition"),
-      },
-      uniformLocations: {
-        id: gl.getUniformLocation(pickingProgram, "u_id"),
-        transform: gl.getUniformLocation(pickingProgram, "u_transform"),
-        projection: gl.getUniformLocation(pickingProgram, "u_projection"),
-    }
-    };
+    const textSDFProgramInfo = {
+      program: textSDFProgram,
+        attribLocations: {
+            pos: gl.getAttribLocation(textSDFProgram, "pos"),
+            tex0: gl.getAttribLocation(textSDFProgram, "tex0"),
+            scale: gl.getAttribLocation(textSDFProgram, "scale")
+        },
+        uniforms: {
+          font_tex:
+            {
+              location: gl.getUniformLocation(textSDFProgram, "font_tex"),
+              type: "1i"
+            },
+            transform:
+            {
+              location: gl.getUniformLocation(textSDFProgram, "transform"),
+              type: "m3fv"
+            },
+            sdf_tex_size:
+            {
+              location: gl.getUniformLocation(textSDFProgram, "sdf_tex_size"),
+              type: "2fv"
+            },
+            sdf_border_size:
+            {
+              location: gl.getUniformLocation(textSDFProgram, "sdf_border_size"),
+              type: "1f"
+            },
+            hint_amount:
+            {
+              location: gl.getUniformLocation(textSDFProgram, "hint_amount"),
+              type: "1f"
+            },
+            subpixel_amount:
+            {
+              location: gl.getUniformLocation(textSDFProgram, "subpixel_amount"),
+              type: "1f"
+            },
+            font_color:
+            {
+              location: gl.getUniformLocation(textSDFProgram, "font_color"),
+              type: "4fv"
+            }
 
-    const programsInfo = [ programInfo, pickingProgramInfo ];
+        }
+      };
 
-    // Ok so textures and renderbuffers can be attached to framebuffers
+    const programsInfo = [ programInfo, pickingProgramInfo, textProgramInfo, textSDFProgramInfo ];
+
+    // Setting up a new framebuffer for retriving object under mouse
+    // Textures and renderbuffers will be attached to framebuffer
 
     // Create a texture to render to
-    const targetTexture = gl.createTexture();
-    gl.bindTexture(gl.TEXTURE_2D, targetTexture );
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1280, 720, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-
-    // Create a depth renderbuffer
-    const depthBuffer = gl.createRenderbuffer();
-    gl.bindRenderbuffer(gl.RENDERBUFFER, depthBuffer);
-    gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_COMPONENT16, 1280,720);
-
-    // Create and bind the framebuffer
-    const fb = gl.createFramebuffer();
-    gl.bindFramebuffer(gl.FRAMEBUFFER,fb);
-
-    // attache the texture as the first color attachment
-    gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, targetTexture, 0);
-    gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.RENDERBUFFER, depthBuffer);
-
-    gl.checkFramebufferStatus(gl.FRAMEBUFFER);
-
-    gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+    const targetTexture = createPickingTargetTexture(gl);
+    const depthBuffer = createDepthBuffer(gl);
+    const fb = setUpPickingFramebuffer(gl, targetTexture, depthBuffer);
 
     // Set up scene
-    const myScene = new Scene(gl,canvas,programsInfo, fb, depthBuffer, targetTexture);
-    myScene.setUpScene();
-
-    // Add it to scenes
-    const scenes = [];
-    scenes.push(myScene);
-
-    // Set up input manager
+    const sceneManager = new SceneManager(gl,canvas,programsInfo, fb, depthBuffer, targetTexture);
+    sceneManager.setUpScene();
 
     // Set up render loop
-    const renderLoop = new RenderLoop( myScene.draw.bind(myScene) );
+    const renderLoop = new RenderLoop( sceneManager.draw.bind(sceneManager) );
 
-    // Start render
+    // Start rendering
     renderLoop.step(undefined);
 }
   

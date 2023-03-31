@@ -1,39 +1,63 @@
-export function resizeCanvasToDisplaySize(canvas, multiplier) {
+export function resizeCanvasToDisplaySize(originalRes, canvas, multiplier) {
+
     multiplier = multiplier || 1;
     const width  = canvas.clientWidth  * multiplier | 0;
     const height = canvas.clientHeight * multiplier | 0;
     if (canvas.width !== width ||  canvas.height !== height) {
       canvas.width  = width;
       canvas.height = height;
+
+      canvas.style.width = originalRes[0] + "px";
+      canvas.style.height = originalRes[1] + "px";
       return true;
     }
     return false;
   }
 
+function setUniforms(gl, programInfo, properties)
+{
+    Object.keys(properties).forEach((property, i) =>{
+        // Only assisgn values to shaders that have the given property
+        if ( Object.hasOwn(programInfo.uniforms, property) )
+        {
+            const uniform = programInfo.uniforms[property];
+            switch(uniform.type)
+            {
+                case "1f":
+                    gl.uniform1f(uniform.location, properties[property]);
+                    break;
+                case "4fv":
+                    gl.uniform4fv(uniform.location, properties[property]);
+                    break;
+                case "m3fv":
+                    gl.uniformMatrix3fv(uniform.location, false, properties[property]);
+                    break;
+                default:
+                    console.log("Unrecognized type!");
+            }
+        }
+    })
+}
+
+export function prepareForRender(gl)
+    {
+        // Conver from clip space to pixels
+        gl.viewport(0,0, gl.canvas.width, gl.canvas.height);
+
+        // Clear the canvas
+        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+    }
+
 // render generic object
 export function renderObject(gl, obj)
 {
-    gl.bindVertexArray(obj.vertexArrInfo.VAO);
-    // binding not needed after creating vertex array and bninding it to the vertex buffer
-    // gl.bindTexture(gl.ARRAY_BUFFER, obj.texture);
+    // binding buffer not needed after creating vertex array and bninding it to the vertex buffer
+    gl.bindVertexArray(obj.renderInfo.vertexArrInfo.VAO);
 
-    gl.uniformMatrix3fv(obj.programInfo.uniformLocations.projection, false, obj.projectionMat);
-    gl.uniformMatrix3fv(obj.programInfo.uniformLocations.transform, false, obj.transform);
+    setUniforms(gl, obj.renderInfo.programInfo, obj.properties);
+    obj.renderInfo.drawInfo.drawCall();
 
-    if (obj.programInfo.uniformLocations.color)
-    {
-        gl.uniform4fv(obj.programInfo.uniformLocations.color, obj.color);
-    }
-
-    // check whether we are dealing with a shader that takes in ID
-    if (obj.programInfo.uniformLocations.id)
-    {
-        gl.uniform4fv(obj.programInfo.uniformLocations.id, obj.id);
-    }
-
-    // Finally render
-    // gl.drawArrays(obj.drawInfo.primitiveType, obj.drawInfo.offset, obj.drawInfo.count);
-    obj.drawInfo.drawCall();
+    gl.bindVertexArray(null);
 }
 
 export function computeTransform(translation =[0,0],angle = 0, scale = [1,1], origin = [0,0])

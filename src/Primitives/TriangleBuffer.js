@@ -52,24 +52,23 @@ export class TriangleBuffer {
     
     initialize()
     {
-        this.bindVertexArray();
+        this.gl.bindVertexArray(this.VAO);
+
         this.setUpPositionBuffer();
         // this.setUpTextureBuffer("./src/texture4.jpg");
-    }
 
-    bindVertexArray()
-    {
-        this.gl.bindVertexArray(this.VAO);
+        this.gl.bindVertexArray(null);
     }
-
     setUpPositionBuffer()
     {
-        // create, bind, upload data, specify layout
+         // take location from shader and enable it
+         const attribLoc = this.programInfo.attribLocations.vertexPosition;
+         this.gl.enableVertexAttribArray(attribLoc);
+
+        // create, bind, upload data
         this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.positionBuffer);
         this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(this.bufferData), this.gl.STATIC_DRAW);
 
-        const attribLoc = this.programInfo.attribLocations.vertexPosition;
-        this.gl.enableVertexAttribArray(attribLoc);
         // specify layout
         const { size,type,normalize,stride,offset } = this.attributesInfo.position;
         this.gl.vertexAttribPointer( attribLoc, size,type,normalize,stride,offset );
@@ -81,7 +80,6 @@ export class TriangleBuffer {
         this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(this.textureData), this.gl.STATIC_DRAW);
 
         const attribLoc = this.programInfo.attribLocations.texcoordPosition;
-        console.log(attribLoc);
         this.gl.enableVertexAttribArray(attribLoc);
         const { size,type,normalize,stride,offset } = this.attributesInfo.texture;
         this.gl.vertexAttribPointer( attribLoc, size,type,normalize,stride,offset);
@@ -123,7 +121,6 @@ export class TriangleBuffer {
     }
 
     getDrawInfo() {
-        
     const drawInfo = {
         primitiveType: this.drawSettings.primitiveType,
         offset: this.drawSettings.offset,
