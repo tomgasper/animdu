@@ -3,11 +3,13 @@ import { m3, computeTransform } from "./utils.js";
 
 export class SceneObject extends GeometryObject
 {
-
+    // If set to true can be detected by mouse move and picked up
     canBeMoved = true;
 
-    constructor(renderInfo)
+    constructor(renderInfo, projection)
     {
+        if (typeof projection === undefined || projection.length != 9) throw new Error("[SceneObject]: Wrong input projection matrix!");
+
         super(renderInfo)
 
         this.properties = {
@@ -21,7 +23,7 @@ export class SceneObject extends GeometryObject
             transform: [ 1, 0, 0,
                         0, 1, 0,
                         0, 0, 1 ],
-            projection : undefined
+            projection : projection
         }
     }
 
@@ -80,6 +82,7 @@ export class SceneObject extends GeometryObject
         if (projectionMat && projectionMat.length == 9)
         {
             this.properties.projection = projectionMat;
+            this.updateTransform();
         } else {
             throw new Error("Invalid input - projection matrix");
         }
@@ -91,10 +94,20 @@ export class SceneObject extends GeometryObject
         this.setRotation(rot);
         this.setScale(scale);
         this.setOrigin(origin);
+
+        this.updateTransform();
     }
 
     updateTransform()
     {
-        this.properties.transform = computeTransform(this.properties.position,this.properties.rotation,this.properties.scale, this.properties.origin);
+        const flip = [
+            1,0,0,
+            0,-1,0,
+            0,0,1
+        ];
+
+        let newTransform = computeTransform(this.properties.position,this.properties.rotation,this.properties.scale, this.properties.origin);
+        // newTransform = m3.multiply(newTransform, flip);
+        this.properties.transform = m3.multiply(this.properties.projection, newTransform);
     }
 }

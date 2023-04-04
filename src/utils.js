@@ -18,11 +18,17 @@ function setUniforms(gl, programInfo, properties)
 {
     Object.keys(properties).forEach((property, i) =>{
         // Only assisgn values to shaders that have the given property
-        if ( Object.hasOwn(programInfo.uniforms, property) )
+        if ( Object.hasOwn(programInfo.uniforms, property))
         {
-            const uniform = programInfo.uniforms[property];
+            const uniform = programInfo.uniforms[property];        
             switch(uniform.type)
             {
+                case "1i":
+                    gl.uniform1i(uniform.location, properties[property]);
+                    break;
+                case "2fv":
+                    gl.uniform2fv(uniform.location, properties[property]);
+                    break;
                 case "1f":
                     gl.uniform1f(uniform.location, properties[property]);
                     break;

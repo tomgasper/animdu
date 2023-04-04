@@ -6,7 +6,6 @@ in vec2 a_vertexPosition;
 in vec2 a_texcoord;
 
 uniform mat3 u_transform;
-uniform mat3 u_projection;
 
 out vec2 v_texcoord;
 
@@ -17,7 +16,7 @@ void main()
     // vec2 zeroToTwo = (position / u_resolution)*2.0;
     // vec2 clipSpace = zeroToTwo - 1.0;
 
-    gl_Position = vec4( (u_projection * u_transform * vec3(a_vertexPosition, 1)).xy, 0, 1);
+    gl_Position = vec4( (u_transform * vec3(a_vertexPosition, 1)).xy, 0, 1);
 
     v_texcoord = a_texcoord;
 }

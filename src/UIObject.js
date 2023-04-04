@@ -1,9 +1,9 @@
 import { SceneObject } from "./SceneObject.js";
 
 export class UIObject extends SceneObject{
-    constructor(renderInfo)
+    constructor(renderInfo, projectionMat)
     {
-        super(renderInfo)
+        super(renderInfo, projectionMat)
         
     }
 

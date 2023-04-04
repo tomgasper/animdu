@@ -21,6 +21,7 @@ export class RenderLoop
         }
         
         const elapsed = time - this.startTime;
+        const fps = 1000 / (time - this.previousTime);
 
         if (this.previousTime !== time)
         {

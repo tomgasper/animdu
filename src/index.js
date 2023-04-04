@@ -1,10 +1,8 @@
 "use strict";
 import { vertexShaderSource, fragmentShaderSource } from "./Shaders/BasicShaders.js";
 import { pickVertexShaderSource, pickfragmentShaderSource } from "./Shaders/PickerShader.js";
-import { textVertexShaderSource, textFragmentShaderSource } from "./Shaders/TextShader.js";
+import { textSDFVertexShaderSource, textSDFFragmentShaderSource } from "./Shaders/TextShader.js";
 import { initShaderProgram } from "./Shaders/ShaderUtils.js";
-
-import { textSDFVertexShader, textSDFFragmentShader } from "./Shaders/TextShader2.js";
 
 import { RenderLoop } from "./RenderLoop.js";
 import { SceneManager } from "./SceneManager.js";
@@ -16,6 +14,7 @@ function main()
   {
     const originalRes = [1280,720];
     window.originalRes = originalRes;
+
     // Initialize the GL context
     const canvas = document.querySelector("#glcanvas")
     const gl = canvas.getContext("webgl2");
@@ -29,8 +28,7 @@ function main()
     // Initalize shader programs
     const shaderProgram = initShaderProgram(gl, vertexShaderSource, fragmentShaderSource);
     const pickingProgram = initShaderProgram(gl, pickVertexShaderSource, pickfragmentShaderSource);
-    const textProgram = initShaderProgram(gl, textVertexShaderSource, textFragmentShaderSource);
-    const textSDFProgram = initShaderProgram(gl, textSDFVertexShader, textSDFFragmentShader);
+    const textSDFProgram = initShaderProgram(gl, textSDFVertexShaderSource, textSDFFragmentShaderSource);
 
     // Shader properties
     const pickingProgramInfo = {
@@ -47,11 +45,7 @@ function main()
         {
           location: gl.getUniformLocation(pickingProgram, "u_transform"),
           type: "m3fv"
-        },
-        projection:
-        { location: gl.getUniformLocation(pickingProgram, "u_projection"),
-          type: "m3fv"
-      }
+        }
     }
     };
 
@@ -71,30 +65,7 @@ function main()
             {
               location: gl.getUniformLocation(shaderProgram, "u_transform"),
               type: "m3fv"
-            },
-            projection:
-            { location: gl.getUniformLocation(shaderProgram, "u_projection"),
-              type: "m3fv"
-          }
-        }
-      };
-      
-      const textProgramInfo = {
-        program: textProgram,
-        attribLocations: {
-            vertexPosition: gl.getAttribLocation(textProgram, "a_vertexPosition"),
-            texcoordPosition: gl.getAttribLocation(textProgram, "a_texcoord")
-        },
-        uniforms: {
-            transform:
-            {
-              location: gl.getUniformLocation(textProgram, "u_transform"),
-              type: "m3fv"
-            },
-            projection:
-            { location: gl.getUniformLocation(textProgram, "u_projection"),
-              type: "m3fv"
-          }
+            }
         }
       };
 
@@ -145,7 +116,7 @@ function main()
         }
       };
 
-    const programsInfo = [ programInfo, pickingProgramInfo, textProgramInfo, textSDFProgramInfo ];
+    const programsInfo = [ programInfo, pickingProgramInfo, textSDFProgramInfo ];
 
     // Setting up a new framebuffer for retriving object under mouse
     // Textures and renderbuffers will be attached to framebuffer
