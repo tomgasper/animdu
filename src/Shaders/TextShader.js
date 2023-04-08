@@ -23,13 +23,12 @@ export const textSDFVertexShaderSource = `#version 300 es
  */
 
 
-in vec2  pos;        // Vertex position
-in vec2  tex0;       // Tex coord
-// attribute float sdf_size;   // Signed distance field size in screen pixels
-in float scale;
+layout(location=0) in vec2  pos;        // Vertex position
+layout(location=1) in vec2  tex0;       // Tex coord
+layout(location=2) in float scale;
 
 uniform vec2  sdf_tex_size; // Size of font texture in pixels
-uniform mat3  transform;
+uniform mat3  u_transform;
 uniform float sdf_border_size;
 
 out vec2  tc0;
@@ -44,7 +43,7 @@ void main(void) {
     sdf_texel = 1.0 / sdf_tex_size;
     subpixel_offset = 0.3333 / scale; // 1/3 of screen pixel to texels
 
-    vec3 screen_pos = transform * vec3( pos, 1.0 );    
+    vec3 screen_pos = u_transform * vec3( pos, 1.0 );    
     gl_Position = vec4( screen_pos.xy, 0.0, 1.0 );
 }
 `

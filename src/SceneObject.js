@@ -23,7 +23,14 @@ export class SceneObject extends GeometryObject
             transform: [ 1, 0, 0,
                         0, 1, 0,
                         0, 0, 1 ],
-            projection : projection
+            projection : projection,
+            blending: false
+        }
+
+        this.handlers = {
+            onClick : () => {
+                console.log(this.properties.id);
+            }
         }
     }
 

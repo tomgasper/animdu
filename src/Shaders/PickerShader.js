@@ -1,5 +1,5 @@
 export const pickVertexShaderSource = `#version 300 es
-in vec2 a_vertexPosition;
+layout(location=0) in vec2 a_vertexPosition;
 uniform mat3 u_transform;
 
 // all shaders have a main function

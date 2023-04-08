@@ -34,7 +34,7 @@ function main()
     const pickingProgramInfo = {
       program: pickingProgram,
       attribLocations: {
-        vertexPosition: gl.getAttribLocation(pickingProgram, "a_vertexPosition"),
+        vertexPosition: 0,
       },
       uniforms: {
         id: {
@@ -52,8 +52,8 @@ function main()
     const programInfo = {
         program: shaderProgram,
         attribLocations: {
-            vertexPosition: gl.getAttribLocation(shaderProgram, "a_vertexPosition"),
-            texcoordPosition: gl.getAttribLocation(shaderProgram, "a_texcoord")
+            vertexPosition: 0,
+            texcoordPosition: 1
         },
         uniforms: {
             color:
@@ -72,9 +72,9 @@ function main()
     const textSDFProgramInfo = {
       program: textSDFProgram,
         attribLocations: {
-            pos: gl.getAttribLocation(textSDFProgram, "pos"),
-            tex0: gl.getAttribLocation(textSDFProgram, "tex0"),
-            scale: gl.getAttribLocation(textSDFProgram, "scale")
+            pos: 0,
+            tex0: 1,
+            scale: 2
         },
         uniforms: {
           font_tex:
@@ -84,7 +84,7 @@ function main()
             },
             transform:
             {
-              location: gl.getUniformLocation(textSDFProgram, "transform"),
+              location: gl.getUniformLocation(textSDFProgram, "u_transform"),
               type: "m3fv"
             },
             sdf_tex_size:

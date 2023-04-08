@@ -29,15 +29,15 @@ export class SceneManager
     renderTexture = {};
 
     isMouseDown = false;
+    isMouseClicked = false;
     mouseX = 0;
     mouseY = 0;
 
-    textRender = {};
-    textureSDF = {};
-    textureImg = null;
-    textSDFVAO = {};
-
     objectIDtoDrag = -1;
+
+    eventsToProcess = [];
+
+    fontUI = undefined;
 
     constructor(gl, canvas, programsInfo, framebuffer, depthBuffer, renderTexture)
     {
@@ -59,10 +59,16 @@ export class SceneManager
 
          this.gl.canvas.addEventListener("mousedown", (e) => {
             if (this.isMouseDown === false) this.isMouseDown = true;
+         });
+
+         this.gl.canvas.addEventListener("click", (e) => {
+            this.isMouseClicked = true;
          })
 
          this.gl.canvas.addEventListener("mouseup", (e) => {
             this.isMouseDown = false;
+
+            // realize all events that need to be realized
 
             if (this.objsToDraw[this.objectIDtoDrag])
             {
@@ -77,23 +83,44 @@ export class SceneManager
         // Calculate projection matrix for scene objects
         const projectionMat = m3.projection(this.gl.canvas.clientWidth, this.gl.canvas.clientHeight);
 
+        const screen_width = this.gl.canvas.clientWidth;
+        const screen_height = this.gl.canvas.clientHeight;
+
         // Install font
         const fontSettings = {
             textureSrc: "./src/fonts/roboto-bold.png",
             texResolution: [1024,1024],
-            color: [0,0,0,1],
+            color: [1,1,1.3,1],
             subpixel: 1.0,
             decoder: roboto_bold_font
         };
         const robotoBoldFont = new TextFont(this.gl, fontSettings, this.gl.LUMINANCE);
+        this.fontUI = robotoBoldFont;
 
-        const someText = createNewText(this.gl, this.programs[2], "Hello mate!", robotoBoldFont, projectionMat);
-        const someText2 = createNewText(this.gl, this.programs[2], "Text 2", robotoBoldFont, projectionMat);
+        const someText = createNewText(this.gl, this.programs[2], "New Object", this.fontUI, projectionMat);
+        const someText2 = createNewText(this.gl, this.programs[2], "See stats", this.fontUI, projectionMat);
+
+        someText.handlers.onClick = () => {
+            const projectionMat = m3.projection(this.gl.canvas.clientWidth, this.gl.canvas.clientHeight);
+            const someText = createNewText(this.gl, this.programs[2], "Dynamically added text!", this.fontUI, projectionMat);
+            this.addObjToScene([someText]);
+            console.log("added");
+        };
+
+        const y_offset = screen_height * 0.02;
+        const x_offset = screen_width * 0.02;
+
+        someText.setPosition([x_offset,screen_height/2 + y_offset]);
+        someText.canBeMoved = false;
+        someText.blending = true;
+        someText.setScale([0.6,0.6]);
+
+        someText2.setPosition([x_offset+150, screen_height/2 + y_offset]);
+        someText2.canBeMoved = false;
+        someText2.blending = true;
+        someText2.setScale([0.6,0.6]);
 
         // Install UI
-        const screen_width = this.gl.canvas.clientWidth;
-        const screen_height = this.gl.canvas.clientHeight;
-
         const customVertsPos = [  0, screen_height/2,
                                   screen_width, screen_height/2,
                                   screen_width, screen_height,
@@ -117,7 +144,7 @@ export class SceneManager
         const UI_Container = new UIObject(customBufferInfo, projectionMat);
         UI_Container.canBeMoved = false;
         UI_Container.setColor([0,0.3,0.2,1]);
-        UI_Container.properties.originalColor = [0.5, 0.3, 0.1, 1];
+        UI_Container.properties.originalColor = [0, 0.02, 0.04, 1];
 
         // Describe buffer for triangle shape
         const myTriangleBuffer = new TriangleBuffer(this.gl, this.programs[0]);
@@ -164,11 +191,7 @@ export class SceneManager
         obj6.setPosition([250,500]);
 
         // Add all objs
-        this.addObjToScene([UI_Container,obj1,obj2,obj3,obj4,obj5,obj6]);
-        
-        this.txtsToDraw.push(someText, someText2);
-        someText.setPosition([100,400]);
-        someText2.setPosition([300,400]);
+        this.addObjToScene([UI_Container,obj1,obj2,obj3,obj4,obj5,obj6, someText, someText2]);
     }
 
     addObjToScene(objs)
@@ -183,40 +206,64 @@ export class SceneManager
         return this.objsToDraw;
     }
 
-    drawObjects(objsToDraw, programInfo)
+    drawObjects(objsToDraw, programInfo = undefined)
     {
         // to do
-        this.gl.useProgram(programInfo.program);
+        let program;
+        const projection = m3.projection(this.gl.canvas.clientWidth, this.gl.canvas.clientHeight);
 
-        objsToDraw.forEach((obj, i) => {
-            
-            // (!) Notice that we are setting id offset by 1
-            const ii = i +1 ;
+        if (typeof programInfo !== "undefined" )
+        {
+            program = programInfo;
 
-            obj.renderInfo.programInfo = programInfo;
+            this.gl.useProgram(program.program);
 
-            // if object is pickable then assign it a u_id
-            if (obj.canBeMoved === true)
-            {
+            objsToDraw.forEach((obj, i) => {
+                // (!) Notice that we are setting id offset by 1
+                const ii = i +1 ;
+
+                // if object is pickable then assign it a u_id
                 const u_id = [
-                    ((ii >>  0) & 0xFF) / 0xFF,
-                    ((ii >>  8) & 0xFF) / 0xFF,
-                    ((ii >> 16) & 0xFF) / 0xFF,
-                    ((ii >> 24) & 0xFF) / 0xFF
-                  ];
-     
-                  obj.setID(u_id);
-            }
+                        ((ii >>  0) & 0xFF) / 0xFF,
+                        ((ii >>  8) & 0xFF) / 0xFF,
+                        ((ii >> 16) & 0xFF) / 0xFF,
+                        ((ii >> 24) & 0xFF) / 0xFF
+                    ];
+                
+                obj.setID(u_id);
 
-            const projection = m3.projection(this.gl.canvas.clientWidth, this.gl.canvas.clientHeight);
-            obj.setProjection(projection);
+                obj.setProjection(projection);
 
-            renderObject(this.gl, obj);
+                renderObject(this.gl, obj, program, true);
 
-            // Reset color
-            obj.setColor(obj.properties.originalColor);
-        })
+                // Reset color
+                obj.setColor(obj.properties.originalColor);
+        })} else {
+            objsToDraw.forEach((obj, ii) => {
+                let objProgram = obj.renderInfo.programInfo;
 
+                // Switch shader if the cached one doesn't work
+                if (objProgram !== program)
+                { 
+                    this.gl.useProgram(objProgram.program);
+                    program = objProgram;
+                }
+
+                obj.setProjection(projection);
+
+                if (obj.blending === true && !this.gl.isEnabled(this.gl.BLEND) )
+                {
+                    this.gl.enable(this.gl.BLEND);
+                }
+
+                renderObject(this.gl, obj, program, false);
+
+                // Disable blending
+                if (this.gl.isEnabled(this.gl.BLEND) )
+                {
+                    this.gl.disable(this.gl.BLEND);
+                }
+        })}
     }
 
     draw(elapsedTime)
@@ -232,18 +279,17 @@ export class SceneManager
 
         // Draw the objects to the texture
         this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, this.framebuffer);
+
         this.gl.viewport(0,0, this.gl.canvas.width, this.gl.canvas.height);
-
         this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
-
         this.gl.disable(this.gl.BLEND);
 
+        // Draw to texture shades - PASS 1
+        this.drawObjects(this.objsToDraw, this.programs[1]);
+        
          // Look up id;
         const pixelX = this.mouseX * this.gl.canvas.width / this.gl.canvas.clientWidth;
         const pixelY = this.gl.canvas.height - this.mouseY * this.gl.canvas.height / this.gl.canvas.clientHeight - 1;
-
-        this.drawObjects(this.objsToDraw, this.programs[1]);
-        
         const id = getIdFromCurrentPixel(this.gl, pixelX, pixelY);
 
         console.log(id);
@@ -260,9 +306,17 @@ export class SceneManager
             }
 
             object.setColor([1,1,0.3,1]);
+
+            // on click
+            if (this.isMouseClicked === true)
+            {
+
+                this.objsToDraw[pickNdx].handlers.onClick();
+            }
+
         }
 
-        if (this.isMouseDown && this.objectIDtoDrag >= 0)
+        if (this.objectIDtoDrag >= 0 && this.isMouseDown && this.objsToDraw[this.objectIDtoDrag].canBeMoved === true )
             {
                 // console.log("moving");
                 // console.log(this.objectIDtoDrag);
@@ -274,248 +328,9 @@ export class SceneManager
         this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, null);
         this.gl.bindTexture(this.gl.TEXTURE_2D, null);
 
-        this.drawObjects(this.objsToDraw, this.programs[0]);
+        this.drawObjects(this.objsToDraw);
 
-        this.gl.enable(this.gl.BLEND);
-        this.gl.bindVertexArray(this.txtsToDraw[0].renderInfo.vertexArrInfo.VAO);
-        this.gl.useProgram(this.programs[2].program);
-        this.gl.activeTexture(this.gl.TEXTURE0);
-        this.gl.bindTexture(this.gl.TEXTURE_2D, this.txtsToDraw[0].renderInfo.drawInfo.texture);
-        this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.txtsToDraw[0].renderInfo.bufferInfo.position);
-
-        this.drawObjects(this.txtsToDraw, this.programs[2]);
-
-        // this.txtsToDraw[0].setProjection(projection);
-        
-        // this.txtsToDraw[0].setPosition([100,400]);
-        
-        // renderObject(this.gl, this.txtsToDraw[0]);
+        // reset input handlers state
+        this.isMouseClicked = false;
     }
-
-createTextureSDF(gl)
-{
-const textSDFVAO = gl.createVertexArray();
-gl.bindVertexArray(textSDFVAO);
-
-const glyphTex = gl.createTexture();
-this.textureSDF = glyphTex;
-this.textSDFVAO = textSDFVAO;
-
-
-gl.bindTexture(gl.TEXTURE_2D, this.textureSDF);
-
-// temp texture
-gl.texImage2D(gl.TEXTURE_2D, 0, gl.LUMINANCE, 1, 1, 0, gl.LUMINANCE, gl.UNSIGNED_BYTE, new Uint8Array([0,0,255,255]));
-
-
-// async img load
-const img = new Image();
-img.src = "./src/fonts/roboto-bold.png";
-
-this.textureImg = img;
-
-img.addEventListener("load", () =>{
-    gl.bindTexture(gl.TEXTURE_2D, this.textureSDF);
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.LUMINANCE, gl.LUMINANCE, gl.UNSIGNED_BYTE, img);
-
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-
-
-    this.textureImg = img;
-});
-
-gl.bindVertexArray(null);
-gl.bindTexture(gl.TEXTURE_2D, null);
-
-
-return glyphTex;
-
-}
-}
-
-function createTextSDF(gl, programs, textureImg, textureSDF)
-{
-    gl.useProgram(programs[3].program);
-                    
-    gl.enable( gl.BLEND );
-    // a bit fckedup code
-    var attribs = [
-        { loc: 0, name : 'pos',      size: 2 }, // Vertex position
-        { loc: 1, name : 'tex0',     size: 2 }, // Texture coordinate
-        { loc: 2, name : 'scale',  size: 1 }  // Glyph SDF distance in screen pixels
-    ];
-    initAttribs( gl, attribs );
-
-    for ( var i = 0; i < attribs.length; ++i ) {
-        var a = attribs[ i ];
-        gl.bindAttribLocation( programs[3].program, a.loc, a.name );
-    }
-
-    // let numAttribs = gl.getProgramParameter(programs[3].program, gl.ACTIVE_ATTRIBUTES);
-    // for (let ii = 0; ii < numAttribs; ++ii) {
-    // const attribInfo = gl.getActiveAttrib(programs[3].program, ii);
-    // const index = gl.getAttribLocation(programs[3].program, attribInfo.name);
-    // console.log(index, attribInfo.name);
-    // }
-
-    const vertex_array = new Float32Array(1000 * 6 * attribs[0].stride/4 );
-
-    var vertex_buffer = gl.createBuffer();
-    gl.bindBuffer( gl.ARRAY_BUFFER, vertex_buffer );
-    gl.bufferData( gl.ARRAY_BUFFER, vertex_array, gl.DYNAMIC_DRAW );
-    gl.bindBuffer( gl.ARRAY_BUFFER, null );
-    
-
-    // create Vertex array object
-    // create buffer and bind to shader
-
-    // create data for buffer
-    let font_color = [0,0,0,1];
-
-    let font_size = 35;
-    let font = roboto_bold_font;
-    // font.tex = {id:textureSDF, img:textureImg  };
-    let fmetrics = fontMetrics(font, font_size, font_size*0.2);
-
-    const font_hinting = 1.0;
-    const subpixel = 1.0;
-
-    let str = writeString("helloasd", font, fmetrics, [0,0], vertex_array);
-    let vcount = str.array_pos / (attribs[0].stride/4 );
-
-    gl.bindBuffer( gl.ARRAY_BUFFER, vertex_buffer );
-    gl.bufferSubData( gl.ARRAY_BUFFER, 0, vertex_array );
-    gl.bindBuffer( gl.ARRAY_BUFFER, null );
-    
-
-    // pos coords
-    // const posBuffer = gl.createBuffer();
-    // gl.bindBuffer(gl.ARRAY_BUFFER, posBuffer);
-    // gl.bufferData(gl.ARRAY_BUFFER, vertex_array , gl.DYNAMIC_DRAW );
-
-    // const attribLoc = programsInfo[3].attribLocations.vertexPosition;
-    // gl.enableVertexAttribArray(attribLoc);
-    // gl.vertexAttribPointer(attribLoc, 2, gl.FLOAT, false, 0, 0);
-
-    // tex coords
-    // const texBuffer = gl.createBuffer();
-    // gl.bindBuffer(gl.ARRAY_BUFFER, texBuffer);
-    // gl.bufferData(gl.ARRAY_BUFFER, stringVerts.arrays.texcoords, gl.DYNAMIC_DRAW );
-
-    // const attribLoc2 = programsInfo[3].attribLocations.texcoordPosition;
-    // gl.vertexAttribPointer(attribLoc2, 2, gl.FLOAT, true, 0, 0);
-    // gl.enableVertexAttribArray(attribLoc2);
-
-    // const attribLoc3 = programsInfo[3].attribLocations.sdf_size;
-    // gl.vertexAttribPointer(attribLoc3, 1, gl.FLOAT, false, 0, 0);
-    // gl.enableVertexAttribArray(attribLoc2);
-
-    var pixel_ratio = window.devicePixelRatio || 1;
-
-    var cw = Math.round( pixel_ratio * gl.canvas.clientWidth * 0.5 ) * 2.0;
-    var ch = Math.round( pixel_ratio * gl.canvas.clientHeight * 0.5 ) * 2.0;
-    
-    var dx = Math.round( -0.5 * str.rect[2] );
-    var dy = Math.round(  0.5 * str.rect[3] );
-
-    var ws = 2.0 / cw;
-    var hs = 2.0 / ch;
-
-
-    const ident = [1,0,0,
-        0,-1,0,
-        200,100,1];
-    const projection = m3.projection(gl.canvas.clientWidth, gl.canvas.clientHeight);
-    
-
-    // Transformation matrix. 3x3 ortho.
-    // Canvas size, [0,0] is at the text rect's top left corner, Y goes up.        
-    
-    var screen_mat = new Float32Array([
-        ws,       0,         0,
-        0,        hs,        0,
-        dx * ws,  dy * hs,   1
-    ]);
-
-    screen_mat = m3.multiply(projection, ident);
-    
-    gl.useProgram(programs[3].program);
-    // set uniforms
-
-    gl.uniform1i(programs[3].uniforms.font_tex.location, 0);
-    gl.uniformMatrix3fv(programs[3].uniforms.transform.location, false, screen_mat);
-    gl.uniform2fv(programs[3].uniforms.sdf_tex_size.location, [textureImg.width, textureImg.height]);
-    gl.uniform1f(programs[3].uniforms.sdf_border_size.location, font.iy);
-    gl.uniform1f(programs[3].uniforms.hint_amount.location, font_hinting);
-    gl.uniform4fv(programs[3].uniforms.font_color.location, font_color);
-    gl.uniform1f(programs[3].uniforms.subpixel_amount.location, subpixel);
-    
-
-    gl.activeTexture(gl.TEXTURE0);
-    gl.bindTexture(gl.TEXTURE_2D, textureSDF);
-
-    gl.bindBuffer(gl.ARRAY_BUFFER, vertex_buffer);
-
-    //Fcking hell reversed attribs numbers... in firefox and chrome
-
-    bindAttribs(gl, attribs);
-
-    const attribLoc0 = programs[3].attribLocations.pos;
-    gl.vertexAttribPointer(attribLoc0, 2, gl.FLOAT, false, 20, 0);
-    gl.enableVertexAttribArray(attribLoc0);
-
-    const attribLoc1 = programs[3].attribLocations.tex0;
-    gl.vertexAttribPointer(attribLoc1, 2, gl.FLOAT, false, 20, 8);
-    gl.enableVertexAttribArray(attribLoc1);
-
-    const attribLoc2 = programs[3].attribLocations.scale;
-    gl.vertexAttribPointer(attribLoc2, 1, gl.FLOAT, false, 20, 16);
-    gl.enableVertexAttribArray(attribLoc2);
-
-    // bind attribs
-
-    
-
-    if ( subpixel == 1.0 ) {
-        // Subpixel antialiasing.
-        // Method proposed by Radek Dutkiewicz @oomek
-        // Text color goes to constant blend factor and 
-        // triplet alpha comes from the fragment shader output
-
-        gl.blendColor( font_color[0], font_color[1], font_color[2], 1.0 );
-        gl.blendEquation( gl.FUNC_ADD );
-        gl.blendFunc( gl.CONSTANT_COLOR, gl.ONE_MINUS_SRC_COLOR );
-    } else {
-        // Greyscale antialising
-        gl.blendEquation( gl.FUNC_ADD );
-        gl.blendFunc( gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA );
-    }
-    
-    
-    gl.drawArrays(gl.TRIANGLES, 0, vcount);
-
-
-    // return {
-    //     buffers: {
-    //         posCoords: posBuffer,
-    //         texCoords: texBuffer,
-    //         vertsCount: stringVerts.numVertices
-    //     },
-    //     VAO: textVAO,
-    //     texture: glyphTex,
-    //     uniforms:
-    //     {
-    //         font_tex : 0,
-    //         sdf_tex_size : [img.width, img.height],
-    //         sdf_border_size: 0,
-    //         hint_amount: font_hinting,
-    //         font_color: font_color,
-    //         subpixel_amount : subpixel
-    //     }
-    // }
-
 }

@@ -2,8 +2,8 @@ export const vertexShaderSource = `#version 300 es
 // an attribute is an input (in) to a vertex shader
 // It will receive data from a buffer
 
-in vec2 a_vertexPosition;
-in vec2 a_texcoord;
+layout(location=0) in vec2 a_vertexPosition;
+layout(location=1) in vec2 a_texcoord;
 
 uniform mat3 u_transform;
 

@@ -16,11 +16,11 @@ export function resizeCanvasToDisplaySize(originalRes, canvas, multiplier) {
 
 function setUniforms(gl, programInfo, properties)
 {
-    Object.keys(properties).forEach((property, i) =>{
+    Object.keys(programInfo.uniforms).forEach((property, i) =>{
         // Only assisgn values to shaders that have the given property
-        if ( Object.hasOwn(programInfo.uniforms, property))
+        if ( Object.hasOwn(properties, property))
         {
-            const uniform = programInfo.uniforms[property];        
+            const uniform = programInfo.uniforms[property];    
             switch(uniform.type)
             {
                 case "1i":
@@ -55,12 +55,20 @@ export function prepareForRender(gl)
     }
 
 // render generic object
-export function renderObject(gl, obj)
+export function renderObject(gl, obj, program, idPass = false)
 {
     // binding buffer not needed after creating vertex array and bninding it to the vertex buffer
     gl.bindVertexArray(obj.renderInfo.vertexArrInfo.VAO);
 
-    setUniforms(gl, obj.renderInfo.programInfo, obj.properties);
+    setUniforms(gl, program, obj.properties);
+    
+     // Bind texture if there's any
+     if (obj.renderInfo.drawInfo.texture)
+     {
+         gl.activeTexture(gl.TEXTURE0);
+         gl.bindTexture(gl.TEXTURE_2D, obj.renderInfo.drawInfo.texture);
+     }
+
     obj.renderInfo.drawInfo.drawCall();
 
     gl.bindVertexArray(null);
