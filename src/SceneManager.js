@@ -10,17 +10,18 @@ import { SceneObject } from "./SceneObject.js";
 import { getIdFromCurrentPixel, setFramebufferAttachmentSizes } from "./pickingFramebuffer.js";
 import { UIObject } from "./UIObject.js";
 
-import { fontMetrics, writeString } from "../lib/webgl_fonts/textutils.js";
-import { initAttribs, bindAttribs } from "../lib/webgl_fonts/glutils.js";
-
 import { TextFont } from "./Text/TextFont.js";
 
 import { createNewText } from "./Text/textHelper.js";
 
 import { roboto_bold_font } from "./fonts/roboto-bold.js";
 
+import { Node } from "./Node/Node.js";
+
 export class SceneManager
 {
+    time = 0.;
+
     objsToDraw = [];
     txtsToDraw = [];
 
@@ -173,22 +174,37 @@ export class SceneManager
             programInfo: this.programs[0] };
 
         const obj1 = new SceneObject(triangleBufferInfo, projectionMat);
-        obj1.setPosition([200,50]);
+        obj1.setPosition([100,500]);
+        obj1.setRotation(0.6);
 
         const obj2 = new SceneObject(triangleBufferInfo, projectionMat);
-        obj2.setPosition([250,500]);
+        obj2.setPosition([50,0]);
+        obj2.setRotation(1.5);
 
         const obj3 = new SceneObject(circleBufferInfo, projectionMat);
-        obj3.setPosition([300,100]);
+        obj3.setPosition([150,0]);
+        obj3.setRotation(-0.9);
 
         const obj4 = new SceneObject(triangleBufferInfo, projectionMat);
-        obj4.setPosition([250,500]);
+        obj4.setPosition([50,0]);
 
         const obj5 = new SceneObject(triangleBufferInfo, projectionMat);
-        obj5.setPosition([250,500]);
+        obj5.setPosition([50,0]);
 
         const obj6 = new SceneObject(rectangleBufferInfo, projectionMat);
-        obj6.setPosition([250,500]);
+        obj6.setPosition([50,0]);
+
+        // const layer2 = new Node();
+        // layer2.localMatrix = [1,0,0,
+        //                     0,1,0,
+        //                     50,25,1];
+
+        obj6.setParent(obj5);
+        obj5.setParent(obj4);
+        obj4.setParent(obj3);
+        obj3.setParent(obj2);
+        obj2.setParent(obj1);
+        obj1.updateWorldMatrix();
 
         // Add all objs
         this.addObjToScene([UI_Container,obj1,obj2,obj3,obj4,obj5,obj6, someText, someText2]);
@@ -212,7 +228,7 @@ export class SceneManager
         let program;
         const projection = m3.projection(this.gl.canvas.clientWidth, this.gl.canvas.clientHeight);
 
-        if (typeof programInfo !== "undefined" )
+        if (typeof programInfo !== "undefined" ) // Use object's shader when shader hasn't been specified
         {
             program = programInfo;
 
@@ -249,13 +265,12 @@ export class SceneManager
                     program = objProgram;
                 }
 
-                obj.setProjection(projection);
-
                 if (obj.blending === true && !this.gl.isEnabled(this.gl.BLEND) )
                 {
                     this.gl.enable(this.gl.BLEND);
                 }
 
+                obj.setProjection(projection);
                 renderObject(this.gl, obj, program, false);
 
                 // Disable blending
@@ -269,7 +284,7 @@ export class SceneManager
     draw(elapsedTime)
     {
         // convert elapsed time in ms to s
-        const time = elapsedTime * 0.001;
+        this.time = elapsedTime * 0.001;
 
         // Resize canvas for display
         if (resizeCanvasToDisplaySize(window.originalRes, this.gl.canvas, window.devicePixelRatio))
@@ -292,8 +307,6 @@ export class SceneManager
         const pixelY = this.gl.canvas.height - this.mouseY * this.gl.canvas.height / this.gl.canvas.clientHeight - 1;
         const id = getIdFromCurrentPixel(this.gl, pixelX, pixelY);
 
-        console.log(id);
-
         if (id > 0)
         {
             // substract id by 1 to get correct place of the found object in objsToDraw array 
@@ -310,17 +323,48 @@ export class SceneManager
             // on click
             if (this.isMouseClicked === true)
             {
-
-                this.objsToDraw[pickNdx].handlers.onClick();
+                if (this.objsToDraw[pickNdx].handlers.onClick)
+                {
+                    this.objsToDraw[pickNdx].handlers.onClick();
+                }
             }
 
         }
 
-        if (this.objectIDtoDrag >= 0 && this.isMouseDown && this.objsToDraw[this.objectIDtoDrag].canBeMoved === true )
+        // Moving the object under the coursor
+        if (this.isMouseDown && this.objectIDtoDrag >= 0 && this.objsToDraw[this.objectIDtoDrag].canBeMoved === true )
             {
-                // console.log("moving");
-                // console.log(this.objectIDtoDrag);
-                this.objsToDraw[this.objectIDtoDrag].setPosition([this.mouseX,this.mouseY]);
+                let parentWorldMat;
+                let mouseTranslation = m3.translation(this.mouseX,this.mouseY);
+
+                let top_parent = this.objsToDraw[this.objectIDtoDrag];
+
+                if (this.objsToDraw[this.objectIDtoDrag].parent)
+                {
+                    top_parent = this.objsToDraw[this.objectIDtoDrag].parent;
+
+                    while (top_parent.parent)
+                    {
+                        top_parent = top_parent.parent;
+                    }
+
+                    parentWorldMat = this.objsToDraw[this.objectIDtoDrag].parent.worldMatrix;
+                    let parentWorldMatInv = m3.inverse(parentWorldMat);
+                    
+                    // if diagonal sin is negative then change sign of acos
+                    // let acos = Math.acos(wMatrix[0]);
+                    // if (wMatrix[4] < 0) acos = -acos;
+                    // let rot = m3.rotation(acos);
+                    
+                    let newPos = m3.multiply(parentWorldMatInv, mouseTranslation);
+                    this.objsToDraw[this.objectIDtoDrag].setPosition([newPos[6],newPos[7]]);
+                }
+                else 
+                {
+                    this.objsToDraw[this.objectIDtoDrag].setPosition([mouseTranslation[6],mouseTranslation[7]]);
+                }
+
+                this.objsToDraw[this.objectIDtoDrag].updateWorldMatrix(parentWorldMat);
             }
 
         // Tell WebGl to use our picking program

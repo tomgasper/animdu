@@ -51,6 +51,6 @@ export class TextObject extends SceneObject
 
         let newTransform = computeTransform(this.properties.position,this.properties.rotation,this.properties.scale, this.properties.origin);
         newTransform = m3.multiply(newTransform, flip);
-        this.properties.transform = m3.multiply(this.properties.projection, newTransform);
+        this.properties.localMatrix = newTransform;
     }
 }

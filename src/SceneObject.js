@@ -28,9 +28,7 @@ export class SceneObject extends GeometryObject
         }
 
         this.handlers = {
-            onClick : () => {
-                console.log(this.properties.id);
-            }
+            onClick : undefined
         }
     }
 
@@ -89,7 +87,7 @@ export class SceneObject extends GeometryObject
         if (projectionMat && projectionMat.length == 9)
         {
             this.properties.projection = projectionMat;
-            this.updateTransform();
+            this.calcFinalTransform();
         } else {
             throw new Error("Invalid input - projection matrix");
         }
@@ -105,16 +103,13 @@ export class SceneObject extends GeometryObject
         this.updateTransform();
     }
 
+    calcFinalTransform()
+    {
+        this.properties.transform =  m3.multiply(this.properties.projection, this.worldMatrix);
+    }
+
     updateTransform()
     {
-        const flip = [
-            1,0,0,
-            0,-1,0,
-            0,0,1
-        ];
-
-        let newTransform = computeTransform(this.properties.position,this.properties.rotation,this.properties.scale, this.properties.origin);
-        // newTransform = m3.multiply(newTransform, flip);
-        this.properties.transform = m3.multiply(this.properties.projection, newTransform);
+        this.localMatrix = computeTransform(this.properties.position,this.properties.rotation,this.properties.scale, this.properties.origin);
     }
 }
