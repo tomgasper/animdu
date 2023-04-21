@@ -14,11 +14,6 @@ export class Node
     parent = undefined;
     children = [];
 
-    constructor()
-    {
-
-    }
-
     setParent(parent)
     {
         // remove this node from parent

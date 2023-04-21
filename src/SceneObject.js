@@ -82,6 +82,11 @@ export class SceneObject extends GeometryObject
         if (color && color.length === 4) { this.properties.color = color; }
     }
 
+    setOriginalColor(color)
+    {
+        if (color && color.length === 4) { this.properties.originalColor = color; }
+    }
+
     setProjection(projectionMat)
     {
         if (projectionMat && projectionMat.length == 9)

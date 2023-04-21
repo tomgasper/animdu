@@ -1,5 +1,5 @@
 export class RectangleBuffer {
-    constructor(gl, programInfo, textureSrc)
+    constructor(gl, programInfo, size, rounded = 0, textureSrc)
     {
          // Make gl object local
          this.gl = gl;
@@ -20,6 +20,7 @@ export class RectangleBuffer {
             50,50,
             -50, 50
          ]
+
          this.indiciesData = [
             0,1,2,
             2,3,0
@@ -35,7 +36,7 @@ export class RectangleBuffer {
                  offset : 0
              },
              indices: {
-                 size : 6,
+                 size : this.indiciesData.length,
                  type : gl.UNSIGNED_BYTE,
                  normalize : false,
                  stride : 0,
@@ -49,12 +50,109 @@ export class RectangleBuffer {
              count: this.attributesInfo.indices.size
          }
 
-         this.initialize(textureSrc);
+         this.initialize(size, rounded, textureSrc);
      }
     
-    initialize(textureSrc)
+    initialize(size, rounded, textureSrc)
     {
         this.gl.bindVertexArray(this.VAO);
+
+        // set custom size
+        if (size && size.length == 2)
+        {
+            // this.bufferData = [
+            //     -size[0], -size[1],
+            //     size[0], -size[1],
+            //     size[0], size[1],
+            //     -size[0], size[1]
+            // ];
+
+            this.bufferData = [
+                0, 0,
+                size[0], 0,
+                size[0], size[1],
+                0, size[1]
+            ];
+
+            if (rounded == 1)
+            {
+                
+                // console.log(this.bufferData);
+
+                const o_x = size[0]*0.1;
+                const o_y = size[1]*0.1;
+
+                const corners = [
+                    [ [0,0+o_y], [0,0], [o_x, 0], 4 ],
+                    [ [size[0]-o_x, 0], [size[0], 0], [size[0], 0+o_y], 7],
+                    [ [size[0], size[1]-o_y], [size[0], size[1]], [size[0]-o_x, size[1]], 10],
+                    [ [0+o_x, size[1]], [0, size[1]], [0, size[1]-o_y],9]
+                ];
+
+                const part_x = size[0]/3;
+                const part_y = size[1]/3;
+
+                const verts = [
+                    0, 2 * part_y,
+                    0, 1 * part_y,
+                    3 * part_x, 1 * part_y,
+                    3 * part_x, 2 * part_y,
+
+                    1 * part_x, 1 * part_y,
+                    1 * part_x, 0,
+                    2 * part_x, 0,
+                    2 * part_x, 1 * part_y,
+
+                    1 * part_x, 3 * part_y,
+                    1 * part_x, 2 * part_y,
+                    2 * part_x, 2 * part_y,
+                    2 * part_x, 3 * part_y,
+
+                    // corners
+                    0, o_y,
+                    o_x, 0,
+
+                    3*part_x-o_x, 0,
+                    3*part_x, o_y,
+
+                    3*part_x, 3*part_y-o_y,
+                    3*part_x-o_x, 3*part_y,
+
+                    o_x, 3*part_y,
+                    0, 3*part_y-o_y
+
+                ];
+
+                this.bufferData = verts;
+
+                this.indiciesData = [
+                    0,1,2,
+                    2,3,0,
+                    4,5,6,
+                    6,7,4,
+                    8,9,10,
+                    10,11,8,
+                    
+                    4,1,12,
+                    4,13,5,
+
+                    7,6,14,
+                    2,7,15,
+
+                    10,3,16,
+                    11,10,17,
+
+                    8,18,9,
+                    9,19,0
+
+                ];
+
+                this.calcRoundedCorners(corners);
+
+                this.attributesInfo.indices.size = this.indiciesData.length;
+                this.drawSettings.count = this.indiciesData.length;
+            }
+        }
 
         // create bufffers, bind them, upload data, specify layout
         this.setUpPositionBuffer();
@@ -64,6 +162,29 @@ export class RectangleBuffer {
         {
             this.setUpTextureBuffer(this.textureSrc);
         }
+    }
+
+    calcRoundedCorners(corners)
+    {
+        const data = [];
+
+        corners.forEach((c) => {
+            // typical bezier curve
+
+            this.bufferData.push(c[0][0], c[0][1]);
+            
+            for (let t = 0.1; t <= 1; t += 0.1)
+            {
+                let p = [0,0];
+                p[0] = c[1][0] + Math.pow(1-t,2)*(c[0][0]-c[1][0]) + Math.pow(t,2)*(c[2][0] - c[1][0]);
+                p[1] = c[1][1] + Math.pow(1-t,2)*(c[0][1]-c[1][1]) + Math.pow(t,2)*(c[2][1] - c[1][1]);
+                this.bufferData.push(p[0],p[1]);
+
+                this.indiciesData.push(c[3], (this.bufferData.length/2) - 2, (this.bufferData.length/2)-1 );
+            }
+        });
+
+        //this.bufferData.push(data);
     }
 
     setUpPositionBuffer()

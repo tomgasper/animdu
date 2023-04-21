@@ -58,7 +58,7 @@ export function getProjectionMat(gl)
 {
     if (!gl || !gl.canvas) throw Error("Invalid gl/canvas object");
 
-    return m3.projection(this.gl.canvas.clientWidth, this.gl.canvas.clientHeight);
+    return m3.projection(gl.canvas.clientWidth, gl.canvas.clientHeight);
 }
 
 // render generic object

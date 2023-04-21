@@ -5,7 +5,7 @@ import { CircleBuffer } from "./Primitives/CircleBuffer.js";
 import { RectangleBuffer } from "./Primitives/RectangleBuffer.js";
 import { CustomBuffer } from "./Primitives/CustomBuffer.js";
 
-import { Node } from "./Node/Node.js";
+import { UINode } from "./UI/UINode.js";
 
 import { SceneObject } from "./SceneObject.js";
 
@@ -19,6 +19,10 @@ import { mountUI } from "./UI/UI_handlers.js";
 
 export class SceneManager
 {
+    gl = {};
+    programs = [];
+    canvas = {};
+
     time = 0.;
 
     primitiveBuffers = {};
@@ -32,6 +36,7 @@ export class SceneManager
 
     isMouseDown = false;
     isMouseClicked = false;
+    clickOffset = undefined;
     mouseX = 0;
     mouseY = 0;
 
@@ -121,14 +126,15 @@ export class SceneManager
         obj3.setPosition([150,0]);
         obj3.setScale([1,1]);
 
-        // this.holder1 = new Node();
+        const node1 = new UINode(this);
 
         obj3.setParent(obj2);
         obj2.setParent(obj1);
         obj1.updateWorldMatrix();
 
         // Add all objs
-        this.addObjToScene([obj1,obj2,obj3]);
+        this.addObjToScene([obj1,obj2,obj3 ]);
+        this.addObjToScene(node1.getObjsToRender());
     }
 
     addObjToScene(objs)
@@ -260,8 +266,17 @@ export class SceneManager
         // Moving the object under the coursor
         if (this.isMouseDown && this.objectIDtoDrag >= 0 && this.objsToDraw[this.objectIDtoDrag].canBeMoved === true )
             {
+                if (!this.clickOffset)
+                {
+                    const obj = this.objsToDraw[this.objectIDtoDrag];
+                    let curr_pos = [ obj.worldMatrix[6], obj.worldMatrix[7] ];
+                    
+                    this.clickOffset = [this.mouseX - curr_pos[0], this.mouseY - curr_pos[1]];
+
+                }
+
                 let parentWorldMat;
-                let mouseTranslation = m3.translation(this.mouseX,this.mouseY);
+                let mouseTranslation = m3.translation(this.mouseX - this.clickOffset[0],this.mouseY - this.clickOffset[1]);
 
                 // Object is a child of some other object
                 if (this.objsToDraw[this.objectIDtoDrag].parent)
@@ -273,8 +288,10 @@ export class SceneManager
                     // let acos = Math.acos(wMatrix[0]);
                     // if (wMatrix[4] < 0) acos = -acos;
                     // let rot = m3.rotation(acos);
+
                     
                     let newPos = m3.multiply(parentWorldMatInv, mouseTranslation);
+
                     this.objsToDraw[this.objectIDtoDrag].setPosition([newPos[6],newPos[7]]);
                 }
                 else 
@@ -283,6 +300,12 @@ export class SceneManager
                 }
 
                 this.objsToDraw[this.objectIDtoDrag].updateWorldMatrix(parentWorldMat);
+            }
+
+            // reset click offset when mouse is no longer down
+            if (!this.isMouseDown && this.clickOffset)
+            {
+                this.clickOffset = undefined;
             }
 
         // Tell WebGl to use our picking program
