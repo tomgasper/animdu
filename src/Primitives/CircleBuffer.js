@@ -1,5 +1,5 @@
 export class CircleBuffer {
-    constructor(gl, programInfo, radius = 50, resolution = 9)
+    constructor(gl, programInfo, radius = 50, resolution = 9, textureSrc)
     {
         // Make gl object local
         this.gl = gl;
@@ -47,15 +47,21 @@ export class CircleBuffer {
             offset: 0,
             count: this.bufferData.length/this.attributesInfo.position.size
         }
+
+        this.initialize(textureSrc);
     }
 
-    initialize()
+    initialize(textureSrc)
     {
         this.bindVertexArray();
         // create bufffers, bind them, upload data, specify layout
         this.setUpPositionBuffer();
         this.setUpIndicesBuffer();
-        // this.setUpTextureBuffer("./src/texture4.jpg");
+
+        if (textureSrc)
+        {
+            this.setUpTextureBuffer(textureSrc);
+        }
     }
 
     bindVertexArray()
@@ -190,6 +196,18 @@ export class CircleBuffer {
     }
 
     return drawInfo;
+    }
+
+    getInfo()
+    {
+        const bufferInfo = {
+            bufferInfo: this.getBufferInfo(),
+            vertexArrInfo: this.getVertexArrInfo(),
+            drawInfo: this.getDrawInfo(),
+            programInfo: this.programInfo
+        };
+
+        return bufferInfo;
     }
 
     draw()

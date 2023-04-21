@@ -1,5 +1,5 @@
 export class TriangleBuffer {
-    constructor(gl, programInfo)
+    constructor(gl, programInfo, textureSrc)
     {
         // Make gl object local
         this.gl = gl;
@@ -48,17 +48,24 @@ export class TriangleBuffer {
             offset: 0,
             count: this.bufferData.length/this.attributesInfo.position.size
         }
+
+        this.initialize(textureSrc);
     }
     
-    initialize()
+    initialize(textureSrc)
     {
         this.gl.bindVertexArray(this.VAO);
 
         this.setUpPositionBuffer();
-        // this.setUpTextureBuffer("./src/texture4.jpg");
+
+        if (textureSrc)
+        {
+            this.setUpTextureBuffer(this.textureSrc);
+        }
 
         this.gl.bindVertexArray(null);
     }
+
     setUpPositionBuffer()
     {
          // take location from shader and enable it
@@ -135,6 +142,18 @@ export class TriangleBuffer {
         if (!programInfo) throw new Error("Incorrect input shader");
 
         this.programInfo = programInfo;
+    }
+
+    getInfo()
+    {
+        const bufferInfo = {
+            bufferInfo: this.getBufferInfo(),
+            vertexArrInfo: this.getVertexArrInfo(),
+            drawInfo: this.getDrawInfo(),
+            programInfo: this.programInfo
+        };
+
+        return bufferInfo;
     }
 
     draw()

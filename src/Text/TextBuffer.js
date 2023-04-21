@@ -76,7 +76,7 @@ export class TextBuffer {
 
     generateTextBufferData(txtString, font_size = 20)
     {
-        const vertex_data = new Float32Array(txtString.length * 6 * this.attributesInfo.position.stride/4 );
+        const vertex_data = new Float32Array(txtString.length * 6 * this.attributesInfo.position.stride/4 + 3 );
 
         const font_color = [0,0,0,1];
         font_size = font_size;
@@ -85,7 +85,6 @@ export class TextBuffer {
 
         let font = this.font.decoder;
         let fmetrics = fontMetrics(font, font_size, font_size*0.2);
-
 
         let str = writeString(txtString, font, fmetrics, [0,0], vertex_data);
         let vcount = str.array_pos / (this.attributesInfo.position.stride/4 );

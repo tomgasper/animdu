@@ -88,6 +88,7 @@ export class SceneObject extends GeometryObject
         {
             this.properties.projection = projectionMat;
             this.calcFinalTransform();
+
         } else {
             throw new Error("Invalid input - projection matrix");
         }

@@ -1,4 +1,5 @@
 import { m3 } from "../utils.js";
+
 import { TextObject } from "./TextObject.js";
 import { TextBuffer } from "./TextBuffer.js";
 
@@ -7,6 +8,7 @@ export function createNewText(gl, program, text, font, projectionMat)
     // Create text object
     const textBuffer = new TextBuffer(gl, program, font, text);
     textBuffer.initialize();
+    
     const textBufferInfo = {
         bufferInfo: textBuffer.getBufferInfo(),
         vertexArrInfo: textBuffer.getVertexArrInfo(),

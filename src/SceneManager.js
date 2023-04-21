@@ -5,22 +5,23 @@ import { CircleBuffer } from "./Primitives/CircleBuffer.js";
 import { RectangleBuffer } from "./Primitives/RectangleBuffer.js";
 import { CustomBuffer } from "./Primitives/CustomBuffer.js";
 
+import { Node } from "./Node/Node.js";
+
 import { SceneObject } from "./SceneObject.js";
 
 import { getIdFromCurrentPixel, setFramebufferAttachmentSizes } from "./pickingFramebuffer.js";
-import { UIObject } from "./UIObject.js";
-
 import { TextFont } from "./Text/TextFont.js";
-
-import { createNewText } from "./Text/textHelper.js";
 
 import { roboto_bold_font } from "./fonts/roboto-bold.js";
 
-import { Node } from "./Node/Node.js";
+import { mountUI } from "./UI/UI_handlers.js";
+
 
 export class SceneManager
 {
     time = 0.;
+
+    primitiveBuffers = {};
 
     objsToDraw = [];
     txtsToDraw = [];
@@ -84,9 +85,6 @@ export class SceneManager
         // Calculate projection matrix for scene objects
         const projectionMat = m3.projection(this.gl.canvas.clientWidth, this.gl.canvas.clientHeight);
 
-        const screen_width = this.gl.canvas.clientWidth;
-        const screen_height = this.gl.canvas.clientHeight;
-
         // Install font
         const fontSettings = {
             textureSrc: "./src/fonts/roboto-bold.png",
@@ -98,116 +96,39 @@ export class SceneManager
         const robotoBoldFont = new TextFont(this.gl, fontSettings, this.gl.LUMINANCE);
         this.fontUI = robotoBoldFont;
 
-        const someText = createNewText(this.gl, this.programs[2], "New Object", this.fontUI, projectionMat);
-        const someText2 = createNewText(this.gl, this.programs[2], "See stats", this.fontUI, projectionMat);
+        mountUI(this);
 
-        someText.handlers.onClick = () => {
-            const projectionMat = m3.projection(this.gl.canvas.clientWidth, this.gl.canvas.clientHeight);
-            const someText = createNewText(this.gl, this.programs[2], "Dynamically added text!", this.fontUI, projectionMat);
-            this.addObjToScene([someText]);
-            console.log("added");
+        // Describe buffers for primitive shape
+        const triangleBuffer = new TriangleBuffer(this.gl, this.programs[0]);
+        const circleBuffer = new CircleBuffer(this.gl,this.programs[0], 50, 8);
+        const rectangleBuffer = new RectangleBuffer(this.gl,this.programs[0]);    
+
+        this.primitiveBuffers = {
+            rectangle: rectangleBuffer.getInfo(),
+            circle: circleBuffer.getInfo(),
+            triangle: triangleBuffer.getInfo()
         };
 
-        const y_offset = screen_height * 0.02;
-        const x_offset = screen_width * 0.02;
+        const obj1 = new SceneObject(this.primitiveBuffers.circle, projectionMat);
+        obj1.setPosition([150,250]);
+        obj1.setScale([1,1]);
 
-        someText.setPosition([x_offset,screen_height/2 + y_offset]);
-        someText.canBeMoved = false;
-        someText.blending = true;
-        someText.setScale([0.6,0.6]);
+        const obj2 = new SceneObject(this.primitiveBuffers.triangle, projectionMat);
+        obj2.setPosition([150,0]);
+        obj2.setRotation(0);
 
-        someText2.setPosition([x_offset+150, screen_height/2 + y_offset]);
-        someText2.canBeMoved = false;
-        someText2.blending = true;
-        someText2.setScale([0.6,0.6]);
-
-        // Install UI
-        const customVertsPos = [  0, screen_height/2,
-                                  screen_width, screen_height/2,
-                                  screen_width, screen_height,
-                                  
-                                  screen_width, screen_height,
-                                  0, screen_height,
-                                  0, screen_height/2,
-                                ];
-
-
-        const customBuffer = new CustomBuffer(this.gl, this.programs[0], customVertsPos);
-        customBuffer.initialize();
-
-        const customBufferInfo = {
-            bufferInfo: customBuffer.getBufferInfo(),
-            vertexArrInfo: customBuffer.getVertexArrInfo(),
-            drawInfo: customBuffer.getDrawInfo(),
-            programInfo: this.programs[0]
-        };
- 
-        const UI_Container = new UIObject(customBufferInfo, projectionMat);
-        UI_Container.canBeMoved = false;
-        UI_Container.setColor([0,0.3,0.2,1]);
-        UI_Container.properties.originalColor = [0, 0.02, 0.04, 1];
-
-        // Describe buffer for triangle shape
-        const myTriangleBuffer = new TriangleBuffer(this.gl, this.programs[0]);
-        myTriangleBuffer.initialize();
-
-        // Describe buffer for sphere shape
-        const myCircleBuffer = new CircleBuffer(this.gl,this.programs[0]);
-        myCircleBuffer.initialize();
-
-        const myRectangleBuffer = new RectangleBuffer(this.gl,this.programs[0]);
-        myRectangleBuffer.initialize();
-
-        const triangleBufferInfo = { bufferInfo: myTriangleBuffer.getBufferInfo(),
-                                     vertexArrInfo: myTriangleBuffer.getVertexArrInfo(),
-                                     drawInfo: myTriangleBuffer.getDrawInfo(),
-                                     programInfo: this.programs[0] };
-
-        const circleBufferInfo = { bufferInfo: myCircleBuffer.getBufferInfo(),
-                                    vertexArrInfo: myCircleBuffer.getVertexArrInfo(),
-                                    drawInfo: myCircleBuffer.getDrawInfo(),
-                                    programInfo: this.programs[0] };
-
-        const rectangleBufferInfo = { bufferInfo: myRectangleBuffer.getBufferInfo(),
-            vertexArrInfo: myRectangleBuffer.getVertexArrInfo(),
-            drawInfo: myRectangleBuffer.getDrawInfo(),
-            programInfo: this.programs[0] };
-
-        const obj1 = new SceneObject(triangleBufferInfo, projectionMat);
-        obj1.setPosition([100,500]);
-        obj1.setRotation(0.6);
-
-        const obj2 = new SceneObject(triangleBufferInfo, projectionMat);
-        obj2.setPosition([50,0]);
-        obj2.setRotation(1.5);
-
-        const obj3 = new SceneObject(circleBufferInfo, projectionMat);
+        const obj3 = new SceneObject(this.primitiveBuffers.rectangle, projectionMat);
         obj3.setPosition([150,0]);
-        obj3.setRotation(-0.9);
+        obj3.setScale([1,1]);
 
-        const obj4 = new SceneObject(triangleBufferInfo, projectionMat);
-        obj4.setPosition([50,0]);
+        // this.holder1 = new Node();
 
-        const obj5 = new SceneObject(triangleBufferInfo, projectionMat);
-        obj5.setPosition([50,0]);
-
-        const obj6 = new SceneObject(rectangleBufferInfo, projectionMat);
-        obj6.setPosition([50,0]);
-
-        // const layer2 = new Node();
-        // layer2.localMatrix = [1,0,0,
-        //                     0,1,0,
-        //                     50,25,1];
-
-        obj6.setParent(obj5);
-        obj5.setParent(obj4);
-        obj4.setParent(obj3);
         obj3.setParent(obj2);
         obj2.setParent(obj1);
         obj1.updateWorldMatrix();
 
         // Add all objs
-        this.addObjToScene([UI_Container,obj1,obj2,obj3,obj4,obj5,obj6, someText, someText2]);
+        this.addObjToScene([obj1,obj2,obj3]);
     }
 
     addObjToScene(objs)
@@ -234,6 +155,8 @@ export class SceneManager
 
             this.gl.useProgram(program.program);
 
+            // set projection based on canvas dimensions
+
             objsToDraw.forEach((obj, i) => {
                 // (!) Notice that we are setting id offset by 1
                 const ii = i +1 ;
@@ -248,9 +171,10 @@ export class SceneManager
                 
                 obj.setID(u_id);
 
+                // here basically you can modify tings
                 obj.setProjection(projection);
 
-                renderObject(this.gl, obj, program, true);
+                renderObject(this.gl, obj, program);
 
                 // Reset color
                 obj.setColor(obj.properties.originalColor);
@@ -271,7 +195,8 @@ export class SceneManager
                 }
 
                 obj.setProjection(projection);
-                renderObject(this.gl, obj, program, false);
+
+                renderObject(this.gl, obj, program);
 
                 // Disable blending
                 if (this.gl.isEnabled(this.gl.BLEND) )
@@ -307,6 +232,7 @@ export class SceneManager
         const pixelY = this.gl.canvas.height - this.mouseY * this.gl.canvas.height / this.gl.canvas.clientHeight - 1;
         const id = getIdFromCurrentPixel(this.gl, pixelX, pixelY);
 
+
         if (id > 0)
         {
             // substract id by 1 to get correct place of the found object in objsToDraw array 
@@ -337,17 +263,9 @@ export class SceneManager
                 let parentWorldMat;
                 let mouseTranslation = m3.translation(this.mouseX,this.mouseY);
 
-                let top_parent = this.objsToDraw[this.objectIDtoDrag];
-
+                // Object is a child of some other object
                 if (this.objsToDraw[this.objectIDtoDrag].parent)
                 {
-                    top_parent = this.objsToDraw[this.objectIDtoDrag].parent;
-
-                    while (top_parent.parent)
-                    {
-                        top_parent = top_parent.parent;
-                    }
-
                     parentWorldMat = this.objsToDraw[this.objectIDtoDrag].parent.worldMatrix;
                     let parentWorldMatInv = m3.inverse(parentWorldMat);
                     

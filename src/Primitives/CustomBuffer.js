@@ -32,20 +32,18 @@ export class CustomBuffer {
              offset: 0,
              count: this.bufferData.length/this.attributesInfo.position.size
          }
+
+         this.initialize();
      }
     
     initialize()
     {
-        this.bindVertexArray();
+        this.gl.bindVertexArray(this.VAO);
+
         // create bufffers, bind them, upload data, specify layout
         this.setUpPositionBuffer();
         // this.setUpIndicesBuffer();
         // this.setUpTextureBuffer("./src/texture4.jpg");
-    }
-
-    bindVertexArray()
-    {
-        this.gl.bindVertexArray(this.VAO);
     }
 
     setUpPositionBuffer()
@@ -121,6 +119,18 @@ export class CustomBuffer {
     }
 
     return drawInfo;
+    }
+
+    getInfo()
+    {
+        const bufferInfo = {
+            bufferInfo: this.getBufferInfo(),
+            vertexArrInfo: this.getVertexArrInfo(),
+            drawInfo: this.getDrawInfo(),
+            programInfo: this.programInfo
+        };
+
+        return bufferInfo;
     }
 
     draw()

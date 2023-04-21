@@ -1,5 +1,5 @@
 export class RectangleBuffer {
-    constructor(gl, programInfo)
+    constructor(gl, programInfo, textureSrc)
     {
          // Make gl object local
          this.gl = gl;
@@ -44,24 +44,26 @@ export class RectangleBuffer {
          }
  
          this.drawSettings = {
-             primitiveType: this.gl.TRIANGLES,
+             primitiveType: gl.TRIANGLES,
              offset: 0,
-             count: 2
+             count: this.attributesInfo.indices.size
          }
+
+         this.initialize(textureSrc);
      }
     
-    initialize()
+    initialize(textureSrc)
     {
-        this.bindVertexArray();
+        this.gl.bindVertexArray(this.VAO);
+
         // create bufffers, bind them, upload data, specify layout
         this.setUpPositionBuffer();
         this.setUpIndicesBuffer();
-        // this.setUpTextureBuffer("./src/texture4.jpg");
-    }
 
-    bindVertexArray()
-    {
-        this.gl.bindVertexArray(this.VAO);
+        if (textureSrc)
+        {
+            this.setUpTextureBuffer(this.textureSrc);
+        }
     }
 
     setUpPositionBuffer()
@@ -116,7 +118,7 @@ export class RectangleBuffer {
 
     getBufferInfo() {
     const bufferInfo = {
-        postion : this.positionBuffer,
+        position : this.positionBuffer,
         texture : this.textureBuffer
     };
 
@@ -145,6 +147,18 @@ export class RectangleBuffer {
     return drawInfo;
     }
 
+    getInfo()
+    {
+        const bufferInfo = {
+            bufferInfo: this.getBufferInfo(),
+            vertexArrInfo: this.getVertexArrInfo(),
+            drawInfo: this.getDrawInfo(),
+            programInfo: this.programInfo
+        };
+
+        return bufferInfo;
+    }
+
     draw()
     {
         let primitiveType = this.drawSettings.primitiveType;
@@ -153,6 +167,6 @@ export class RectangleBuffer {
 
         this.gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER, this.indiciesBuffer);
         // this.gl.bindTexture(this.gl.TEXTURE_2D, this.texture);
-        this.gl.drawElements(this.gl.TRIANGLES, this.attributesInfo.indices.size, this.gl.UNSIGNED_SHORT, 0);
+        this.gl.drawElements(primitiveType , count, this.gl.UNSIGNED_SHORT, offset);
     }
 }

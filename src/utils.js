@@ -52,10 +52,17 @@ export function prepareForRender(gl)
 
         // Clear the canvas
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-    }
+}
+
+export function getProjectionMat(gl)
+{
+    if (!gl || !gl.canvas) throw Error("Invalid gl/canvas object");
+
+    return m3.projection(this.gl.canvas.clientWidth, this.gl.canvas.clientHeight);
+}
 
 // render generic object
-export function renderObject(gl, obj, program, idPass = false)
+export function renderObject(gl, obj, program)
 {
     // binding buffer not needed after creating vertex array and bninding it to the vertex buffer
     gl.bindVertexArray(obj.renderInfo.vertexArrInfo.VAO);
