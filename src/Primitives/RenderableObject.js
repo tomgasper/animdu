@@ -1,7 +1,8 @@
 import { m3, computeTransform  } from "../utils.js"
 import { Node } from "../Node/Node.js"
+import { SceneObject } from "../SceneObject.js";
 
-export class GeometryObject extends Node
+export class RenderableObject extends SceneObject
 {
     // This class will actually allow to create "backend" for each object
     // We will be changing parameters of this object and then sending this new changed object
@@ -15,7 +16,7 @@ export class GeometryObject extends Node
     
     constructor(renderInfo)
     {
-        super();
+        // super();
 
         // ok this will be some object which points to proper buffer
         this.renderInfo = {

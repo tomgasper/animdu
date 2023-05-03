@@ -43,7 +43,7 @@ void main(void) {
     sdf_texel = 1.0 / sdf_tex_size;
     subpixel_offset = 0.3333 / scale; // 1/3 of screen pixel to texels
 
-    vec3 screen_pos = u_transform * vec3( pos, 1.0 );    
+    vec3 screen_pos =  u_transform * vec3( pos, 1.0 );    
     gl_Position = vec4( screen_pos.xy, 0.0, 1.0 );
 }
 `

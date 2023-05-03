@@ -25,7 +25,7 @@ export class RenderLoop
 
         if (this.previousTime !== time)
         {
-            this.callback(elapsed);
+            this.callback(elapsed, fps);
         }
 
         this.previousTime = time;

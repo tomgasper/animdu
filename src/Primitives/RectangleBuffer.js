@@ -1,5 +1,5 @@
 export class RectangleBuffer {
-    constructor(gl, programInfo, size, rounded = 0, textureSrc)
+    constructor(gl, programInfo, size, rounded = undefined, textureSrc)
     {
          // Make gl object local
          this.gl = gl;
@@ -74,13 +74,15 @@ export class RectangleBuffer {
                 0, size[1]
             ];
 
-            if (rounded == 1)
+            if (rounded)
             {
                 
                 // console.log(this.bufferData);
 
-                const o_x = size[0]*0.1;
-                const o_y = size[1]*0.1;
+                const mult = size[1] / size[0];
+
+                const o_x = mult*size[0]*rounded;
+                const o_y = size[1]*rounded;
 
                 const corners = [
                     [ [0,0+o_y], [0,0], [o_x, 0], 4 ],

@@ -7,15 +7,20 @@ export class TextObject extends SceneObject
     // with new uniforms
     // basicaly properties = uniforms
 
+    txtBuffer = {};
+
     listOfProperties = ["transform", "font_tex", "sdf_tex_size", "sdf_border_size", "hint_amount",
                         "font_color", "subpixel_amount"];
 
-    constructor(renderInfo, textProperties, projectionMat)
+
+    constructor(renderInfo, txtBuffer, textProperties, projectionMat)
     {
         super(renderInfo, projectionMat);
         
         // set necessary text properties on init
         this.setTextProperties(textProperties);
+
+        this.txtBuffer = txtBuffer;
     }
 
     setTextProperties(inputTextProperties)
@@ -30,6 +35,7 @@ export class TextObject extends SceneObject
 
         this.properties = {
             ...this.properties,
+            txt_string: inputTextProperties.txt_string,
             transform: inputTextProperties.transform,
             font_tex : inputTextProperties.font_tex,
             sdf_tex_size : inputTextProperties.sdf_tex_size,
@@ -40,17 +46,27 @@ export class TextObject extends SceneObject
         };
     }
 
+    updateText(txt)
+    {
+        if (txt && typeof txt == "string")
+        {
+            this.properties.txt_string = txt;
+        }
+        else throw Error("Incorrect input string");
+    }
+
     // override SceneObject method
     updateTransform()
     {
-        const flip = [
-            1,0,0,
-            0,-1,0,
-            0,0,1
-        ];
+        // const flip = [
+        //     1,0,0,
+        //     0,-1,0,
+        //     0,0,1
+        // ];
 
         let newTransform = computeTransform(this.properties.position,this.properties.rotation,this.properties.scale, this.properties.origin);
-        newTransform = m3.multiply(newTransform, flip);
+
+        // newTransform = m3.multiply(newTransform, flip);
         
         this.localMatrix = newTransform;
     }

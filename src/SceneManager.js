@@ -15,6 +15,7 @@ import { TextFont } from "./Text/TextFont.js";
 import { roboto_bold_font } from "./fonts/roboto-bold.js";
 
 import { mountUI } from "./UI/UI_handlers.js";
+import { resetMousePointer } from "./sceneHelper.js";
 
 
 export class SceneManager
@@ -22,13 +23,17 @@ export class SceneManager
     gl = {};
     programs = [];
     canvas = {};
+    document = {};
 
     time = 0.;
+    fps = 0.;
+
+    // temp
+    editableText = {};
 
     primitiveBuffers = {};
 
     objsToDraw = [];
-    txtsToDraw = [];
 
     framebuffer = {};
     depthBuffer = {};
@@ -40,6 +45,9 @@ export class SceneManager
     mouseX = 0;
     mouseY = 0;
 
+    activeObjID = -1;
+    prevActiveObjID = -1;
+
     objectIDtoDrag = -1;
 
     eventsToProcess = [];
@@ -50,12 +58,13 @@ export class SceneManager
     {
         // save gl for local use
         this.gl = gl;
+        this.document = gl.canvas.parentNode;
         this.programs = programsInfo;
         this.canvas = canvas;
 
         this.framebuffer = framebuffer;
         this.depthBuffer = depthBuffer;
-        this.renderTexture = renderTexture; 
+        this.renderTexture = renderTexture;
 
         // Add event listeners for user input
         this.gl.canvas.addEventListener("mousemove", (e) => {
@@ -63,6 +72,26 @@ export class SceneManager
             this.mouseX = e.clientX - rect.left;
             this.mouseY = e.clientY - rect.top;
          });
+
+         this.document.addEventListener("keyup", (e) => {
+            // if (e.keyCode === 32) this.textChange += " ";
+            
+            // if (e.keyCode >= 65 && e.keyCode <= 90)
+            // {
+            //     this.textChange += e.key;
+            // }
+
+            // handle activeObj
+            if (this.activeObjID >= 0 && this.objsToDraw[this.activeObjID].handlers.onInputKey)
+            {
+                let currObj = this.objsToDraw[this.activeObjID].handlers;
+
+                // let switchedActiveObj = false;
+                // if (this.activeObjID != this.prevActiveObjID) switchedActiveObj = true;
+                
+                currObj.onInputKey.call(currObj,e);
+            }
+        });
 
          this.gl.canvas.addEventListener("mousedown", (e) => {
             if (this.isMouseDown === false) this.isMouseDown = true;
@@ -75,12 +104,6 @@ export class SceneManager
          this.gl.canvas.addEventListener("mouseup", (e) => {
             this.isMouseDown = false;
 
-            // realize all events that need to be realized
-
-            if (this.objsToDraw[this.objectIDtoDrag])
-            {
-                this.objsToDraw[this.objectIDtoDrag].properties.color = [0,0,0,1];
-            }
             this.objectIDtoDrag = -1;
          })
     }
@@ -114,15 +137,15 @@ export class SceneManager
             triangle: triangleBuffer.getInfo()
         };
 
-        const obj1 = new SceneObject(this.primitiveBuffers.circle, projectionMat);
+        const obj1 = new RenderableObject(this.primitiveBuffers.circle, projectionMat);
         obj1.setPosition([150,250]);
         obj1.setScale([1,1]);
 
-        const obj2 = new SceneObject(this.primitiveBuffers.triangle, projectionMat);
+        const obj2 = new RenderableObject(this.primitiveBuffers.triangle, projectionMat);
         obj2.setPosition([150,0]);
         obj2.setRotation(0);
 
-        const obj3 = new SceneObject(this.primitiveBuffers.rectangle, projectionMat);
+        const obj3 = new RenderableObject(this.primitiveBuffers.rectangle, projectionMat);
         obj3.setPosition([150,0]);
         obj3.setScale([1,1]);
 
@@ -133,7 +156,7 @@ export class SceneManager
         obj1.updateWorldMatrix();
 
         // Add all objs
-        this.addObjToScene([obj1,obj2,obj3 ]);
+        this.addObjToScene([obj1,obj2,obj3]);
         this.addObjToScene(node1.getObjsToRender());
     }
 
@@ -174,7 +197,7 @@ export class SceneManager
                         ((ii >> 16) & 0xFF) / 0xFF,
                         ((ii >> 24) & 0xFF) / 0xFF
                     ];
-                
+
                 obj.setID(u_id);
 
                 // here basically you can modify tings
@@ -195,7 +218,7 @@ export class SceneManager
                     program = objProgram;
                 }
 
-                if (obj.blending === true && !this.gl.isEnabled(this.gl.BLEND) )
+                if (obj.properties.blending === true && !this.gl.isEnabled(this.gl.BLEND) )
                 {
                     this.gl.enable(this.gl.BLEND);
                 }
@@ -212,10 +235,14 @@ export class SceneManager
         })}
     }
 
-    draw(elapsedTime)
+    draw(elapsedTime, fps)
     {
         // convert elapsed time in ms to s
         this.time = elapsedTime * 0.001;
+        this.fps = fps;
+
+        // set fps
+        // if (this.editableText.txtBuffer) this.editableText.txtBuffer.updateTextBufferData(Math.round(this.fps).toString());
 
         // Resize canvas for display
         if (resizeCanvasToDisplaySize(window.originalRes, this.gl.canvas, window.devicePixelRatio))
@@ -230,7 +257,7 @@ export class SceneManager
         this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
         this.gl.disable(this.gl.BLEND);
 
-        // Draw to texture shades - PASS 1
+        // Draw to texture - PASS 1
         this.drawObjects(this.objsToDraw, this.programs[1]);
         
          // Look up id;
@@ -238,23 +265,35 @@ export class SceneManager
         const pixelY = this.gl.canvas.height - this.mouseY * this.gl.canvas.height / this.gl.canvas.clientHeight - 1;
         const id = getIdFromCurrentPixel(this.gl, pixelX, pixelY);
 
-
         if (id > 0)
         {
             // substract id by 1 to get correct place of the found object in objsToDraw array 
             const pickNdx = id - 1;
             const object = this.objsToDraw[pickNdx];
 
+            if (object.properties.highlight)
+            {
+                // change color of the object you're hovering over
+                object.setColor([1,1,0.3,1]);
+
+                // change the mouse pointer style
+                this.document.style.cursor = "pointer";
+
+            } else resetMousePointer(this.document);
+
+            // select object that will be dragged
             if (this.isMouseDown && this.objectIDtoDrag < 0)
             {
                 this.objectIDtoDrag = pickNdx;
             }
 
-            object.setColor([1,1,0.3,1]);
-
             // on click
             if (this.isMouseClicked === true)
             {
+                // Set ID of active object
+                this.prevActiveObjID = this.activeObjID;
+                this.activeObjID = pickNdx;
+
                 if (this.objsToDraw[pickNdx].handlers.onClick)
                 {
                     this.objsToDraw[pickNdx].handlers.onClick();
@@ -262,8 +301,12 @@ export class SceneManager
             }
 
         }
+        else {
+            // reset cursor
+            resetMousePointer(this.document);
+        }
 
-        // Moving the object under the coursor
+        // Moving the object under the cursor
         if (this.isMouseDown && this.objectIDtoDrag >= 0 && this.objsToDraw[this.objectIDtoDrag].canBeMoved === true )
             {
                 if (!this.clickOffset)
@@ -272,7 +315,6 @@ export class SceneManager
                     let curr_pos = [ obj.worldMatrix[6], obj.worldMatrix[7] ];
                     
                     this.clickOffset = [this.mouseX - curr_pos[0], this.mouseY - curr_pos[1]];
-
                 }
 
                 let parentWorldMat;
@@ -283,12 +325,6 @@ export class SceneManager
                 {
                     parentWorldMat = this.objsToDraw[this.objectIDtoDrag].parent.worldMatrix;
                     let parentWorldMatInv = m3.inverse(parentWorldMat);
-                    
-                    // if diagonal sin is negative then change sign of acos
-                    // let acos = Math.acos(wMatrix[0]);
-                    // if (wMatrix[4] < 0) acos = -acos;
-                    // let rot = m3.rotation(acos);
-
                     
                     let newPos = m3.multiply(parentWorldMatInv, mouseTranslation);
 
@@ -308,6 +344,7 @@ export class SceneManager
                 this.clickOffset = undefined;
             }
 
+
         // Tell WebGl to use our picking program
         this.gl.disable(this.gl.DEPTH_TEST);
         this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, null);
@@ -317,5 +354,6 @@ export class SceneManager
 
         // reset input handlers state
         this.isMouseClicked = false;
+        
     }
 }

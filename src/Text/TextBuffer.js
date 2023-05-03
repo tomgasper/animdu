@@ -16,7 +16,9 @@ export class TextBuffer {
 
     font = {};
 
-    constructor(gl, programInfo, font, txtString)
+    str = {};
+
+    constructor(gl, programInfo, font, txtString, txtSize)
     {
          // Make gl object local
          this.gl = gl;
@@ -61,7 +63,7 @@ export class TextBuffer {
              count: 0 // not set on start
          }
 
-         this.position.data = this.generateTextBufferData(txtString);
+         this.position.data = this.generateTextBufferData(txtString, txtSize);
      }
     
     initialize()
@@ -78,20 +80,26 @@ export class TextBuffer {
     {
         const vertex_data = new Float32Array(txtString.length * 6 * this.attributesInfo.position.stride/4 + 3 );
 
-        const font_color = [0,0,0,1];
         font_size = font_size;
-        const font_hinting = 1.0;
-        const subpixel = 1.0;
 
         let font = this.font.decoder;
         let fmetrics = fontMetrics(font, font_size, font_size*0.2);
 
         let str = writeString(txtString, font, fmetrics, [0,0], vertex_data);
+        this.str = str;
+
         let vcount = str.array_pos / (this.attributesInfo.position.stride/4 );
 
         this.drawSettings.count = vcount;
 
         return vertex_data;
+    }
+
+    updateTextBufferData(txtString, txtSize)
+    {
+        this.position.data = this.generateTextBufferData(txtString, txtSize);
+
+        this.setUpPositionBuffer();
     }
 
     setUpPositionBuffer()
@@ -146,6 +154,7 @@ export class TextBuffer {
     getBufferInfo() {
     const bufferInfo = {
         position : this.position.buffer,
+        updateText: this.updateTextBufferData
     };
 
     return bufferInfo;

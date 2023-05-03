@@ -3,10 +3,10 @@ import { m3 } from "../utils.js";
 import { TextObject } from "./TextObject.js";
 import { TextBuffer } from "./TextBuffer.js";
 
-export function createNewText(gl, program, text, font, projectionMat)
+export function createNewText(gl, program, text, textSize, font, projectionMat)
 {
     // Create text object
-    const textBuffer = new TextBuffer(gl, program, font, text);
+    const textBuffer = new TextBuffer(gl, program, font, text, textSize);
     textBuffer.initialize();
     
     const textBufferInfo = {
@@ -17,6 +17,7 @@ export function createNewText(gl, program, text, font, projectionMat)
     };
 
     const textProperties = {
+        txt_string: text,
         transform: [
             1,0,0,
             0,1,0,
@@ -30,7 +31,11 @@ export function createNewText(gl, program, text, font, projectionMat)
         subpixel_amount: 1.0
     };
 
-    const txtObj = new TextObject(textBufferInfo, textProperties, projectionMat);
+    const txtObj = new TextObject(textBufferInfo, textBuffer, textProperties, projectionMat);
+
+    // Turn on blending as default
+
+    txtObj.properties.blending = true;
 
     return txtObj;
 }

@@ -1,16 +1,13 @@
-import { GeometryObject } from "./Primitives/GeometryObject.js";
 import { m3, computeTransform } from "./utils.js";
 
-export class SceneObject extends GeometryObject
+export class SceneObject extends Node
 {
     // If set to true can be detected by mouse move and picked up
     canBeMoved = true;
 
-    constructor(renderInfo, projection)
+    constructor(projection)
     {
         if (typeof projection === undefined || projection.length != 9) throw new Error("[SceneObject]: Wrong input projection matrix!");
-
-        super(renderInfo)
 
         this.properties = {
             id: [0,0,0,1],
@@ -24,11 +21,15 @@ export class SceneObject extends GeometryObject
                         0, 1, 0,
                         0, 0, 1 ],
             projection : projection,
-            blending: false
+            blending: false,
+            highlight: true,
+
+            // add height,width
         }
 
         this.handlers = {
-            onClick : undefined
+            onClick : undefined,
+            onInputKey: undefined
         }
     }
 

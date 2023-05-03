@@ -28,23 +28,24 @@ export function mountUI(scene)
     const UI_Container = new UIObject(UIContainerBufferInfo, projectionMat);
 
     UI_Container.canBeMoved = false;
+    UI_Container.properties.highlight = false;
     UI_Container.setColor([0,0.3,0.2,1]);
     UI_Container.properties.originalColor = [0, 0.02, 0.04, 1];
 
     // Install Text
-    const txt_1 = createNewText(scene.gl, scene.programs[2], "New Object", scene.fontUI, projectionMat);
+    const txt_1 = createNewText(scene.gl, scene.programs[2], "New Object", 20, scene.fontUI, projectionMat);
     txt_1.setPosition([x_offset,screen_height/2 + y_offset]);
     txt_1.canBeMoved = false;
     txt_1.blending = true;
     txt_1.setScale([0.6,0.6]);
 
-    const txt_2 = createNewText(scene.gl, scene.programs[2], "See stats", scene.fontUI, projectionMat);
+    const txt_2 = createNewText(scene.gl, scene.programs[2], "See stats", 20, scene.fontUI, projectionMat);
     txt_2.setPosition([x_offset+130, screen_height/2 + y_offset]);
     txt_2.canBeMoved = false;
     txt_2.blending = true;
     txt_2.setScale([0.6,0.6]);
 
-    const txt_3 = createNewText(scene.gl, scene.programs[2], "Reset", scene.fontUI, projectionMat);
+    const txt_3 = createNewText(scene.gl, scene.programs[2], "Reset", 20, scene.fontUI, projectionMat);
     txt_3.setPosition([x_offset+250, screen_height/2 + y_offset]);
     txt_3.canBeMoved = false;
     txt_3.blending = true;
@@ -59,7 +60,7 @@ export function mountUI(scene)
 
     // Manage event hadlers
     txt_1.handlers.onClick = () => {
-        const someText = createNewText(scene.gl, scene.programs[2], "Dynamic text", scene.fontUI, projectionMat);
+        const someText = createNewText(scene.gl, scene.programs[2], "Dynamic text", 14, scene.fontUI, projectionMat);
         someText.setPosition([0,0]);
         someText.blending = true;
         someText.updateWorldMatrix();
