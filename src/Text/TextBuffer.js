@@ -15,14 +15,17 @@ export class TextBuffer {
     programInfo = {};
 
     font = {};
+    fontColor = [0,0,0,1];
 
     str = {};
 
-    constructor(gl, programInfo, font, txtString, txtSize)
+    constructor(gl, programInfo, font, txtString, txtSize, fontColor = [0,0,0,1.])
     {
          // Make gl object local
          this.gl = gl;
          this.font = font;
+
+         this.fontColor = fontColor;
 
          // Create VAO and generate data based on input text string on start
          this.VAO = this.gl.createVertexArray();
@@ -200,7 +203,8 @@ export class TextBuffer {
             // Text color goes to constant blend factor and 
             // triplet alpha comes from the fragment shader output
     
-            this.gl.blendColor( this.font.color[0], this.font.color[1], this.font.color[2], 1.0 );
+            this.gl.blendColor( this.fontColor[0], this.fontColor[1], this.fontColor[2], 1.0 );
+            // this.gl.blendColor( 0.5, 0.5, 0.5, 1.0 );
             this.gl.blendEquation( this.gl.FUNC_ADD );
             this.gl.blendFunc( this.gl.CONSTANT_COLOR, this.gl.ONE_MINUS_SRC_COLOR );
         } else {

@@ -3,6 +3,8 @@ import { CustomBuffer } from "../Primitives/CustomBuffer.js";
 import { UIObject } from "./UIObject.js";
 import { createNewText } from "../Text/textHelper.js";
 
+import { RenderableObject } from "../Primitives/RenderableObject.js";
+
 export function mountUI(scene)
 {
     const projectionMat = m3.projection(scene.gl.canvas.clientWidth, scene.gl.canvas.clientHeight);
@@ -25,27 +27,29 @@ export function mountUI(scene)
     const UIContainerBuffer = new CustomBuffer(scene.gl, scene.programs[0], customVertsPos);
     const UIContainerBufferInfo = UIContainerBuffer.getInfo();
     
-    const UI_Container = new UIObject(UIContainerBufferInfo, projectionMat);
+    const UI_Container = new RenderableObject(UIContainerBufferInfo, projectionMat);
 
     UI_Container.canBeMoved = false;
     UI_Container.properties.highlight = false;
     UI_Container.setColor([0,0.3,0.2,1]);
     UI_Container.properties.originalColor = [0, 0.02, 0.04, 1];
 
+    const txtColor = [1,1,1,1];
+
     // Install Text
-    const txt_1 = createNewText(scene.gl, scene.programs[2], "New Object", 20, scene.fontUI, projectionMat);
+    const txt_1 = createNewText(scene.gl, scene.programs[2], "New Object", 20, scene.fontUI,txtColor);
     txt_1.setPosition([x_offset,screen_height/2 + y_offset]);
     txt_1.canBeMoved = false;
     txt_1.blending = true;
     txt_1.setScale([0.6,0.6]);
 
-    const txt_2 = createNewText(scene.gl, scene.programs[2], "See stats", 20, scene.fontUI, projectionMat);
+    const txt_2 = createNewText(scene.gl, scene.programs[2], "See stats", 20, scene.fontUI,txtColor);
     txt_2.setPosition([x_offset+130, screen_height/2 + y_offset]);
     txt_2.canBeMoved = false;
     txt_2.blending = true;
     txt_2.setScale([0.6,0.6]);
 
-    const txt_3 = createNewText(scene.gl, scene.programs[2], "Reset", 20, scene.fontUI, projectionMat);
+    const txt_3 = createNewText(scene.gl, scene.programs[2], "Reset", 20, scene.fontUI,txtColor);
     txt_3.setPosition([x_offset+250, screen_height/2 + y_offset]);
     txt_3.canBeMoved = false;
     txt_3.blending = true;

@@ -7,7 +7,7 @@ import { CustomBuffer } from "./Primitives/CustomBuffer.js";
 
 import { UINode } from "./UI/UINode.js";
 
-import { SceneObject } from "./SceneObject.js";
+import { RenderableObject } from "./Primitives/RenderableObject.js";
 
 import { getIdFromCurrentPixel, setFramebufferAttachmentSizes } from "./pickingFramebuffer.js";
 import { TextFont } from "./Text/TextFont.js";
@@ -150,6 +150,7 @@ export class SceneManager
         obj3.setScale([1,1]);
 
         const node1 = new UINode(this);
+        const node2 = new UINode(this);
 
         obj3.setParent(obj2);
         obj2.setParent(obj1);
@@ -158,6 +159,9 @@ export class SceneManager
         // Add all objs
         this.addObjToScene([obj1,obj2,obj3]);
         this.addObjToScene(node1.getObjsToRender());
+        this.addObjToScene(node2.getObjsToRender());
+
+        console.log(this.objsToDraw);
     }
 
     addObjToScene(objs)

@@ -1,7 +1,9 @@
 import { SceneObject } from "../SceneObject.js";
 import { m3, computeTransform } from "../utils.js";
 
-export class TextObject extends SceneObject
+import { RenderableObject } from "../Primitives/RenderableObject.js";
+
+export class TextObject extends RenderableObject
 {
     // so here we extend the properties parameter
     // with new uniforms
@@ -9,7 +11,7 @@ export class TextObject extends SceneObject
 
     txtBuffer = {};
 
-    listOfProperties = ["transform", "font_tex", "sdf_tex_size", "sdf_border_size", "hint_amount",
+    #listOfOwnProperties = ["transform", "font_tex", "sdf_tex_size", "sdf_border_size", "hint_amount",
                         "font_color", "subpixel_amount"];
 
 
@@ -26,7 +28,7 @@ export class TextObject extends SceneObject
     setTextProperties(inputTextProperties)
     {
         // if the input object is in wrong format throw error
-        this.listOfProperties.forEach((property) => {
+        this.#listOfOwnProperties.forEach((property) => {
             if (Object.hasOwn(inputTextProperties, property) === false || typeof property === undefined )
             {
                 throw new Error("[TextObject]: Incorrect input object!");
@@ -53,6 +55,11 @@ export class TextObject extends SceneObject
             this.properties.txt_string = txt;
         }
         else throw Error("Incorrect input string");
+    }
+
+    setColor(color)
+    {
+        this.properties.font_color = color;
     }
 
     // override SceneObject method

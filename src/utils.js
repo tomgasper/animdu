@@ -1,3 +1,5 @@
+import { RenderableObject } from "./Primitives/RenderableObject.js";
+
 export function resizeCanvasToDisplaySize(originalRes, canvas, multiplier) {
 
     multiplier = multiplier || 1;
@@ -20,7 +22,8 @@ function setUniforms(gl, programInfo, properties)
         // Only assisgn values to shaders that have the given property
         if ( Object.hasOwn(properties, property))
         {
-            const uniform = programInfo.uniforms[property];    
+            const uniform = programInfo.uniforms[property];
+            // if (property == "font_color") console.log(properties[property]);
             switch(uniform.type)
             {
                 case "1i":
@@ -65,6 +68,8 @@ export function getProjectionMat(gl)
 export function renderObject(gl, obj, program)
 {
     // binding buffer not needed after creating vertex array and bninding it to the vertex buffer
+    if (!(obj instanceof RenderableObject)) throw Error("Object is not renderable!");
+
     gl.bindVertexArray(obj.renderInfo.vertexArrInfo.VAO);
 
     setUniforms(gl, program, obj.properties);

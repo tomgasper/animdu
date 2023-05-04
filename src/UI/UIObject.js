@@ -1,10 +1,13 @@
 import { SceneObject } from "../SceneObject.js";
 
-export class UIObject extends SceneObject{
-    constructor(renderInfo, projectionMat)
+import { RenderableObject } from "../Primitives/RenderableObject.js";
+
+export class UIObject{
+    objsToRender = [];
+
+    constructor()
     {
-        super(renderInfo, projectionMat)
-        
+
     }
 
     clicked(fnc)
@@ -22,7 +25,13 @@ export class UIObject extends SceneObject{
         if (obj && obj instanceof SceneObject)
         {
             this.objsToRender.push(obj);
-        } else throw Error("Incorrect object has been pushed to render");
-        
+        } else throw Error("Incorrect object has been pushed to render"); 
     }
+
+    addObjsToRender(obj_arr)
+        {
+            obj_arr.forEach((obj) => {
+                this.addObjToRender(obj);
+            })
+        }
 }

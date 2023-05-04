@@ -13,10 +13,17 @@ export class RenderableObject extends SceneObject
         drawInfo: undefined,
         programInfo: undefined
     }
+
+    buffer = {};
     
-    constructor(renderInfo)
+    constructor(renderInfo, projection, buffer = undefined)
     {
-        // super();
+        super();
+
+        this.buffer = buffer;
+
+        if (typeof projection === undefined || projection.length != 9) throw new Error("[SceneObject]: Wrong input projection matrix!");
+        this.setProjection(projection);
 
         // ok this will be some object which points to proper buffer
         this.renderInfo = {

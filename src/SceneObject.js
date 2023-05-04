@@ -1,13 +1,16 @@
 import { m3, computeTransform } from "./utils.js";
 
+import { Node } from "./Node/Node.js";
+
 export class SceneObject extends Node
 {
     // If set to true can be detected by mouse move and picked up
     canBeMoved = true;
 
-    constructor(projection)
+    constructor()
     {
-        if (typeof projection === undefined || projection.length != 9) throw new Error("[SceneObject]: Wrong input projection matrix!");
+        super();
+
 
         this.properties = {
             id: [0,0,0,1],
@@ -20,7 +23,7 @@ export class SceneObject extends Node
             transform: [ 1, 0, 0,
                         0, 1, 0,
                         0, 0, 1 ],
-            projection : projection,
+            projection : undefined,
             blending: false,
             highlight: true,
 
@@ -88,6 +91,28 @@ export class SceneObject extends Node
         if (color && color.length === 4) { this.properties.originalColor = color; }
     }
 
+    setCanBeHighlighted(canBe)
+    {
+        if ( typeof canBe !== "boolean") throw Error("Wrong input!");
+
+        this.properties.highlight = canBe;
+    }
+
+    setCanBeMoved(canBe)
+    {
+        if (typeof canBe !== "boolean") throw Error("Wrong input!");
+
+        this.canBeMoved = canBe;
+    }
+
+    setBlending(isBlending)
+    {
+        if (typeof isBlending !== "boolean") throw Error("Wrong input!");
+
+        this.properties.blending = isBlending;
+    }
+    
+
     setProjection(projectionMat)
     {
         if (projectionMat && projectionMat.length == 9)
@@ -110,13 +135,13 @@ export class SceneObject extends Node
         this.updateTransform();
     }
 
-    calcFinalTransform()
-    {
-        this.properties.transform =  m3.multiply(this.properties.projection, this.worldMatrix);
-    }
-
     updateTransform()
     {
         this.localMatrix = computeTransform(this.properties.position,this.properties.rotation,this.properties.scale, this.properties.origin);
+    }
+
+    calcFinalTransform()
+    {
+        this.properties.transform =  m3.multiply(this.properties.projection, this.worldMatrix);
     }
 }

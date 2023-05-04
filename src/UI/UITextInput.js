@@ -1,11 +1,8 @@
-import { RectangleBuffer } from "../Primitives/RectangleBuffer.js";
-
-import { SceneObject } from "../SceneObject.js";
-
 import { getProjectionMat } from "../utils.js";
 import { createNewText } from "../Text/textHelper.js";
 
 import { UIObject } from "./UIObject.js";
+import { createNewRect } from "../sceneHelper.js";
 
 export class UITextInput extends UIObject
 {
@@ -16,56 +13,82 @@ export class UITextInput extends UIObject
     placeholderStr = "Put text here!";
 
     scene = {};
+    parent = {};
 
-    objsToRender = [];
+    bg = {};
 
-    constructor(scene, height, width)
+    constructor(scene, width, height, txtSize, parent, placeholderStr = "Input text" )
     {
+        super();
+
         this.scene = scene;
 
         this.active = false;
-
         this.height = height;
         this.width = width;
+
+        this.parent = parent;
+
+        this.txtSize = txtSize;
+        this.placeholderStr = placeholderStr;
 
         this.initialize();
     }
 
     initialize()
     {
-        const projectionMat = getProjectionMat(this.scene.gl);
+        //
+        this.bg = createNewRect(this.scene, this.width, this.height, 0.15);
+        this.bg.setOriginalColor([1,1,1,1]);
+        this.bg.setCanBeMoved(false);
+        // this.bg.properties.blending = true;
 
-        const rectangleBuffer = new RectangleBuffer(this.scene.gl,this.scene.programs[0], [this.height,this.width], 0.05);    
-        const rect = new SceneObject(rectangleBuffer.getInfo(), projectionMat);
-        rect.canBeMoved = false;
-        rect.setPosition([120,0]);
-        rect.setOriginalColor([0.5,0.5,0.5,1]);
+        const txtColor = [0.1,0.1,0.1,1];
 
         // add children
-        const txt_1 = createNewText(this.scene.gl, this.scene.programs[2], this.placeholderStr, 20, this.scene.fontUI, getProjectionMat(this.scene.gl));
-        txt_1.canBeMoved = false; 
-        txt_1.properties.blending = true;
-        txt_1.properties.highlight = false;
-        txt_1.setPosition([0,0]);
-        txt_1.setScale([0.6,0.6]);
+        const txt = createNewText(this.scene.gl, this.scene.programs[2], this.placeholderStr, this.txtSize, this.scene.fontUI,txtColor );
+        // txt.setColor([0.2,0.3,0.4,1]);
+        txt.setCanBeMoved(false);
+        txt.setBlending(true);
+        txt.setCanBeHighlighted(true);
 
-        
+        // txt width
+        const txtWidth = txt.txtBuffer.str.cpos[0];
 
-        rect.handlers.onInputKey = (e) => {
-            // Get rid of placeholder txt on click
-            if( txt_1.properties.txt_string === this.placeholderStr) {
-                txt_1.properties.txt_string = e.key;
-            }
-            else {
-                txt_1.properties.txt_string += e.key;
-            }
+        // centre the text
+        txt.setPosition([this.width/2-txtWidth/2,0]);
 
-            txt_1.txtBuffer.updateTextBufferData(txt_1.properties.txt_string);
+        this.bg.handlers.onInputKey = (e) => { this.handleInput(e,txt); };
+        txt.handlers.onInputKey = (e) => { this.handleInput(e,txt); };
+
+        // set hierarchy
+        if (this.parent) this.bg.setParent(this.parent);
+        txt.setParent(this.bg);
+
+        this.parent.updateWorldMatrix();
+
+        this.addObjsToRender([this.bg,txt]);
+    }
+
+    handleInput(e,txt)
+    {
+        // Get rid of placeholder txt on click
+        if( txt.properties.txt_string === this.placeholderStr) {
+            txt.properties.txt_string = e.key;
+        }
+        else {
+            txt.properties.txt_string += e.key;
         }
 
-        txt_1.setParent(rect);
-        rect.updateWorldMatrix();
+        txt.txtBuffer.updateTextBufferData(txt.properties.txt_string, this.txtSize);
 
-        this.objsToRender.push(rect,txt_1);
+        const txtWidth2 = txt.txtBuffer.str.cpos[0];
+        txt.setPosition([this.width/2-txtWidth2/2,0]);
+        txt.updateWorldMatrix(txt.parent.worldMatrix);
+    }
+
+    setPosition([x,y])
+    {
+        this.bg.setPosition([x,y]);
     }
 }
