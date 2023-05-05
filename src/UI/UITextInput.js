@@ -4,6 +4,8 @@ import { createNewText } from "../Text/textHelper.js";
 import { UIObject } from "./UIObject.js";
 import { createNewRect } from "../sceneHelper.js";
 
+import { RenderableObject } from "../Primitives/RenderableObject.js";
+
 export class UITextInput extends UIObject
 {
     height = 100;
@@ -17,15 +19,17 @@ export class UITextInput extends UIObject
 
     bg = {};
 
-    constructor(scene, width, height, txtSize, parent, placeholderStr = "Input text" )
+    constructor(scene, rect, txtSize, parent, placeholderStr = "Input text")
     {
         super();
 
         this.scene = scene;
 
         this.active = false;
-        this.height = height;
-        this.width = width;
+        this.height = rect.height;
+        this.width = rect.width;
+
+        this.containerBuffer = rect.buffer ? rect.buffer : undefined;
 
         this.parent = parent;
 
@@ -38,16 +42,23 @@ export class UITextInput extends UIObject
     initialize()
     {
         //
-        this.bg = createNewRect(this.scene, this.width, this.height, 0.15);
-        this.bg.setOriginalColor([1,1,1,1]);
-        this.bg.setCanBeMoved(false);
-        // this.bg.properties.blending = true;
+        if (this.containerBuffer)
+        {
+            this.container = new RenderableObject(this.containerBuffer.getInfo(), getProjectionMat(this.scene.gl));
+        }
+        else {
+            this.container = createNewRect(this.scene, this.width, this.height, 0.15);
+        }
+
+        this.container.setOriginalColor([1,1,1,1]);
+        this.container.setCanBeMoved(false);
+
+        // this.container.properties.blending = true;
 
         const txtColor = [0.1,0.1,0.1,1];
 
         // add children
         const txt = createNewText(this.scene.gl, this.scene.programs[2], this.placeholderStr, this.txtSize, this.scene.fontUI,txtColor );
-        // txt.setColor([0.2,0.3,0.4,1]);
         txt.setCanBeMoved(false);
         txt.setBlending(true);
         txt.setCanBeHighlighted(true);
@@ -58,16 +69,16 @@ export class UITextInput extends UIObject
         // centre the text
         txt.setPosition([this.width/2-txtWidth/2,0]);
 
-        this.bg.handlers.onInputKey = (e) => { this.handleInput(e,txt); };
+        this.container.handlers.onInputKey = (e) => { this.handleInput(e,txt); };
         txt.handlers.onInputKey = (e) => { this.handleInput(e,txt); };
 
         // set hierarchy
-        if (this.parent) this.bg.setParent(this.parent);
-        txt.setParent(this.bg);
+        if (this.parent) this.container.setParent(this.parent);
+        txt.setParent(this.container);
 
         this.parent.updateWorldMatrix();
 
-        this.addObjsToRender([this.bg,txt]);
+        this.addObjsToRender([this.container,txt]);
     }
 
     handleInput(e,txt)
@@ -89,6 +100,6 @@ export class UITextInput extends UIObject
 
     setPosition([x,y])
     {
-        this.bg.setPosition([x,y]);
+        this.container.setPosition([x,y]);
     }
 }

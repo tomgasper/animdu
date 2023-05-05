@@ -37,7 +37,7 @@ export class RectangleBuffer {
              },
              indices: {
                  size : this.indiciesData.length,
-                 type : gl.UNSIGNED_BYTE,
+                 type : gl.UNSIGNED_SHORT,
                  normalize : false,
                  stride : 0,
                  offset : 0
@@ -232,50 +232,24 @@ export class RectangleBuffer {
         });
     }
 
-    changeShader(programInfo)
-    {
-        if (!programInfo) throw new Error("Incorrect input shader");
-
-        this.programInfo = programInfo;
-    }
-
-    getBufferInfo() {
-    const bufferInfo = {
-        position : this.positionBuffer,
-        texture : this.textureBuffer
-    };
-
-    return bufferInfo;
-    }
-
-    getVertexArrInfo() {
-    const vertexArrInfo = {
-        VAO : this.VAO,
-        primitiveType: this.attributesInfo.type,
-        offset: this.attributesInfo.offset,
-    };
-
-    return vertexArrInfo;
-    }
-
-    getDrawInfo()
-    {
-    const drawInfo = {
-        primitiveType: this.drawSettings.primitiveType,
-        offset: this.drawSettings.offset,
-        count: this.drawSettings.count,
-        drawCall: this.draw.bind(this)
-    }
-
-    return drawInfo;
-    }
-
     getInfo()
     {
         const bufferInfo = {
-            bufferInfo: this.getBufferInfo(),
-            vertexArrInfo: this.getVertexArrInfo(),
-            drawInfo: this.getDrawInfo(),
+            bufferInfo: {
+                position : this.positionBuffer,
+                texture : this.textureBuffer
+            },
+            vertexArrInfo: {
+                VAO : this.VAO,
+                primitiveType: this.attributesInfo.type,
+                offset: this.attributesInfo.offset}
+            ,
+            drawInfo: {
+                primitiveType: this.drawSettings.primitiveType,
+                offset: this.drawSettings.offset,
+                count: this.drawSettings.count,
+                drawCall: this.draw.bind(this)
+            },
             programInfo: this.programInfo
         };
 

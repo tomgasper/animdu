@@ -2,6 +2,8 @@
 import { vertexShaderSource, fragmentShaderSource } from "./Shaders/BasicShaders.js";
 import { pickVertexShaderSource, pickfragmentShaderSource } from "./Shaders/PickerShader.js";
 import { textSDFVertexShaderSource, textSDFFragmentShaderSource } from "./Shaders/TextShader.js";
+import { instancedLineFragmentShaderSource, instancedLineVertexShaderSource } from "./Shaders/InstancedLineShader.js";
+import { instancedLineCapFragmentShaderSource, instancedLineCapVertexShaderSource } from "./Shaders/InstancedLineCapShader.js";
 import { initShaderProgram } from "./Shaders/ShaderUtils.js";
 
 import { RenderLoop } from "./RenderLoop.js";
@@ -19,6 +21,9 @@ function main()
     const canvas = document.querySelector("#glcanvas")
     const gl = canvas.getContext("webgl2");
 
+    // Extensions
+    const ext = gl.getExtension('GMAN_webgl_memory');
+
     // Only continue if WebGL is available and working
     if (gl === null) {
         alert("Unable to initialize WebGL. Your browser or machine may not support it.");
@@ -29,6 +34,8 @@ function main()
     const shaderProgram = initShaderProgram(gl, vertexShaderSource, fragmentShaderSource);
     const pickingProgram = initShaderProgram(gl, pickVertexShaderSource, pickfragmentShaderSource);
     const textSDFProgram = initShaderProgram(gl, textSDFVertexShaderSource, textSDFFragmentShaderSource);
+    const instancedLineProgram = initShaderProgram(gl, instancedLineVertexShaderSource, instancedLineFragmentShaderSource);
+    const instancedLineCapProgram = initShaderProgram(gl, instancedLineCapVertexShaderSource, instancedLineCapFragmentShaderSource);
 
     // Shader properties
     const pickingProgramInfo = {
@@ -116,7 +123,63 @@ function main()
         }
       };
 
-    const programsInfo = [ programInfo, pickingProgramInfo, textSDFProgramInfo ];
+    const instancedLineProgramInfo = {
+      program: instancedLineProgram,
+      attribLocations: {
+          vertexPosition: 0,
+          pointA: 1,
+          pointB: 2,
+      },
+      uniforms: {
+        width:
+        {
+          location: gl.getUniformLocation(instancedLineProgram, "u_width"),
+          type: "1f"
+        },
+        color:
+        {
+          location: gl.getUniformLocation(instancedLineProgram, "u_color"),
+          type: "4fv"
+        },
+        transform:
+        {
+          location: gl.getUniformLocation(instancedLineProgram, "u_transform"),
+          type: "m3fv"
+        }
+      }
+    };
+
+    const instancedLineCapProgramInfo = {
+      program: instancedLineCapProgram,
+      attribLocations: {
+          vertexPosition: 0,
+          point: 1
+      },
+      uniforms: {
+        width:
+        {
+          location: gl.getUniformLocation(instancedLineCapProgram, "u_width"),
+          type: "1f"
+        },
+        color:
+        {
+          location: gl.getUniformLocation(instancedLineCapProgram, "u_color"),
+          type: "4fv"
+        },
+        transform:
+        {
+          location: gl.getUniformLocation(instancedLineCapProgram, "u_transform"),
+          type: "m3fv"
+        }
+      }
+    };
+
+    const programsInfo = [ programInfo,
+                          pickingProgramInfo, 
+                          textSDFProgramInfo,
+                          instancedLineProgramInfo,
+                          instancedLineCapProgramInfo
+    ];
 
     // Setting up a new framebuffer for retriving object under mouse
     // Textures and renderbuffers will be attached to framebuffer

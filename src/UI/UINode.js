@@ -17,6 +17,8 @@ import { CircleBuffer } from "../Primitives/CircleBuffer.js";
 
 import { LineBuffer } from "../Primitives/LineBuffer.js";
 
+import { createNewRect } from "../sceneHelper.js";
+
 export class UINode extends UIObject
 {
     // Standard size
@@ -31,6 +33,10 @@ export class UINode extends UIObject
     bg = {};
 
     handleRBuffer = [];
+
+    UITextInputBuffers = {
+        rect: undefined,
+    }
 
     constructor(scene)
     {
@@ -49,6 +55,10 @@ export class UINode extends UIObject
 
         const rectangleBuffer = new RectangleBuffer(this.scene.gl,this.scene.programs[0], [this.width,this.height], 0.05);    
         const rect = new RenderableObject(rectangleBuffer.getInfo(), projectionMat);
+
+        // create buffer for text to reuse
+        this.UITextInputBuffers.rect = new RectangleBuffer(this.scene.gl,this.scene.programs[0], [100,20], 0.05);
+
         rect.setPosition([0,0]);
         rect.setOriginalColor(containerColor);
 
@@ -64,9 +74,10 @@ export class UINode extends UIObject
         this.addTextEntry("Y: ", rect);
         this.addTextEntry("Z: ", rect);
 
+
         this.bg.updateWorldMatrix();
 
-        this.onHandleActivation();
+        // this.onHandleActivation();
     }
 
     createHandle(size = 10, left = true)
@@ -81,7 +92,7 @@ export class UINode extends UIObject
 
         handle.setCanBeMoved(false);
 
-        handle.handlers.onClick = (e) => this.onHandleActivation(e);
+        handle.handlers.onClick = (e) => this.onHandleActivation();
 
 
         console.log(this.bg);
@@ -93,9 +104,12 @@ export class UINode extends UIObject
 
     onHandleActivation()
     {
-        const handleLineRBuffer = new LineBuffer(this.scene.gl, this.scene.programs[0]);
+        let A = [0,0];
+        let B = [100,300];
+        const handleLineRBuffer = new LineBuffer(this.scene.gl, this.scene.programs[0], A, B, 1);
 
         const handleLineR = new RenderableObject(handleLineRBuffer.getInfo(), getProjectionMat(this.scene.gl), handleLineRBuffer);
+        handleLineR.setOriginalColor([0.2,0.2,0.2,1]);
 
         this.addObjToRender(handleLineR);
         
@@ -115,7 +129,13 @@ export class UINode extends UIObject
         const txtWidth = txt.txtBuffer.str.cpos[0];
         const txtHeight = txt.txtBuffer.str.rect[3];
 
-        const textInput = new UITextInput(this.scene, this.width/3, txtHeight, txtSize, txt);
+        const txtRect = {
+            width: this.width/3,
+            height: txtHeight,
+            buffer: this.UITextInputBuffers.rect
+        }
+
+        const textInput = new UITextInput(this.scene, txtRect, txtSize, txt);
         textInput.setPosition([txtWidth,0]);
 
         if (parent) txt.setParent(parent);

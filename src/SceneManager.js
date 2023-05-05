@@ -1,4 +1,4 @@
-import { m3, resizeCanvasToDisplaySize, renderObject, prepareForRender  } from "./utils.js"
+import { m3, resizeCanvasToDisplaySize, renderObject, prepareForRender, getProjectionMat  } from "./utils.js"
 
 import { TriangleBuffer } from "./Primitives/TriangleBuffer.js";
 import { CircleBuffer } from "./Primitives/CircleBuffer.js";
@@ -16,6 +16,9 @@ import { roboto_bold_font } from "./fonts/roboto-bold.js";
 
 import { mountUI } from "./UI/UI_handlers.js";
 import { resetMousePointer } from "./sceneHelper.js";
+
+import { InstancedLineBuffer } from "./Primitives/InstancedLineBuffer.js";
+import { InstancedLineCapBuffer } from "./Primitives/InstancedLineCapsBuffer.js";
 
 
 export class SceneManager
@@ -56,8 +59,10 @@ export class SceneManager
 
     constructor(gl, canvas, programsInfo, framebuffer, depthBuffer, renderTexture)
     {
+
         // save gl for local use
         this.gl = gl;
+        this.ext = this.gl.getExtension('GMAN_webgl_memory');
         this.document = gl.canvas.parentNode;
         this.programs = programsInfo;
         this.canvas = canvas;
@@ -152,12 +157,34 @@ export class SceneManager
         const node1 = new UINode(this);
         const node2 = new UINode(this);
 
+        const lineWidth = 5;
+        const lineData = [0,0,
+                        150, 150,
+                        50, 30,
+                        120, 31,
+                        33, 0,
+                        502, 123 ];
+
+        
+        // Make it more tidy
+        const myLineCapsBuffer = new InstancedLineCapBuffer(this.gl, this.programs[4], lineData);
+        const myLineCaps = new RenderableObject(myLineCapsBuffer.getInfo(), getProjectionMat(this.gl));
+
+        const myLineBuffer = new InstancedLineBuffer(this.gl, this.programs[3], lineData, true);
+        const myLine = new RenderableObject(myLineBuffer.getInfo(), getProjectionMat(this.gl));
+
+        myLine.properties.width = lineWidth;
+        myLineCaps.properties.width = lineWidth;
+
+        console.log(myLine);
+
+
         obj3.setParent(obj2);
         obj2.setParent(obj1);
         obj1.updateWorldMatrix();
 
         // Add all objs
-        this.addObjToScene([obj1,obj2,obj3]);
+        this.addObjToScene([obj1,obj2,obj3, myLineCaps, myLine]);
         this.addObjToScene(node1.getObjsToRender());
         this.addObjToScene(node2.getObjsToRender());
 
@@ -244,6 +271,11 @@ export class SceneManager
         // convert elapsed time in ms to s
         this.time = elapsedTime * 0.001;
         this.fps = fps;
+
+        // if (this.ext) {
+        //     const info = this.ext.getMemoryInfo();
+        //     console.log(info);
+        // d}
 
         // set fps
         // if (this.editableText.txtBuffer) this.editableText.txtBuffer.updateTextBufferData(Math.round(this.fps).toString());

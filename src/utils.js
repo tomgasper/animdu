@@ -23,7 +23,7 @@ function setUniforms(gl, programInfo, properties)
         if ( Object.hasOwn(properties, property))
         {
             const uniform = programInfo.uniforms[property];
-            // if (property == "font_color") console.log(properties[property]);
+            if (property == "u_width") console.log(properties[property]);
             switch(uniform.type)
             {
                 case "1i":
