@@ -23,3 +23,23 @@ export const createNewRect = (scene, width, height, roundness = 0.05) =>
 
     return rect;
 }
+
+export const deleteFromToDraw = (arr, obj) =>
+{
+    arr.forEach((arr_obj, indx, arr_read_only) => {
+        if (arr_obj.id == obj.id)
+        {
+            arr_read_only.splice(indx, 1);
+
+            // only one of the obj with a give id is possible so return after deleting it
+            return;
+        }
+    });
+}
+
+export const getPosFromMat = (obj) =>
+{
+    if (!obj || obj instanceof Node ) throw Error("Wrong input object!");
+
+    return [obj.worldMatrix[6], obj.worldMatrix[7]];
+}

@@ -23,7 +23,6 @@ export class InstancedLineBuffer
         if (!pointsData && pointsData.length < 1) throw Error("Wrong line vertex array input!");
         this.pointsData = pointsData;
 
-
         this.attributesInfo = {
             position: {
                 size : 2,
@@ -105,14 +104,14 @@ export class InstancedLineBuffer
         this.gl.vertexAttribDivisor(attribLoc, 1);
     }
 
-    updatePositionBuffer(bufferData)
+    updatePointsBuffer(pointsData)
     {
-        this.bufferData = bufferData;
+        if (pointsData.length < 1 ) throw Error("Wrong input data!");
+        this.pointsData = pointsData;
 
-        this.bindVertexArray(this.VAO);
-
-        this.gl.bindBuffer = this.positionBuffer;
-        this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(this.bufferData), this.gl.DYNAMIC_DRAW);
+        this.gl.bindVertexArray(this.VAO);
+        this.gl.bindBuffer(this.gl.ARRAY_BUFFER,this.pointsBuffer);
+        this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(this.pointsData), this.gl.DYNAMIC_DRAW);
     }
 
     createRoundBuffer(resolution)

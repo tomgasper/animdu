@@ -14,7 +14,7 @@ import { setUpPickingFramebuffer, createDepthBuffer, createPickingTargetTexture 
 // attribute = global variable
 function main()
   {
-    const originalRes = [1280,720];
+    const originalRes = [1920,1080];
     window.originalRes = originalRes;
 
     // Initialize the GL context

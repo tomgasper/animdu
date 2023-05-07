@@ -10,6 +10,7 @@ export function mountUI(scene)
     const projectionMat = m3.projection(scene.gl.canvas.clientWidth, scene.gl.canvas.clientHeight);
     const screen_width = scene.gl.canvas.clientWidth;
     const screen_height = scene.gl.canvas.clientHeight;
+
     const y_offset = screen_height * 0.02;
     const x_offset = screen_width * 0.02;
 
@@ -73,4 +74,9 @@ export function mountUI(scene)
     };
 
     scene.addObjToScene(objsToAdd);
+}
+
+export function updateLineData(data, handleBuffer)
+{
+    handleBuffer.updatePointsBuffer.call(handleBuffer, data);
 }

@@ -1,4 +1,3 @@
-import { SceneObject } from "../SceneObject.js";
 import { m3, computeTransform } from "../utils.js";
 
 import { RenderableObject } from "../Primitives/RenderableObject.js";

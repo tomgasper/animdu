@@ -10,6 +10,7 @@ export class UITextInput extends UIObject
 {
     height = 100;
     width = 200;
+    containerBuffer = undefined;
 
     active = false;
     placeholderStr = "Put text here!";
@@ -25,12 +26,15 @@ export class UITextInput extends UIObject
 
         this.scene = scene;
 
+        // Putting inside buffer from past in rect
+        if (rect)
+        {
+            this.height = rect.height;
+            this.width = rect.width;
+            this.containerBuffer = rect.buffer ? rect.buffer : undefined;
+        }
+
         this.active = false;
-        this.height = rect.height;
-        this.width = rect.width;
-
-        this.containerBuffer = rect.buffer ? rect.buffer : undefined;
-
         this.parent = parent;
 
         this.txtSize = txtSize;
@@ -53,12 +57,10 @@ export class UITextInput extends UIObject
         this.container.setOriginalColor([1,1,1,1]);
         this.container.setCanBeMoved(false);
 
-        // this.container.properties.blending = true;
-
         const txtColor = [0.1,0.1,0.1,1];
 
         // add children
-        const txt = createNewText(this.scene.gl, this.scene.programs[2], this.placeholderStr, this.txtSize, this.scene.fontUI,txtColor );
+        const txt = createNewText(this.scene.gl, this.scene.programs[2], this.placeholderStr, this.txtSize, this.scene.fontUI,txtColor);
         txt.setCanBeMoved(false);
         txt.setBlending(true);
         txt.setCanBeHighlighted(true);

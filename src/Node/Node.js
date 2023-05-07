@@ -2,6 +2,8 @@ import { m3 } from "../utils.js";
 
 export class Node
 {
+    id = Math.floor(Math.random() * Date.now());
+
     localMatrix = [1,0,0,
                     0,1,0,
                     0,0,1];

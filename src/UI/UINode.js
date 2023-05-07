@@ -15,9 +15,11 @@ import { RenderableObject } from "../Primitives/RenderableObject.js";
 
 import { CircleBuffer } from "../Primitives/CircleBuffer.js";
 
-import { LineBuffer } from "../Primitives/LineBuffer.js";
+import { InstancedLineBuffer } from "../Primitives/InstancedLineBuffer.js";
+import { InstancedLineCapBuffer } from "../Primitives/InstancedLineCapsBuffer.js";
+import { UINodeHandle } from "./UINodeHandle.js";
+import { getPosFromMat } from "../sceneHelper.js";
 
-import { createNewRect } from "../sceneHelper.js";
 
 export class UINode extends UIObject
 {
@@ -30,13 +32,28 @@ export class UINode extends UIObject
 
     lastEntry = 0;
 
-    bg = {};
+    container = {};
 
-    handleRBuffer = [];
+    handleL = {};
+    handleR = {};
 
-    UITextInputBuffers = {
-        rect: undefined,
-    }
+    handleRLine = {
+        obj: undefined,
+        endpoint: [],
+        data : [],
+        width: 5,
+        connectionId: -1,
+        connection: {}
+    };
+
+    commonObjects = {
+        textInputRect: 
+        {
+            width: 0,
+            height: 0,
+            buffer: undefined,
+        }
+    };
 
     constructor(scene)
     {
@@ -55,17 +72,36 @@ export class UINode extends UIObject
 
         const rectangleBuffer = new RectangleBuffer(this.scene.gl,this.scene.programs[0], [this.width,this.height], 0.05);    
         const rect = new RenderableObject(rectangleBuffer.getInfo(), projectionMat);
-
-        // create buffer for text to reuse
-        this.UITextInputBuffers.rect = new RectangleBuffer(this.scene.gl,this.scene.programs[0], [100,20], 0.05);
-
         rect.setPosition([0,0]);
         rect.setOriginalColor(containerColor);
 
-        this.bg = rect;
+        // set up handler
+        rect.handlers.onMouseMove = () => { this.handleMouseMove() };
 
-        const handleL = this.createHandle(7, true);
-        const handleR = this.createHandle(7, false);
+        this.container = rect;
+
+        // create buffer for text to reuse
+        this.commonObjects.textInputRect.width = 100;
+        this.commonObjects.textInputRect.height = 20;
+        this.commonObjects.textInputRect.buffer = new RectangleBuffer(this.scene.gl,this.scene.programs[0], [100,20], 0.05);
+
+        // create buffer for handles for reusability
+        const size = 10;
+        const resolution = 16;
+        const cirlceBuffer = new CircleBuffer(this.scene.gl,this.scene.programs[0], size, resolution);
+
+        const handleR = new UINodeHandle(this.scene,cirlceBuffer.getInfo(), this.container);
+        handleR.setPosition([this.width, this.height/2]);
+        handleR.setOriginalColor([0.2,0.2,0.2,1])
+        handleR.setCanBeMoved(false);
+        // save as ref
+        this.handleR = handleR;
+
+        const handleL = new UINodeHandle(this.scene, cirlceBuffer.getInfo(), this.container);
+        handleL.setPosition([0, this.height/2]);
+        handleL.setOriginalColor([0.2,0.2,0.2,1])
+        handleL.setCanBeMoved(false);
+        this.handleL = handleL;
 
         this.addObjsToRender([handleL, handleR]);
         this.addObjToRender(rect);
@@ -73,50 +109,44 @@ export class UINode extends UIObject
         this.addTextEntry("X: ", rect);
         this.addTextEntry("Y: ", rect);
         this.addTextEntry("Z: ", rect);
+        this.addTextEntry("U: ", rect);
 
 
-        this.bg.updateWorldMatrix();
-
-        // this.onHandleActivation();
+        this.container.updateWorldMatrix();
     }
 
-    createHandle(size = 10, left = true)
+
+    handleMouseMove()
     {
-        const cirlceBuffer = new CircleBuffer(this.scene.gl,this.scene.programs[0], size, 15);
-        const handle = new RenderableObject(cirlceBuffer.getInfo(), getProjectionMat(this.scene.gl));
+        const handles = [this.handleR, this.handleL];
 
-        const x_pos = left ? this.width : 0;
+        handles.forEach( (handle) => {
+            const isConnectedIN = handle.line.connection.type == "IN" ? true : false;
 
-        handle.setPosition([x_pos, this.height/2]);
-        handle.setOriginalColor([0.2,0.2,0.2,1]);
+            // return if there's nothing to update
+            if (!isConnectedIN && !handle.line.obj) return;
 
-        handle.setCanBeMoved(false);
+            let data;
+            let objToUpdate;
+            const connectedObj = handle.line.connection.connectedObj;
+            const connectedObjPos = getPosFromMat(connectedObj);
+            const handlePos = getPosFromMat(handle);
 
-        handle.handlers.onClick = (e) => this.onHandleActivation();
+            if (isConnectedIN === true)
+            {
+                data = [connectedObjPos[0], connectedObjPos[1], handlePos[0], handlePos[1]];
+                objToUpdate = connectedObj.line;
+            } else 
+            {
+                data = [handlePos[0], handlePos[1], connectedObjPos[0], connectedObjPos[1]];
+                objToUpdate = handle.line;
+            }
 
-
-        console.log(this.bg);
-
-        handle.setParent(this.bg);
-
-        return handle;
+            objToUpdate.update.call(objToUpdate, data);
+        })
     }
 
-    onHandleActivation()
-    {
-        let A = [0,0];
-        let B = [100,300];
-        const handleLineRBuffer = new LineBuffer(this.scene.gl, this.scene.programs[0], A, B, 1);
-
-        const handleLineR = new RenderableObject(handleLineRBuffer.getInfo(), getProjectionMat(this.scene.gl), handleLineRBuffer);
-        handleLineR.setOriginalColor([0.2,0.2,0.2,1]);
-
-        this.addObjToRender(handleLineR);
-        
-        console.log(handleLineR);
-    }
-
-    addTextEntry(txtStr, parent = this.bg)
+    addTextEntry(txtStr, parent = this.container)
     {
         // Init txt
         const txtSize = 9.0;
@@ -130,9 +160,9 @@ export class UINode extends UIObject
         const txtHeight = txt.txtBuffer.str.rect[3];
 
         const txtRect = {
-            width: this.width/3,
+            width: this.commonObjects.textInputRect.width,
             height: txtHeight,
-            buffer: this.UITextInputBuffers.rect
+            buffer: this.commonObjects.textInputRect.buffer
         }
 
         const textInput = new UITextInput(this.scene, txtRect, txtSize, txt);
@@ -148,5 +178,11 @@ export class UINode extends UIObject
         this.lastEntry = this.lastEntry + txtHeight + this.height*0.05;
 
         return txt;
+    }
+
+    setPosition(pos)
+    {
+        this.container.setPosition(pos);
+        this.container.updateWorldMatrix();
     }
 }

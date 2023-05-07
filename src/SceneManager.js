@@ -14,7 +14,7 @@ import { TextFont } from "./Text/TextFont.js";
 
 import { roboto_bold_font } from "./fonts/roboto-bold.js";
 
-import { mountUI } from "./UI/UI_handlers.js";
+import { mountUI } from "./UI/helper_UI.js";
 import { resetMousePointer } from "./sceneHelper.js";
 
 import { InstancedLineBuffer } from "./Primitives/InstancedLineBuffer.js";
@@ -50,8 +50,8 @@ export class SceneManager
 
     activeObjID = -1;
     prevActiveObjID = -1;
-
     objectIDtoDrag = -1;
+    objUnderMouseID = -1;
 
     eventsToProcess = [];
 
@@ -79,27 +79,22 @@ export class SceneManager
          });
 
          this.document.addEventListener("keyup", (e) => {
-            // if (e.keyCode === 32) this.textChange += " ";
-            
-            // if (e.keyCode >= 65 && e.keyCode <= 90)
-            // {
-            //     this.textChange += e.key;
-            // }
+        });
 
-            // handle activeObj
+        this.document.addEventListener("keydown", (e) => {
             if (this.activeObjID >= 0 && this.objsToDraw[this.activeObjID].handlers.onInputKey)
             {
                 let currObj = this.objsToDraw[this.activeObjID].handlers;
-
-                // let switchedActiveObj = false;
-                // if (this.activeObjID != this.prevActiveObjID) switchedActiveObj = true;
                 
                 currObj.onInputKey.call(currObj,e);
             }
+
         });
 
          this.gl.canvas.addEventListener("mousedown", (e) => {
-            if (this.isMouseDown === false) this.isMouseDown = true;
+            if (this.isMouseDown === false) {
+                this.isMouseDown = true;
+            }
          });
 
          this.gl.canvas.addEventListener("click", (e) => {
@@ -108,6 +103,12 @@ export class SceneManager
 
          this.gl.canvas.addEventListener("mouseup", (e) => {
             this.isMouseDown = false;
+
+            if (this.objectIDtoDrag >= 0 && this.objsToDraw[this.objectIDtoDrag].handlers.onMouseUp)
+            {
+                let currObj = this.objsToDraw[this.objectIDtoDrag].handlers;
+                currObj.onMouseUp.call(currObj, this.objUnderMouseID);
+            }
 
             this.objectIDtoDrag = -1;
          })
@@ -156,6 +157,11 @@ export class SceneManager
 
         const node1 = new UINode(this);
         const node2 = new UINode(this);
+        const node3 = new UINode(this);
+        const node4 = new UINode(this);
+        node2.setPosition([250,0]);
+        node3.setPosition([0,250]);
+        node4.setPosition([250,250]);
 
         const lineWidth = 5;
         const lineData = [0,0,
@@ -167,26 +173,25 @@ export class SceneManager
 
         
         // Make it more tidy
-        const myLineCapsBuffer = new InstancedLineCapBuffer(this.gl, this.programs[4], lineData);
-        const myLineCaps = new RenderableObject(myLineCapsBuffer.getInfo(), getProjectionMat(this.gl));
+        // const myLineCapsBuffer = new InstancedLineCapBuffer(this.gl, this.programs[4], lineData);
+        // const myLineCaps = new RenderableObject(myLineCapsBuffer.getInfo(), getProjectionMat(this.gl));
 
-        const myLineBuffer = new InstancedLineBuffer(this.gl, this.programs[3], lineData, true);
-        const myLine = new RenderableObject(myLineBuffer.getInfo(), getProjectionMat(this.gl));
+        // const myLineBuffer = new InstancedLineBuffer(this.gl, this.programs[3], lineData, true);
+        // const myLine = new RenderableObject(myLineBuffer.getInfo(), getProjectionMat(this.gl));
 
-        myLine.properties.width = lineWidth;
-        myLineCaps.properties.width = lineWidth;
-
-        console.log(myLine);
-
+        // myLine.properties.width = lineWidth;
+        // myLineCaps.properties.width = lineWidth;
 
         obj3.setParent(obj2);
         obj2.setParent(obj1);
         obj1.updateWorldMatrix();
 
         // Add all objs
-        this.addObjToScene([obj1,obj2,obj3, myLineCaps, myLine]);
+        this.addObjToScene([obj1,obj2,obj3]);
         this.addObjToScene(node1.getObjsToRender());
         this.addObjToScene(node2.getObjsToRender());
+        this.addObjToScene(node3.getObjsToRender());
+        this.addObjToScene(node4.getObjsToRender());
 
         console.log(this.objsToDraw);
     }
@@ -306,6 +311,7 @@ export class SceneManager
             // substract id by 1 to get correct place of the found object in objsToDraw array 
             const pickNdx = id - 1;
             const object = this.objsToDraw[pickNdx];
+            this.objUnderMouseID = pickNdx;
 
             if (object.properties.highlight)
             {
@@ -332,8 +338,10 @@ export class SceneManager
 
                 if (this.objsToDraw[pickNdx].handlers.onClick)
                 {
-                    this.objsToDraw[pickNdx].handlers.onClick();
+                    this.objsToDraw[pickNdx].handlers.onClick( [this.mouseX, this.mouseY], this.addObjToScene.bind(this));
                 }
+
+                
             }
 
         }
@@ -374,11 +382,19 @@ export class SceneManager
                 this.objsToDraw[this.objectIDtoDrag].updateWorldMatrix(parentWorldMat);
             }
 
+            if (this.objectIDtoDrag >= 0 && this.objsToDraw[this.objectIDtoDrag].handlers.onMouseMove)
+                {
+                    let currObj = this.objsToDraw[this.objectIDtoDrag].handlers;
+                    currObj.onMouseMove.call(currObj, [this.mouseX, this.mouseY]);
+                }
+
             // reset click offset when mouse is no longer down
             if (!this.isMouseDown && this.clickOffset)
             {
                 this.clickOffset = undefined;
             }
+
+        this.isMouseClicked = false;
 
 
         // Tell WebGl to use our picking program
@@ -386,10 +402,6 @@ export class SceneManager
         this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, null);
         this.gl.bindTexture(this.gl.TEXTURE_2D, null);
 
-        this.drawObjects(this.objsToDraw);
-
-        // reset input handlers state
-        this.isMouseClicked = false;
-        
+        this.drawObjects(this.objsToDraw);        
     }
 }
