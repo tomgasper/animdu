@@ -47,13 +47,20 @@ export class TextObject extends RenderableObject
         };
     }
 
-    updateText(txt)
+    updateText(txt, txtSize = 10)
     {
         if (txt && typeof txt == "string")
         {
             this.properties.txt_string = txt;
+
+            this.txtBuffer.updateTextBufferData(this.properties.txt_string, txtSize);
         }
         else throw Error("Incorrect input string");
+    }
+
+    getText()
+    {
+        return this.properties.txt_string;
     }
 
     setColor(color)

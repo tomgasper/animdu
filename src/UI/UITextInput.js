@@ -13,14 +13,16 @@ export class UITextInput extends UIObject
     containerBuffer = undefined;
 
     active = false;
-    placeholderStr = "Put text here!";
+    value = "Put text here!";
 
     scene = {};
     parent = {};
 
-    bg = {};
+    txtObj = {};
 
-    constructor(scene, rect, txtSize, parent, placeholderStr = "Input text")
+    container = {};
+
+    constructor(scene, rect, txtSize, parent, value = "Input text")
     {
         super();
 
@@ -38,7 +40,7 @@ export class UITextInput extends UIObject
         this.parent = parent;
 
         this.txtSize = txtSize;
-        this.placeholderStr = placeholderStr;
+        this.value = value;
 
         this.initialize();
     }
@@ -60,10 +62,12 @@ export class UITextInput extends UIObject
         const txtColor = [0.1,0.1,0.1,1];
 
         // add children
-        const txt = createNewText(this.scene.gl, this.scene.programs[2], this.placeholderStr, this.txtSize, this.scene.fontUI,txtColor);
+        const txt = createNewText(this.scene.gl, this.scene.programs[2], this.value, this.txtSize, this.scene.fontUI,txtColor);
         txt.setCanBeMoved(false);
         txt.setBlending(true);
         txt.setCanBeHighlighted(true);
+
+        this.txtObj = txt;
 
         // txt width
         const txtWidth = txt.txtBuffer.str.cpos[0];
@@ -86,18 +90,33 @@ export class UITextInput extends UIObject
     handleInput(e,txt)
     {
         // Get rid of placeholder txt on click
-        if( txt.properties.txt_string === this.placeholderStr) {
-            txt.properties.txt_string = e.key;
+        const currStr = txt.getText();
+
+        if( currStr === this.value) {
+            txt.updateText(e.key);
         }
         else {
-            txt.properties.txt_string += e.key;
+            txt.updateText(currStr + e.key);
         }
 
-        txt.txtBuffer.updateTextBufferData(txt.properties.txt_string, this.txtSize);
+        // center the text
+        this.centerText(txt);
+    }
 
-        const txtWidth2 = txt.txtBuffer.str.cpos[0];
-        txt.setPosition([this.width/2-txtWidth2/2,0]);
-        txt.updateWorldMatrix(txt.parent.worldMatrix);
+    centerText()
+    {
+        const txtWidth2 = this.txtObj.txtBuffer.str.cpos[0];
+        this.txtObj.setPosition([this.width/2-txtWidth2/2,0]);
+        this.txtObj.updateWorldMatrix(this.txtObj.parent.worldMatrix);
+    }
+
+    changeValue(txt)
+    {
+        if (this.txtObj)
+        {
+            this.txtObj.updateText(txt);
+            this.centerText();
+        }
     }
 
     setPosition([x,y])

@@ -37,6 +37,8 @@ export class UINode extends UIObject
     handleL = {};
     handleR = {};
 
+    parameter = {};
+
     handleRLine = {
         obj: undefined,
         endpoint: [],
@@ -90,14 +92,14 @@ export class UINode extends UIObject
         const resolution = 16;
         const cirlceBuffer = new CircleBuffer(this.scene.gl,this.scene.programs[0], size, resolution);
 
-        const handleR = new UINodeHandle(this.scene,cirlceBuffer.getInfo(), this.container);
+        const handleR = new UINodeHandle(this.scene,cirlceBuffer.getInfo(), this, this.container);
         handleR.setPosition([this.width, this.height/2]);
         handleR.setOriginalColor([0.2,0.2,0.2,1])
         handleR.setCanBeMoved(false);
         // save as ref
         this.handleR = handleR;
 
-        const handleL = new UINodeHandle(this.scene, cirlceBuffer.getInfo(), this.container);
+        const handleL = new UINodeHandle(this.scene, cirlceBuffer.getInfo(), this, this.container);
         handleL.setPosition([0, this.height/2]);
         handleL.setOriginalColor([0.2,0.2,0.2,1])
         handleL.setCanBeMoved(false);
@@ -106,10 +108,18 @@ export class UINode extends UIObject
         this.addObjsToRender([handleL, handleR]);
         this.addObjToRender(rect);
 
-        this.addTextEntry("X: ", rect);
-        this.addTextEntry("Y: ", rect);
+        this.parameter.X = this.addTextEntry("X: ", rect);
+        this.parameter.Y = this.addTextEntry("Y: ", rect);
         this.addTextEntry("Z: ", rect);
         this.addTextEntry("U: ", rect);
+
+        this.parameter.X.container.handlers.onClick = () => {
+            if (this.handleR.line.connection.isConnected)
+            {
+                console.log(this.handleR.line.connection.connectedObj.node);
+                this.handleR.line.connection.connectedObj.node.parameter.X.changeValue("HELLO G!");
+            }
+        }
 
 
         this.container.updateWorldMatrix();
@@ -177,7 +187,7 @@ export class UINode extends UIObject
         // Update last entry pos
         this.lastEntry = this.lastEntry + txtHeight + this.height*0.05;
 
-        return txt;
+        return textInput;
     }
 
     setPosition(pos)

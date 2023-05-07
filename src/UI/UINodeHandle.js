@@ -14,6 +14,8 @@ export class UINodeHandle extends RenderableObject
 
     objToConnect = undefined;
 
+    node = {}
+
     line = {
         width: 5,
         data : [],
@@ -28,7 +30,7 @@ export class UINodeHandle extends RenderableObject
 
     prevCrossOverIdx = -1;
 
-    constructor(scene, buffer, parent)
+    constructor(scene, buffer, node, parent)
     {
         // create renderable object
         super(buffer, getProjectionMat(scene.gl));
@@ -40,12 +42,13 @@ export class UINodeHandle extends RenderableObject
         this.handlers.onMouseMove = (mousePos) => this.handleHandleMouseMove(mousePos);
         this.handlers.onMouseUp = (objUnderMouseID) => this.handleHandleMouseUp(objUnderMouseID);
 
-        console.log(this.container);
-
         if (parent)
         {
             this.setParent(parent);
         }
+
+        if (node)
+        this.node = node;
 
     }
 
@@ -61,11 +64,6 @@ export class UINodeHandle extends RenderableObject
 
     createNewLine(mousePos)
     {
-        if (this.line.connection.isConnected)
-        {
-            this.disconnect(this.line.connection.connectedObj);
-        }
-
         // creating new line
         const thisObjPos = getPosFromMat(this);
 
@@ -103,10 +101,9 @@ export class UINodeHandle extends RenderableObject
     {
         const objUnderMouse = this.scene.objsToDraw[objUnderMouseID];
 
-        if (objUnderMouse instanceof UINodeHandle)
+        if (objUnderMouse instanceof UINodeHandle && this != objUnderMouse)
         {
-            this.handleObjConnection(objUnderMouse);
-
+            this.handleObjConnection(this, objUnderMouse);
             const objUnderMousePos = getPosFromMat(objUnderMouse);
             
             // center the line end
@@ -135,8 +132,6 @@ export class UINodeHandle extends RenderableObject
     {
         if (!outHandle) throw Error("Wrong handle!");
 
-        if (this.line.obj) this.deleteLine(this.scene.gl, this.scene, this.line);
-
         this.line.connection.type = "IN";
         this.line.connection.connectedObj = outHandle;
         this.line.connection.isConnected = true;
@@ -144,21 +139,33 @@ export class UINodeHandle extends RenderableObject
         return true;
     }
 
-    disconnect(handle)
+    disconnect(handle, deleteLine = true)
     {
         handle.line.connection.type = undefined;
         handle.line.connection.connectedObj = undefined;
         handle.line.connection.isConnected = false;
 
-        if (handle.line.obj)
+        if (handle.line.obj && deleteLine)
         {
             console.log("Deleting: " + handle.line);
             this.deleteLine(this.scene.gl, this.scene, handle.line);
         }
     }
 
-    handleObjConnection(objToConnect)
+    handleObjConnection(startObj, objToConnect)
     {
+        // disconnect start handle and handle connected to it
+        if (startObj.line.connection.isConnected === true)
+        {
+            if (startObj.line.connection.connectedObj)
+            {
+                this.disconnect(startObj.line.connection.connectedObj);
+            }
+
+            this.disconnect(startObj, false);
+        }
+
+        // disconnect end handle and handle connected to it
         if (objToConnect.line.connection.isConnected === true)
         {
             if (objToConnect.line.connection.connectedObj)
@@ -170,7 +177,6 @@ export class UINodeHandle extends RenderableObject
         }
 
         // form a connection between nodes
-        
         const canBeConnected = objToConnect.connect.call(objToConnect, this);
 
         if (canBeConnected)

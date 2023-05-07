@@ -102,6 +102,7 @@ export class TextBuffer {
     {
         this.position.data = this.generateTextBufferData(txtString, txtSize);
 
+        this.gl.bindVertexArray(this.VAO);
         this.setUpPositionBuffer();
     }
 
