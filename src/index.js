@@ -196,6 +196,11 @@ function main()
     // Set up render loop
     const renderLoop = new RenderLoop( sceneManager.draw.bind(sceneManager) );
 
+    if (ext) {
+      const info = ext.getMemoryInfo();
+      console.log(info);
+    }
+
     // Start rendering
     renderLoop.step(undefined);
 }

@@ -54,8 +54,6 @@ export class UINodeHandle extends RenderableObject
 
     updateLine(data)
     {
-        console.log("updating line!");
-
         this.data = data;
 
         if (this.obj) this.obj.buffer.updatePointsBuffer(this.data);

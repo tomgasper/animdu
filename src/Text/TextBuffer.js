@@ -81,14 +81,41 @@ export class TextBuffer {
 
     generateTextBufferData(txtString, font_size = 20)
     {
-        const vertex_data = new Float32Array(txtString.length * 6 * this.attributesInfo.position.stride/4 + 3 );
-
         font_size = font_size;
 
         let font = this.font.decoder;
         let fmetrics = fontMetrics(font, font_size, font_size*0.2);
 
-        let str = writeString(txtString, font, fmetrics, [0,0], vertex_data);
+        let str;
+
+        let vertex_data;
+
+        // draw from array of strings
+        if (typeof txtString[0] !== "string")
+        {
+            let count = 0;
+            for (let i = 0; i < txtString.length; i++)
+                {
+                    count += txtString[i].data.length;
+                }
+
+            vertex_data = new Float32Array(count * 6 * this.attributesInfo.position.stride/4 + 3);
+
+            // Write with offset
+            let vertex_data_offset = 0;
+            for (let i = 0; i < txtString.length; i++)
+            {
+                count += txtString[i].data.length;
+                str = writeString(txtString[i].data, font, fmetrics, txtString[i].pos, vertex_data,0,vertex_data_offset);
+
+                vertex_data_offset += str.array_pos;
+            }
+        } else {
+            vertex_data = new Float32Array(txtString.length * 6 * this.attributesInfo.position.stride/4 + 3);
+            str = writeString(txtString, font, fmetrics, [0,0], vertex_data);
+        }
+
+
         this.str = str;
 
         let vcount = str.array_pos / (this.attributesInfo.position.stride/4 );
@@ -96,6 +123,26 @@ export class TextBuffer {
         this.drawSettings.count = vcount;
 
         return vertex_data;
+    }
+
+    writeArrStr(strsArr)
+    {
+        let count = 0;
+        for (let i = 0; i < strsArr.length; i++)
+            {
+                count += strsArr[i].data.length;
+            }
+
+        const vertex_data = new Float32Array(count * 6 * this.attributesInfo.position.stride/4 + 3);
+        let vertex_data_offset = 0;
+
+        for (let i = 0; i < strsArr.length; i++)
+        {
+            count += strsArr[i].data.length;
+            str = writeString(strsArr[i].data, font, fmetrics, [0,0], vertex_data,0,vertex_data_offset);
+
+            vertex_data_offset += str.res.array_pos;
+        }
     }
 
     updateTextBufferData(txtString, txtSize)

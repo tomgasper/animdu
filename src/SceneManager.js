@@ -20,6 +20,8 @@ import { canMoveObj, moveObjectWithCoursor } from "./sceneHelper.js";
 
 import { drawObjects } from "./sceneHelper.js";
 
+import { UIBuffers } from "./UI/UIBuffers.js";
+
 
 export class SceneManager
 {
@@ -31,7 +33,8 @@ export class SceneManager
     time = 0.;
     fps = 0.;
 
-    primitiveBuffers = {};
+    primitiveBuffers = undefined;
+    UIBuffers = undefined;
 
     objsToDraw = [];
 
@@ -125,6 +128,13 @@ export class SceneManager
         };
         const robotoBoldFont = new TextFont(this.gl, fontSettings, this.gl.LUMINANCE);
         this.fontUI = robotoBoldFont;
+
+        const UINodeSize = [120,120];
+        const UIBuffersStore = new UIBuffers();
+        UIBuffersStore.createUINodeBuffers(this.gl, this.programs[0], UINodeSize, 0.05);
+
+        // save ref
+        this.UIBuffers = UIBuffersStore;
 
         mountUI(this);
 
@@ -246,7 +256,7 @@ export class SceneManager
         }
 
         // Moving the object under the cursor
-        if (canMoveObj(this)) moveObjectWithCoursor(this);
+        if ( canMoveObj(this) ) moveObjectWithCoursor(this);
 
         if (this.objectIDtoDrag >= 0 && this.objsToDraw[this.objectIDtoDrag].handlers.onMouseMove)
         {

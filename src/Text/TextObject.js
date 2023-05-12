@@ -58,6 +58,14 @@ export class TextObject extends RenderableObject
         else throw Error("Incorrect input string");
     }
 
+    // override SceneObject method
+    updateTransform()
+    {
+        let newTransform = computeTransform(this.properties.position,this.properties.rotation,this.properties.scale, this.properties.origin);
+        
+        this.localMatrix = newTransform;
+    }
+
     getText()
     {
         return this.properties.txt_string;
@@ -66,21 +74,5 @@ export class TextObject extends RenderableObject
     setColor(color)
     {
         this.properties.font_color = color;
-    }
-
-    // override SceneObject method
-    updateTransform()
-    {
-        // const flip = [
-        //     1,0,0,
-        //     0,-1,0,
-        //     0,0,1
-        // ];
-
-        let newTransform = computeTransform(this.properties.position,this.properties.rotation,this.properties.scale, this.properties.origin);
-
-        // newTransform = m3.multiply(newTransform, flip);
-        
-        this.localMatrix = newTransform;
     }
 }
