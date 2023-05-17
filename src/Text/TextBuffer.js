@@ -105,10 +105,9 @@ export class TextBuffer {
             let vertex_data_offset = 0;
             for (let i = 0; i < txtString.length; i++)
             {
-                count += txtString[i].data.length;
                 str = writeString(txtString[i].data, font, fmetrics, txtString[i].pos, vertex_data,0,vertex_data_offset);
 
-                vertex_data_offset += str.array_pos;
+                vertex_data_offset = str.array_pos;
             }
         } else {
             vertex_data = new Float32Array(txtString.length * 6 * this.attributesInfo.position.stride/4 + 3);

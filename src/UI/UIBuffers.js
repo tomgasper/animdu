@@ -29,7 +29,7 @@ export class UIBuffers
         this.UINode.container.buffer = new RectangleBuffer(gl, program, size, roundness);
 
         // Text input size proportional to the nodes container
-        const textInputSize = [size[0]*0.7, size[1]*0.15];
+        const textInputSize = [size[0]*0.3, size[1]*0.15];
         this.UINode.textInput.size = textInputSize;
         this.UINode.textInput.buffer = new RectangleBuffer(gl, program, textInputSize, roundness);
 

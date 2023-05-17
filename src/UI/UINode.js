@@ -1,43 +1,40 @@
-import { RectangleBuffer } from "../Primitives/RectangleBuffer.js";
-
-import { SceneObject } from "../SceneObject.js";
-
-import { Node } from "../Node/Node.js";
-
 import { getProjectionMat } from "../utils.js";
 import { createNewText } from "../Text/textHelper.js";
-
-import { UITextInput } from "./UITextInput.js";
 
 import { UIObject } from "./UIObject.js";
 
 import { RenderableObject } from "../Primitives/RenderableObject.js";
 
-import { CircleBuffer } from "../Primitives/CircleBuffer.js";
-
-import { InstancedLineBuffer } from "../Primitives/InstancedLineBuffer.js";
-import { InstancedLineCapBuffer } from "../Primitives/InstancedLineCapsBuffer.js";
 import { UINodeHandle } from "./UINodeHandle.js";
 import { getPosFromMat } from "../sceneHelper.js";
-
 
 export class UINode extends UIObject
 {
     // Standard size
-    height = 120;
-    width = 200;
+    height = undefined;
+    width = undefined;
 
     scene = {};
     objsToRender = [];
 
-    lastEntry = 0;
+    numOfParams = 0;
+    paramTextOffsetY = 20;
+    paramTextOffsetX = undefined;
+
+    marginX = undefined;
+    marginY = undefined;
 
     container = {};
 
     handleL = {};
     handleR = {};
 
-    parameter = {};
+    // array of objs
+    // { 
+    //  paramName: "string",
+    //  value: "0"
+    // }
+    parameters = [];
 
     handleRLine = {
         obj: undefined,
@@ -67,6 +64,11 @@ export class UINode extends UIObject
         this.width = this.UIBuffers.container.size[0];
         this.height = this.UIBuffers.container.size[1];
 
+        this.paramTextOffsetX = this.width/2;
+
+        this.marginX = this.width/10;
+        this.marginY = this.height/10;
+
         const UINodeContainerBuffer = this.UIBuffers.container.buffer.getInfo();
         const rect = new RenderableObject(UINodeContainerBuffer, projectionMat);
         rect.setPosition([0,0]);
@@ -92,25 +94,57 @@ export class UINode extends UIObject
         this.addObjToRender(rect);
         this.addObjsToRender([handleL, handleR]);
 
-        // this.parameter.X = this.addTextEntry("X: ", this.container);
-        // this.parameter.Y = this.addTextEntry("Y: ", this.container);
-        // this.addTextEntry("Z: ", this.container);
-        // this.addTextEntry("U: ", this.container);
+        const UINodeText = [
+            {
+                paramName: "First",
+                value: "0"
+            },
+            {
+                paramName: "Second",
+                value: "0"
+            },
+            {
+                paramName: "Thirdoo",
+                value: "0"
+            }
+        ];
 
-        const txtArr = [{
-         data: "Hello",
-         pos: [0,0]   
-        },
-        {
-            data: "Input text",
-            pos: [0,0]   
-        },
-        {
-        data: "Blabasd",
-        pos: [0,50]   
-        },
-    ]
-        this.addTextEntry(txtArr, this.container);
+        this.UINodeText = UINodeText;
+
+    //     const txtArr = [
+    //         {
+    //         data: "Param 1",
+    //         pos: [0,0]   
+    //        },
+    //        {
+    //        data: "Param 2",
+    //        pos: [0,20]   
+    //        },
+    //        {
+    //        data: "Param 3",
+    //        pos: [0,40]   
+    //        },
+    //        {
+    //        data: "Param 4",
+    //        pos: [0,60]
+    //        },
+    //    ]
+
+        this.txtArr = this.convertToTxtArr(UINodeText);
+
+       // creating batch for this node
+        const txtSize = 9.0;
+        const txtColor = [1,1,1,1];
+        const txtBatch = createNewText(this.scene.gl, this.scene.programs[2], this.txtArr, txtSize, this.scene.fontUI, txtColor);
+        txtBatch.setCanBeMoved(false);
+        txtBatch.setPosition([ this.marginX, this.marginY ]);
+        txtBatch.setParent(this.container);
+
+        this.txtBuffer = txtBatch;
+
+        this.txtBgArr = this.createTxtBg(txtBatch, UINodeText.length);
+
+        this.addObjsToRender([...this.txtBgArr, txtBatch]);
 
         // this.parameter.X.container.handlers.onClick = () => {
         //     if (this.handleR.line.connection.isConnected)
@@ -120,41 +154,102 @@ export class UINode extends UIObject
         //     }
         // }
 
-        this.container.updateWorldMatrix();
+
+        console.log(this);
+
+        this.addTextEntry("New param!", txtBatch);
     }
 
-    addTextEntry(txtStr, parent = this.container)
+    convertToTxtArr(UINodeText)
     {
-        // Init txt
-        const txtSize = 9.0;
-        const txtColor = [1,1,1,1];
-        const txt = createNewText(this.scene.gl, this.scene.programs[2], txtStr, txtSize, this.scene.fontUI, txtColor);
-        txt.setCanBeMoved(false);
-        txt.setPosition([ this.width/10, this.height/10+this.lastEntry]);
+        const txtArr = [];
 
+        this.numOfParams = 0;
+
+        UINodeText.forEach( (txt, indx) => {
+            txtArr.push({
+                data: txt.paramName,
+                pos: [0, indx*this.paramTextOffsetY ]
+            },
+            {
+                data: txt.value,
+                pos: [this.paramTextOffsetX, indx*this.paramTextOffsetY]
+            });
+
+            this.numOfParams = this.numOfParams + 1;
+        })
+        return txtArr;
+    }
+
+    addTextEntry(paramNameStr, parent = this.container)
+    {
         // Init UI text input
-        const txtWidth = txt.txtBuffer.str.cpos[0];
-        const txtHeight = txt.txtBuffer.str.rect[3];
+        // const txtWidth = txt.txtBuffer.str.cpos[0];
+        // const txtHeight = txt.txtBuffer.str.rect[3];
 
-        const txtRect = {
-            width: this.UIBuffers.textInput.size[0],
-            height: txtHeight,
-            buffer: this.UIBuffers.textInput.buffer
+        // remove objs
+        this.removeObjs(this.scene, [this.txtBuffer, ...this.txtBgArr]);
+        this.numOfParams = 0;
+
+        this.UINodeText.push(
+            {
+                paramName: paramNameStr,
+                value: "0"
+            }
+        );
+
+        const newTxtBg = this.createTxtBg(parent, this.UINodeText.length);
+        this.txtBgArr = newTxtBg;
+
+        const newTxtArr = this.convertToTxtArr(this.UINodeText);
+        this.txtBuffer.txtBuffer.updateTextBufferData(newTxtArr, 9);
+        this.container.updateWorldMatrix();
+
+        this.addObjsToRender([...newTxtBg, this.txtBuffer]);
+    }
+
+    createTxtBg(parent = this.container, n)
+    {
+        const buffer = this.UIBuffers.textInput.buffer;
+
+        const arrOfTxtBgs = [];
+
+        for (let i=0; i < n; i++)
+        {
+            const rect = this.addNewTxtBg(parent, i);
+            arrOfTxtBgs.push(rect);
         }
 
-        const textInput = new UITextInput(this.scene, txtRect, txtSize, txt);
-        textInput.setPosition([txtWidth,0]);
+        return arrOfTxtBgs;
+    }
 
-        if (parent) txt.setParent(parent);
-        else txt.updateWorldMatrix();
+    addNewTxtBg(parent, indx)
+    {
+        const buffer = this.UIBuffers.textInput.buffer;
 
-        this.addObjToRender(txt);
-        this.addObjsToRender(textInput.getObjsToRender());
+        const rect = new RenderableObject(buffer.getInfo(), getProjectionMat(this.scene.gl));
+        rect.setPosition([this.paramTextOffsetX, indx*this.paramTextOffsetY]);
+        rect.setParent(parent);
+        rect.setCanBeMoved(false);
+        rect.setOriginalColor([0.05,0.05,0.6,1]);
 
-        // Update last entry pos
-        this.lastEntry = this.lastEntry + txtHeight + this.height*0.05;
+        rect.handlers.onInputKey = (e) => this.handleInput(e, indx);
 
-        return textInput;
+        return rect;
+    }
+
+    handleInput(e,indx)
+    {
+        if (this.UINodeText[indx].value === "0")
+        {
+            this.UINodeText[indx].value = e.key;
+        }
+        else {
+            this.UINodeText[indx].value = this.UINodeText[indx].value + e.key;
+        }
+
+        const newTextArr = this.convertToTxtArr(this.UINodeText);            
+        this.txtBuffer.txtBuffer.updateTextBufferData(newTextArr, 9);
     }
 
     addTextBatch()

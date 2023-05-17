@@ -9,7 +9,7 @@ export class CustomBuffer {
  
          // Buffers to hold data for this class
          this.positionBuffer = this.gl.createBuffer();
-         this.textureBuffer = this.gl.createBuffer();
+         // this.textureBuffer = this.gl.createBuffer();
      
          this.programInfo = programInfo;
  

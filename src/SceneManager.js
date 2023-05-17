@@ -129,7 +129,7 @@ export class SceneManager
         const robotoBoldFont = new TextFont(this.gl, fontSettings, this.gl.LUMINANCE);
         this.fontUI = robotoBoldFont;
 
-        const UINodeSize = [120,120];
+        const UINodeSize = [130,120];
         const UIBuffersStore = new UIBuffers();
         UIBuffersStore.createUINodeBuffers(this.gl, this.programs[0], UINodeSize, 0.05);
 
@@ -188,6 +188,14 @@ export class SceneManager
         // Appropriate checks for valid obj
         objs.forEach((obj) => {
             if (obj) { this.objsToDraw.push(obj); }  
+        })
+    }
+
+    removeObjsFromScene(objs)
+    {
+        // UNOPTIMIZED, implement hash set later on!
+        objs.forEach( (obj) => {
+            this.objsToDraw = this.objsToDraw.filter( objToDraw => objToDraw.id !== obj.id );
         })
     }
 

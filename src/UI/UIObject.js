@@ -33,5 +33,14 @@ export class UIObject{
             obj_arr.forEach((obj) => {
                 this.addObjToRender(obj);
             })
-        }
+    }
+
+    removeObjs(scene, objs)
+    {
+        if (scene) scene.removeObjsFromScene(objs);
+
+        objs.forEach( (obj) => {
+            this.objsToRender = this.objsToRender.filter( objToRender => objToRender.id !== obj.id );
+        })
+    }
 }
