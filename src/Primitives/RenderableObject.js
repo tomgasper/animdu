@@ -1,5 +1,3 @@
-import { m3, computeTransform  } from "../utils.js"
-import { Node } from "../Node/Node.js"
 import { SceneObject } from "../SceneObject.js";
 
 export class RenderableObject extends SceneObject

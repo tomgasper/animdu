@@ -6,6 +6,8 @@ import { m3 } from "./utils.js";
 
 import { renderObject } from "./utils.js";
 
+import { TransformNode } from "./Node/TransformNode.js";
+
 export const resetMousePointer = (body) =>
 {
     if (body.style.cursor !== "default")
@@ -43,17 +45,24 @@ export const deleteFromToDraw = (arr, obj) =>
 
 export const getPosFromMat = (obj) =>
 {
-    if (!obj || obj instanceof Node ) throw Error("Wrong input object!");
+    if ( obj instanceof TransformNode || obj.length == 9 )
+    {
+        let pos;
 
-    return [obj.worldMatrix[6], obj.worldMatrix[7]];
+        if (obj.worldMatrix) pos = [obj.worldMatrix[6], obj.worldMatrix[7]];
+        else pos = [obj[6], obj[7]];
+
+        return pos;
+    } else throw Error("Wrong input object!");
 }
 
 export const moveObjectWithCoursor = (sceneManager) =>
     {
+        const objToDrag = sceneManager.objsToDraw[sceneManager.objectIDtoDrag];
+
         if (!sceneManager.clickOffset)
                 {
-                    const obj = sceneManager.objsToDraw[sceneManager.objectIDtoDrag];
-                    let curr_pos = [ obj.worldMatrix[6], obj.worldMatrix[7] ];
+                    let curr_pos = [ objToDrag.worldMatrix[6], objToDrag.worldMatrix[7] ];
                     
                     sceneManager.clickOffset = [sceneManager.mouseX - curr_pos[0], sceneManager.mouseY - curr_pos[1]];
                 }
@@ -61,22 +70,44 @@ export const moveObjectWithCoursor = (sceneManager) =>
                 let parentWorldMat;
                 let mouseTranslation = m3.translation(sceneManager.mouseX - sceneManager.clickOffset[0],sceneManager.mouseY - sceneManager.clickOffset[1]);
 
+                let newPos;
+
                 // Object is a child of some other object
-                if (sceneManager.objsToDraw[sceneManager.objectIDtoDrag].parent)
+                if (objToDrag.parent)
                 {
-                    parentWorldMat = sceneManager.objsToDraw[sceneManager.objectIDtoDrag].parent.worldMatrix;
+                    // Position of mouse in different coord space
+                    parentWorldMat = objToDrag.parent.worldMatrix;
                     let parentWorldMatInv = m3.inverse(parentWorldMat);
                     
-                    let newPos = m3.multiply(parentWorldMatInv, mouseTranslation);
+                    let mousePosInDiffCord = m3.multiply(parentWorldMatInv, mouseTranslation);
 
-                    sceneManager.objsToDraw[sceneManager.objectIDtoDrag].setPosition([newPos[6],newPos[7]]);
+                    newPos = getPosFromMat(mousePosInDiffCord);
                 }
                 else 
                 {
-                    sceneManager.objsToDraw[sceneManager.objectIDtoDrag].setPosition([mouseTranslation[6],mouseTranslation[7]]);
+                    newPos = getPosFromMat(mouseTranslation);
                 }
 
-                sceneManager.objsToDraw[sceneManager.objectIDtoDrag].updateWorldMatrix(parentWorldMat);
+                // handle move restrictions
+                if (objToDrag.moveRestriction)
+                {
+                    // parentWorldMat = objToDrag.parent.worldMatrix;
+                    // let parentWorldMatInv = m3.inverse(parentWorldMat);
+                    
+                    // let mouseTranslation = m3.translation(obj);
+                    // let mousePosInDiffCord = m3.multiply(parentWorldMatInv, mouseTranslation);
+
+                    const objGlobalPos = getPosFromMat(objToDrag);
+                    const xBound = objToDrag.moveRestriction.x;
+                    const yBound = objToDrag.moveRestriction.y;
+
+                    if (newPos[0] < xBound[0] || newPos[0] > xBound[1] ) newPos[0] = objToDrag.properties.position[0];
+                    if (newPos[1] < yBound[0] || newPos[1] > yBound[1] ) newPos[1] = objToDrag.properties.position[1];
+                }
+
+                objToDrag.setPosition(newPos);
+
+                objToDrag.updateWorldMatrix(parentWorldMat);
     }
 
     export const canMoveObj = (sceneManager) =>

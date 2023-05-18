@@ -14,7 +14,15 @@ export class UIBuffers
         },
         handle: {
             buffer: undefined,
-            size: undefined,
+            size: [],
+        },
+        sliderCircle: {
+            buffer: undefined,
+            size: []
+        },
+        sliderBg: {
+            buffer: undefined,
+            size: []
         }
     };
 
@@ -37,6 +45,16 @@ export class UIBuffers
         const handleSize = size[1]*0.05;
         this.UINode.handle.size = handleSize;
         this.UINode.handle.buffer = new CircleBuffer(gl, program, handleSize, handleResolution);
+
+        // Slider buffers
+        const sliderBgSize = [size[0]*0.8, size[1]*0.15];
+        this.UINode.sliderBg.size = sliderBgSize;
+        this.UINode.sliderBg.buffer = new RectangleBuffer(gl, program, sliderBgSize, 0.3);
+
+        const sliderCirclerRes = 16;
+        const sliderCircleSize = size[1] * 0.05;
+        this.UINode.sliderCircle.size = handleSize;
+        this.UINode.sliderCircle.buffer = new CircleBuffer(gl, program, sliderCircleSize, sliderCirclerRes);
 
         return this.UINode;
     }

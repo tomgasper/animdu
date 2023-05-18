@@ -10,7 +10,6 @@ import { RenderableObject } from "./Primitives/RenderableObject.js";
 
 import { getIdFromCurrentPixel, setFramebufferAttachmentSizes } from "./pickingFramebuffer.js";
 import { TextFont } from "./Text/TextFont.js";
-
 import { roboto_bold_font } from "./fonts/roboto-bold.js";
 
 import { mountUI } from "./UI/helper_UI.js";
@@ -18,9 +17,9 @@ import { highlightObjUnderCursor, resetMousePointer } from "./sceneHelper.js";
 
 import { canMoveObj, moveObjectWithCoursor } from "./sceneHelper.js";
 
-import { drawObjects } from "./sceneHelper.js";
-
 import { UIBuffers } from "./UI/UIBuffers.js";
+
+import { drawObjects } from "./sceneHelper.js";
 
 
 export class SceneManager
@@ -78,7 +77,7 @@ export class SceneManager
             this.mouseY = e.clientY - rect.top;
          });
 
-         this.document.addEventListener("keyup", (e) => {
+        this.document.addEventListener("keyup", (e) => {
         });
 
         this.document.addEventListener("keydown", (e) => {

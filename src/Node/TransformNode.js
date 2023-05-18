@@ -1,6 +1,6 @@
 import { m3 } from "../utils.js";
 
-export class Node
+export class TransformNode
 {
     id = Math.floor(Math.random() * Date.now());
 

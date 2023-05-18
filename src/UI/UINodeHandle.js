@@ -134,6 +134,11 @@ export class UINodeHandle extends RenderableObject
         this.line.connection.connectedObj = outHandle;
         this.line.connection.isConnected = true;
 
+        console.log("connected");
+
+        console.log(outHandle);
+        console.log(this);
+
         return true;
     }
 

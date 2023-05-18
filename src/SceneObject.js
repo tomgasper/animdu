@@ -1,8 +1,8 @@
 import { m3, computeTransform } from "./utils.js";
 
-import { Node } from "./Node/Node.js";
+import { TransformNode } from "./Node/TransformNode.js";
 
-export class SceneObject extends Node
+export class SceneObject extends TransformNode
 {
     // If set to true can be detected by mouse move and picked up
     canBeMoved = true;
