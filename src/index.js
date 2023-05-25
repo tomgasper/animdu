@@ -7,7 +7,7 @@ import { instancedLineCapFragmentShaderSource, instancedLineCapVertexShaderSourc
 import { initShaderProgram } from "./Shaders/ShaderUtils.js";
 
 import { RenderLoop } from "./RenderLoop.js";
-import { SceneManager } from "./SceneManager.js";
+import { App } from "./App/App.js";
 
 import { setUpPickingFramebuffer, createDepthBuffer, createPickingTargetTexture } from "./pickingFramebuffer.js";
 
@@ -181,28 +181,28 @@ function main()
                           instancedLineCapProgramInfo
     ];
 
-    // Setting up a new framebuffer for retriving object under mouse
-    // Textures and renderbuffers will be attached to framebuffer
+    // Framebuffer for retriving object under mouse
 
+    // Textures and renderbuffers will be attached to framebuffer
     // Create a texture to render to
     const targetTexture = createPickingTargetTexture(gl);
     const depthBuffer = createDepthBuffer(gl);
     const fb = setUpPickingFramebuffer(gl, targetTexture, depthBuffer);
 
-    // Set up scene
-    const sceneManager = new SceneManager(gl,canvas,programsInfo, fb, depthBuffer, targetTexture);
-    sceneManager.setUpScene();
+    // Set up new application
+    const app = new App(gl,canvas,programsInfo, fb, depthBuffer, targetTexture);
 
     // Set up render loop
-    const renderLoop = new RenderLoop( sceneManager.draw.bind(sceneManager) );
+    const renderLoop = new RenderLoop( app.doFrame.bind(app) );
 
+    // Set up memory info plugin
     if (ext) {
       const info = ext.getMemoryInfo();
       console.log(info);
-    }
+    };
 
     // Start rendering
-    renderLoop.step(undefined);
+    renderLoop.render();
 }
   
 main();

@@ -51,8 +51,11 @@ export function setFramebufferAttachmentSizes(gl, depthBuffer, width, height, re
     gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_COMPONENT16,width,height);
   }
 
-export function getIdFromCurrentPixel(gl, pixelX, pixelY)
+export function getIdFromCurrentPixel(gl, mouseX, mouseY)
 {
+  const pixelX = mouseX * gl.canvas.width / gl.canvas.clientWidth;
+  const pixelY = gl.canvas.height - mouseY * gl.canvas.height / gl.canvas.clientHeight - 1;
+
     const data = new Uint8Array(4);
     gl.readPixels(
     pixelX,            // x

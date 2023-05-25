@@ -1,9 +1,9 @@
-import { RenderableObject } from "../Primitives/RenderableObject.js";
+import { RenderableObject } from "../RenderableObject.js";
 import { InstancedLineBuffer } from "../Primitives/InstancedLineBuffer.js";
 
 import { getProjectionMat } from "../utils.js";
 
-import { deleteFromToDraw, getPosFromMat } from "../sceneHelper.js";
+import { deleteFromToDraw, getPosFromMat } from "../App/AppHelper.js";
 
 export class UINodeHandle extends RenderableObject
 {

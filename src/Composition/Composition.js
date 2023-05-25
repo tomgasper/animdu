@@ -1,0 +1,9 @@
+class Composition
+{
+    objects = [];
+    
+    constructor()
+    {
+
+    }
+}

@@ -1,14 +1,7 @@
 import { SceneObject } from "../SceneObject.js";
 
-import { RenderableObject } from "../Primitives/RenderableObject.js";
-
 export class UIObject{
     objsToRender = [];
-
-    constructor()
-    {
-
-    }
 
     clicked(fnc)
     {

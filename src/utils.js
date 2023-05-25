@@ -1,4 +1,4 @@
-import { RenderableObject } from "./Primitives/RenderableObject.js";
+import { RenderableObject } from "./RenderableObject.js";
 
 export function resizeCanvasToDisplaySize(originalRes, canvas, multiplier) {
 

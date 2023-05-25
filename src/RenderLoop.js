@@ -10,10 +10,10 @@ export class RenderLoop
         this.done = false;
 
         // this reference gets lost so binding to the class is needed
-        this.stepCall = this.step.bind(this);
+        this.stepCall = this.render.bind(this);
     }
 
-    step(time)
+    render(time)
     {
         if (this.startTime === undefined) 
         {

@@ -26,6 +26,14 @@ export class UIBuffers
         }
     };
 
+
+    UILayerInfo = {
+        container:{
+            buffer: undefined,
+            size: [],
+        },
+    }
+
     constructor()
     {
 
@@ -57,6 +65,12 @@ export class UIBuffers
         this.UINode.sliderCircle.buffer = new CircleBuffer(gl, program, sliderCircleSize, sliderCirclerRes);
 
         return this.UINode;
+    }
+
+    createUILayerBuffers(gl, program, size, roundness = 0.0)
+    {
+        this.UILayerInfo.container.size = size;
+        this.UILayerInfo.container.buffer = new RectangleBuffer(gl, program, size, roundness);
     }
 
     getContainer()

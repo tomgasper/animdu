@@ -1,6 +1,6 @@
 import { m3, computeTransform } from "../utils.js";
 
-import { RenderableObject } from "../Primitives/RenderableObject.js";
+import { RenderableObject } from "../RenderableObject.js";
 
 export class TextObject extends RenderableObject
 {

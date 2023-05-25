@@ -1,12 +1,14 @@
-import { RectangleBuffer } from "./Primitives/RectangleBuffer.js";
-import { RenderableObject } from "./Primitives/RenderableObject.js";
-import { getProjectionMat } from "./utils.js";
+import { RectangleBuffer } from "../Primitives/RectangleBuffer.js";
+import { RenderableObject } from "../RenderableObject.js";
+import { getProjectionMat } from "../utils.js";
 
-import { m3 } from "./utils.js";
+import { m3, resizeCanvasToDisplaySize } from "../utils.js";
 
-import { renderObject } from "./utils.js";
+import { renderObject } from "../utils.js";
 
-import { TransformNode } from "./Node/TransformNode.js";
+import { TransformNode } from "../Node/TransformNode.js";
+
+import { setFramebufferAttachmentSizes } from "../pickingFramebuffer.js";
 
 export const resetMousePointer = (body) =>
 {
@@ -190,3 +192,39 @@ export const drawObjects = (scene, objsToDraw, programInfo = undefined) =>
 
             } else resetMousePointer(document);
     }
+
+export const prepareForFirstPass = (gl, framebuffer) =>
+{
+    // Draw the objects to the texture
+    gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer);
+
+    gl.viewport(0,0, gl.canvas.width, gl.canvas.height);
+    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+    gl.disable(gl.BLEND);
+};
+
+export const prepareForScndPass = (gl) => 
+{
+    gl.disable(gl.DEPTH_TEST);
+    gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+    gl.bindTexture(gl.TEXTURE_2D, null);
+};
+
+export const resetMouseClick = (app) =>
+{
+    // reset click offset when mouse is no longer down
+    if (!app.isMouseDown && app.clickOffset)
+    {
+        app.clickOffset = undefined;
+    }
+    
+    app.isMouseClicked = false;
+}
+
+export const resizeCanvas = (app) =>
+{
+    if ( resizeCanvasToDisplaySize(window.originalRes, app.gl.canvas, window.devicePixelRatio))
+    {
+        setFramebufferAttachmentSizes(app.gl, app.depthBuffer, app.gl.canvas.width, app.gl.canvas.height, app.renderTexture);
+    }
+}

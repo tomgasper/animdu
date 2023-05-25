@@ -3,10 +3,10 @@ import { createNewText } from "../Text/textHelper.js";
 
 import { UIObject } from "./UIObject.js";
 
-import { RenderableObject } from "../Primitives/RenderableObject.js";
+import { RenderableObject } from "../RenderableObject.js";
 
 import { UINodeHandle } from "./UINodeHandle.js";
-import { getPosFromMat } from "../sceneHelper.js";
+import { getPosFromMat } from "../App/AppHelper.js";
 
 export class UINode extends UIObject
 {
@@ -54,25 +54,27 @@ export class UINode extends UIObject
     {
         const projectionMat = getProjectionMat(this.scene.gl);
 
+        // Set size based on the background container size
         this.UIBuffers = this.scene.UIBuffers.UINode;
         this.width = this.UIBuffers.container.size[0];
         this.height = this.UIBuffers.container.size[1];
 
         // Stylize Node
         this.paramTextOffsetX = this.width/2;
-
         this.marginX = this.width/10;
         this.marginY = this.height/10;
 
+        // Retrieve previously initialized buffer
         const UINodeContainerBuffer = this.UIBuffers.container.buffer.getInfo();
         const rect = new RenderableObject(UINodeContainerBuffer, projectionMat);
         rect.setPosition([0,0]);
         rect.setOriginalColor(this.containerColor);
         rect.handlers.onMouseMove = () => { this.handleMouseMove() };
 
+        // Save ref
         this.container = rect;
 
-        // Init handlers
+        // Init graphical handlers
         const cirlceBuffer = this.UIBuffers.handle.buffer.getInfo();
 
         const handleR = new UINodeHandle(this.scene, cirlceBuffer, this, this.container);
