@@ -8,6 +8,9 @@ import { initUI } from "../UI/initializeUI.js";
 import { prepareForFirstPass, prepareForScndPass, drawObjects, canMoveObj, moveObjectWithCoursor, resetMouseClick, resizeCanvas } from "./AppHelper.js";
 import { handleHandleOnMouseMove, handleUnderMouseCursor } from "./AppHandlers.js";
 
+import { Composition } from "../Composition/Composition.js";
+
+import { UI } from "../UI/UI.js";
 
 export class App
 {
@@ -20,7 +23,6 @@ export class App
     fps = 0.;
 
     primitiveBuffers = undefined;
-    UIBuffers = undefined;
 
     objsToDraw = [];
 
@@ -34,14 +36,18 @@ export class App
     mouseX = 0;
     mouseY = 0;
 
+    comps = [];
+    activeComp = {};
+
+    UI;
+    fontUI = undefined;
+
     activeObjID = -1;
     prevActiveObjID = -1;
     objectIDtoDrag = -1;
     objUnderMouseID = -1;
 
     eventsToProcess = [];
-
-    fontUI = undefined;
 
     constructor(gl, canvas, programsInfo, framebuffer, depthBuffer, renderTexture)
     {
@@ -72,10 +78,11 @@ export class App
         // Set up primitve buffers, font etc.
         initalizeApp(this);
 
-        // Set up buffers for UI elements,
-        initUI(this);
+        // Create UI
+        this.UI = new UI(this);
 
-        // !!! Should create comp here !!! 
+        // Create main comp and set it as active
+        this.addNewComposition("Main comp");
 
         const obj1 = new RenderableObject(this.primitiveBuffers.circle, projectionMat);
         obj1.setPosition([150,250]);
@@ -89,7 +96,13 @@ export class App
         obj3.setPosition([150,0]);
         obj3.setScale([1,1]);
 
-        const node1 = new UINode(this);
+        obj3.setParent(obj2);
+        obj2.setParent(obj1);
+        obj1.updateWorldMatrix();
+
+        this.activeComp.addObj([obj1,obj2,obj3]);
+
+        /* const node1 = new UINode(this);
         const node2 = new UINode(this);
         const node3 = new UINode(this);
         const node4 = new UINode(this);
@@ -97,16 +110,11 @@ export class App
         node3.setPosition([0,250]);
         node4.setPosition([250,250]);
 
-        obj3.setParent(obj2);
-        obj2.setParent(obj1);
-        obj1.updateWorldMatrix();
-
-        // Add all objs
-        this.addObjToScene([obj1,obj2,obj3]);
         this.addObjToScene(node1.getObjsToRender());
         this.addObjToScene(node2.getObjsToRender());
         this.addObjToScene(node3.getObjsToRender());
         this.addObjToScene(node4.getObjsToRender());
+        */
 
         console.log(this.objsToDraw);
     }
@@ -117,7 +125,8 @@ export class App
         this.time = elapsedTime * 0.001;
         this.fps = fps;
 
-        // Draw frame
+        // Gather objs to draw
+        this.createDrawList(this.UI.objects, this.activeComp.objects);
         this.drawFrame();
     }
 
@@ -129,10 +138,24 @@ export class App
         // Draw to texture - PASS 1
         prepareForFirstPass(this.gl, this.framebuffer);
         drawObjects(this, this.objsToDraw, this.programs[1]);
-        
+
+        this.handleEvents();
+
+        // 2nd Pass - Draw "normally"
+        prepareForScndPass(this.gl);
+        drawObjects(this, this.objsToDraw);
+
+        resetMouseClick(this);
+    }
+
+    handleEvents()
+    {
         // Look up id of the object under mouse cursor
-        const id = getIdFromCurrentPixel(this.gl, this.mouseX, this.mouseY);
-        handleUnderMouseCursor(this, id);
+        const underMouseObjId = getIdFromCurrentPixel(this.gl, this.mouseX, this.mouseY);
+        handleUnderMouseCursor(this, underMouseObjId);
+
+        //console.log(this.objUnderMouseID);
+        //console.log(this.objsToDraw);
 
         // Handle move comp object
         if ( canMoveObj(this) )
@@ -142,12 +165,26 @@ export class App
 
         // Handle UI Node handles events
         handleHandleOnMouseMove(this);
+    }
 
-        // 2nd Pass - Draw "normally"
-        prepareForScndPass(this.gl);
-        drawObjects(this, this.objsToDraw);
+    addNewComposition(compName)
+    {
+        const newComp = new Composition(this, compName);
+        this.comps.push(newComp);
+        this.setActiveComp(newComp);
 
-        resetMouseClick(this);
+        return newComp;
+    }
+
+    createDrawList(UIObjs, activeCompObjs)
+    {
+        this.objsToDraw = [...UIObjs, ...activeCompObjs];
+    }
+
+    setActiveComp(comp)
+    {
+        if (comp && comp instanceof Composition) this.activeComp = comp;
+        else console.log("Trying to set incorrect composition as active!");
     }
 
     addObjToScene(objs)

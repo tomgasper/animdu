@@ -6,7 +6,7 @@ import { UIBuffers } from "./UIBuffers.js"
 
 import { RenderableObject } from "../RenderableObject.js";
 
-const initializeUIBuffers = (app, program) => 
+const initializeUIBuffers = (app, UI, program) => 
 {
     // Set up UI
     const UINodeSize = [130,120];
@@ -17,16 +17,10 @@ const initializeUIBuffers = (app, program) =>
     UIBuffersStore.createUILayerBuffers(app.gl, program, UILayerInfoSize);
 
     // save ref
-    app.UIBuffers = UIBuffersStore;
+    UI.UIBuffers = UIBuffersStore;
 }
 
-export const initUI = (app) =>
-{
-    initializeUIBuffers(app, app.programs[0]);
-    initViewer(app);
-}
-
-const initViewer = (app) =>
+const initViewer = (app, UI) =>
 {
     const projectionMat = m3.projection(app.gl.canvas.clientWidth, app.gl.canvas.clientHeight);
     const screen_width = app.gl.canvas.clientWidth;
@@ -90,9 +84,15 @@ const initViewer = (app) =>
         someText.setPosition([0,0]);
         someText.blending = true;
         someText.updateWorldMatrix();
-        app.addObjToScene([someText]);
+        app.activeComp.addObj(someText);
         console.log("added");
     };
 
-    app.addObjToScene(objsToAdd);
+    UI.addObj(objsToAdd);
+}
+
+export const initUI = (app, UI) =>
+{
+    initializeUIBuffers(app, UI, app.programs[0]);
+    initViewer(app, UI);
 }

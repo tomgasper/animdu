@@ -58,19 +58,19 @@ export const getPosFromMat = (obj) =>
     } else throw Error("Wrong input object!");
 }
 
-export const moveObjectWithCoursor = (sceneManager) =>
+export const moveObjectWithCoursor = (app) =>
     {
-        const objToDrag = sceneManager.objsToDraw[sceneManager.objectIDtoDrag];
+        const objToDrag = app.objsToDraw[app.objectIDtoDrag];
 
-        if (!sceneManager.clickOffset)
+        if (!app.clickOffset)
                 {
                     let curr_pos = [ objToDrag.worldMatrix[6], objToDrag.worldMatrix[7] ];
                     
-                    sceneManager.clickOffset = [sceneManager.mouseX - curr_pos[0], sceneManager.mouseY - curr_pos[1]];
+                    app.clickOffset = [app.mouseX - curr_pos[0], app.mouseY - curr_pos[1]];
                 }
 
                 let parentWorldMat;
-                let mouseTranslation = m3.translation(sceneManager.mouseX - sceneManager.clickOffset[0],sceneManager.mouseY - sceneManager.clickOffset[1]);
+                let mouseTranslation = m3.translation(app.mouseX - app.clickOffset[0],app.mouseY - app.clickOffset[1]);
 
                 let newPos;
 
@@ -112,9 +112,9 @@ export const moveObjectWithCoursor = (sceneManager) =>
                 objToDrag.updateWorldMatrix(parentWorldMat);
     }
 
-    export const canMoveObj = (sceneManager) =>
+    export const canMoveObj = (app) =>
     {
-        if (sceneManager.isMouseDown && sceneManager.objectIDtoDrag >= 0 && sceneManager.objsToDraw[sceneManager.objectIDtoDrag].canBeMoved === true) return true;
+        if (app.isMouseDown && app.objectIDtoDrag >= 0 && app.objsToDraw[app.objectIDtoDrag].canBeMoved === true) return true;
         else return false;
 }
 
@@ -124,14 +124,14 @@ export const drawObjects = (scene, objsToDraw, programInfo = undefined) =>
         let program;
         const projection = m3.projection(scene.gl.canvas.clientWidth, scene.gl.canvas.clientHeight);
 
-        if (typeof programInfo !== "undefined" ) // Use object's shader when shader hasn't been specified
+        if (typeof programInfo !== "undefined" ) // this is drawing for picking pass, with specified shader
         {
             program = programInfo;
-
             scene.gl.useProgram(program.program);
 
             // set projection based on canvas dimensions
             objsToDraw.forEach((obj, i) => {
+                if (!(obj instanceof RenderableObject)) throw Error("Incorrect object in draw loop!" + obj);
                 // (!) Notice that we are setting id offset by 1
                 const ii = i +1 ;
 
@@ -152,13 +152,13 @@ export const drawObjects = (scene, objsToDraw, programInfo = undefined) =>
 
                 // Reset color
                 obj.setColor(obj.properties.originalColor);
-        })} else {
+        })} else {  // Use object's shader when shader hasn't been specified
             objsToDraw.forEach((obj, ii) => {
                 let objProgram = obj.renderInfo.programInfo;
 
                 // Switch shader if the cached one doesn't work
                 if (objProgram !== program)
-                { 
+                {
                     scene.gl.useProgram(objProgram.program);
                     program = objProgram;
                 }
@@ -168,7 +168,7 @@ export const drawObjects = (scene, objsToDraw, programInfo = undefined) =>
                     scene.gl.enable(scene.gl.BLEND);
                 }
 
-                obj.setProjection(projection);
+                //obj.setProjection(projection);
 
                 renderObject(scene.gl, obj, program);
 

@@ -1,18 +1,24 @@
 import { RenderableObject } from "../RenderableObject.js";
+import { initUI } from "./initializeUI.js";
 
-export class Composition
+export class UI
 {
     app;
     objects = [];
-    id;
-    name;
+
+    UIBuffers;
     
-    constructor(app, name)
+    constructor(app)
     {
         // Save ref to the app
         this.app = app;
-        this.id = app.comps.length;
-        this.name = name;
+
+        this.start(app);
+    }
+
+    start(app)
+    {
+        initUI(app, this);
     }
 
     addObj(obj)

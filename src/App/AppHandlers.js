@@ -32,6 +32,11 @@ export const handleUnderMouseCursor = (app, id) =>
                 // Set ID of active object
                 app.prevActiveObjID = app.activeObjID;
                 app.activeObjID = pickNdx;
+
+                if (app.objsToDraw[app.activeObjID] && app.objsToDraw[app.activeObjID].handlers.onClick)
+                {
+                    app.objsToDraw[app.activeObjID].handlers.onClick.call(app.objsToDraw[app.activeObjID]);
+                }
             }
         }
         else {
