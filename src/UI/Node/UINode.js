@@ -1,15 +1,22 @@
-import { getProjectionMat } from "../utils.js";
-import { createNewText } from "../Text/textHelper.js";
+import { getProjectionMat } from "../../utils.js";
+import { createNewText } from "../../Text/textHelper.js";
 
-import { UIObject } from "./UIObject.js";
+import { UIObject } from "../UIObject.js";
 
-import { RenderableObject } from "../RenderableObject.js";
+import { RenderableObject } from "../../RenderableObject.js";
 
 import { UINodeHandle } from "./UINodeHandle.js";
-import { getPosFromMat } from "../App/AppHelper.js";
+import { getPosFromMat } from "../../App/AppHelper.js";
+
+import { UINodeParam } from "./UINodeParam.js";
+
 
 export class UINode extends UIObject
 {
+    // App ref
+    app = {};
+    objsToRender = [];
+
     // Standard size
     height = undefined;
     width = undefined;
@@ -17,9 +24,6 @@ export class UINode extends UIObject
     containerColor = [0.05,0.5,0.95,1];
     txtSize = 9;
     txtColor = [1,1,1,1];
-
-    scene = {};
-    objsToRender = [];
 
     numOfParams = 0;
     paramTextOffsetY = 20;
@@ -41,21 +45,25 @@ export class UINode extends UIObject
 
     parameters = [];
 
-    constructor(scene)
+    constructor(app, paramsList)
     {
-        super();
+        console.log(app.UI);
+        super(app.UI);
 
-        this.scene = scene;
+        this.app = app;
+        this.parameters = paramsList.params;
 
         this.initialize();
     }
 
     initialize()
     {
-        const projectionMat = getProjectionMat(this.scene.gl);
+        const projectionMat = getProjectionMat(this.app.gl);
+
+        console.log(this.UI);
 
         // Set size based on the background container size
-        this.UIBuffers = this.scene.UIBuffers.UINode;
+        this.UIBuffers = this.UI.UIBuffers.UINode;
         this.width = this.UIBuffers.container.size[0];
         this.height = this.UIBuffers.container.size[1];
 
@@ -77,13 +85,13 @@ export class UINode extends UIObject
         // Init graphical handlers
         const cirlceBuffer = this.UIBuffers.handle.buffer.getInfo();
 
-        const handleR = new UINodeHandle(this.scene, cirlceBuffer, this, this.container);
+        const handleR = new UINodeHandle(this.app, cirlceBuffer, this, this.container);
         handleR.setPosition([this.width, this.height/2]);
         handleR.setOriginalColor([0.2,0.2,0.2,1])
         handleR.setCanBeMoved(false);
         this.handleR = handleR;
 
-        const handleL = new UINodeHandle(this.scene, cirlceBuffer, this, this.container);
+        const handleL = new UINodeHandle(this.app, cirlceBuffer, this, this.container);
         handleL.setPosition([0, this.height/2]);
         handleL.setOriginalColor([0.2,0.2,0.2,1])
         handleL.setCanBeMoved(false);
@@ -91,21 +99,7 @@ export class UINode extends UIObject
 
         this.addObjToRender(rect);
         this.addObjsToRender([handleL, handleR]);
-
-        this.parameters = [
-            {
-                paramName: "First",
-                value: "0"
-            },
-            {
-                paramName: "Second",
-                value: "0"
-            },
-            {
-                paramName: "Thirdoo",
-                value: "0"
-            }
-        ];
+        
 
         /* this is how txtArr obj looks like:
             const txtArr = [
@@ -115,10 +109,11 @@ export class UINode extends UIObject
                 }, ...
             ]
        */
+
         this.txtArr = this.convertToTxtArr(this.parameters);
 
        // creating text batch for this node, to avoid creating a lot of small buffers
-        const txtBatch = createNewText(this.scene.gl, this.scene.programs[2], this.txtArr, this.txtSize, this.scene.fontUI, this.txtColor);
+        const txtBatch = createNewText(this.app.gl, this.app.programs[2], this.txtArr, this.txtSize, this.UI.font, this.txtColor);
         txtBatch.setCanBeMoved(false);
         txtBatch.setPosition([ this.marginX, this.marginY ]);
         txtBatch.setParent(this.container);
@@ -130,6 +125,7 @@ export class UINode extends UIObject
         this.txtBgArr = this.createTxtBg(txtBatch, this.parameters.length);
         this.addObjsToRender([...this.txtBgArr, ...sliderContObjs, txtBatch]);
 
+
         // this.parameter.X.container.handlers.onClick = () => {
         //     if (this.handleR.line.connection.isConnected)
         //     {
@@ -138,7 +134,7 @@ export class UINode extends UIObject
         //     }
         // }
 
-        this.addParam("New param!", txtBatch);
+        // this.addParam("New param!", txtBatch);
     }
 
     convertToTxtArr(params)
@@ -148,16 +144,18 @@ export class UINode extends UIObject
         this.numOfParams = 0;
 
         params.forEach( (txt, indx) => {
-            txtArr.push({
-                data: txt.paramName,
-                pos: [0, indx*this.paramTextOffsetY ]
-            },
             {
-                data: txt.value,
-                pos: [this.paramTextOffsetX, indx*this.paramTextOffsetY]
-            });
-
-            this.numOfParams = this.numOfParams + 1;
+                txtArr.push({
+                    data: txt.name.toString(),
+                    pos: [0, indx*this.paramTextOffsetY ]
+                },
+                {
+                    data: txt.value.toString(),
+                    pos: [this.paramTextOffsetX, indx*this.paramTextOffsetY]
+                });
+    
+                this.numOfParams = this.numOfParams + 1;
+            }
         })
         return txtArr;
     }
@@ -169,14 +167,11 @@ export class UINode extends UIObject
         // const txtHeight = txt.txtBuffer.str.rect[3];
 
         // remove objs
-        this.removeObjs(this.scene, [this.txtBuffer, ...this.txtBgArr]);
+        this.removeObjs(this.app, [this.txtBuffer, ...this.txtBgArr]);
         this.numOfParams = 0;
 
         this.parameters.push(
-            {
-                paramName: paramNameStr,
-                value: "0"
-            }
+            new UINodeParam(paramNameStr)
         );
 
         const newTxtBg = this.createTxtBg(parent, this.parameters.length);
@@ -208,14 +203,14 @@ export class UINode extends UIObject
     {
         // Set up bg for slider
         const sliderBgBuffer = this.UIBuffers.sliderBg.buffer.getInfo();
-        const sliderBg = new RenderableObject(sliderBgBuffer, getProjectionMat(this.scene.gl));
+        const sliderBg = new RenderableObject(sliderBgBuffer, getProjectionMat(this.app.gl));
         sliderBg.setCanBeMoved(false);
         sliderBg.setCanBeHighlighted(false);
         sliderBg.setParent(parent);
 
         // Set up circle
         const circleBuffer = this.UIBuffers.sliderCircle.buffer.getInfo();
-        const sliderCircle = new RenderableObject(circleBuffer, getProjectionMat(this.scene.gl));
+        const sliderCircle = new RenderableObject(circleBuffer, getProjectionMat(this.app.gl));
         sliderCircle.setScale(size);
         sliderCircle.setCanBeMoved(true);
         sliderCircle.setPosition([0,this.UIBuffers.sliderBg.size[1]/2]);
@@ -230,7 +225,7 @@ export class UINode extends UIObject
     {
         const buffer = this.UIBuffers.textInput.buffer;
 
-        const rect = new RenderableObject(buffer.getInfo(), getProjectionMat(this.scene.gl));
+        const rect = new RenderableObject(buffer.getInfo(), getProjectionMat(this.app.gl));
         rect.setPosition([this.paramTextOffsetX, indx*this.paramTextOffsetY]);
         rect.setParent(parent);
         rect.setCanBeMoved(false);

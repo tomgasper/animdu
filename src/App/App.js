@@ -1,5 +1,5 @@
 import { m3  } from "../utils.js"
-import { UINode } from "../UI/UINode.js";
+import { UINode } from "../UI/Node/UINode.js";
 import { RenderableObject } from "../RenderableObject.js";
 import { getIdFromCurrentPixel, setFramebufferAttachmentSizes } from "../pickingFramebuffer.js";
 import { initalizeApp } from "./initializeApp.js";
@@ -11,6 +11,8 @@ import { handleHandleOnMouseMove, handleUnderMouseCursor } from "./AppHandlers.j
 import { Composition } from "../Composition/Composition.js";
 
 import { UI } from "../UI/UI.js";
+import { UINodeParamList } from "../UI/Node/UINodeParamList.js";
+import { UINodeParam } from "../UI/Node/UINodeParam.js";
 
 export class App
 {
@@ -102,21 +104,22 @@ export class App
 
         this.activeComp.addObj([obj1,obj2,obj3]);
 
-        /* const node1 = new UINode(this);
-        const node2 = new UINode(this);
-        const node3 = new UINode(this);
-        const node4 = new UINode(this);
-        node2.setPosition([250,0]);
-        node3.setPosition([0,250]);
-        node4.setPosition([250,250]);
+        const myParamList = new UINodeParamList([
+            new UINodeParam("Param1"),
+            new UINodeParam("Param2"),
+            new UINodeParam("Param3")
+        ]);
 
-        this.addObjToScene(node1.getObjsToRender());
-        this.addObjToScene(node2.getObjsToRender());
-        this.addObjToScene(node3.getObjsToRender());
-        this.addObjToScene(node4.getObjsToRender());
-        */
+        const myParamList2 = new UINodeParamList([
+            new UINodeParam("Param1"),
+            new UINodeParam("Param2"),
+            new UINodeParam("Param3")
+        ]);
 
-        console.log(this.objsToDraw);
+        console.log(myParamList);
+
+        this.UI.addNode(myParamList);
+        this.UI.addNode(myParamList2);
     }
 
     doFrame(elapsedTime, fps)

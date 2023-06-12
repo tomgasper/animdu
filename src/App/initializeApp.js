@@ -2,14 +2,9 @@ import { TriangleBuffer } from "../Primitives/TriangleBuffer.js";
 import { CircleBuffer } from "../Primitives/CircleBuffer.js";
 import { RectangleBuffer } from "../Primitives/RectangleBuffer.js";
 
-import { TextFont } from "../Text/TextFont.js";
-import { roboto_bold_font } from "../fonts/roboto-bold.js";
-
 export const initalizeApp = (app) =>
 {
     setUpPrimitveBuffers(app, app.programs[0]);
-    setUpMainFont(app);
-
 }
 
 export const initInputListeners = (app) => 
@@ -68,18 +63,4 @@ const setUpPrimitveBuffers = (app, program) =>
         circle: circleBuffer.getInfo(),
         triangle: triangleBuffer.getInfo()
     };
-}
-
-const setUpMainFont = (app) =>
-{
-     // Install font
-     const fontSettings = {
-        textureSrc: "./src/fonts/roboto-bold.png",
-        texResolution: [1024,1024],
-        color: [1,1,1.3,1],
-        subpixel: 1.0,
-        decoder: roboto_bold_font
-    };
-    const robotoBoldFont = new TextFont(app.gl, fontSettings, app.gl.LUMINANCE);
-    app.fontUI = robotoBoldFont;
 }

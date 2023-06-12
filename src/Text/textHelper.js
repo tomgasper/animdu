@@ -9,7 +9,6 @@ export function createNewText(gl, program, text, textSize, font, txtColor)
 {
     // Create text object
     const textBuffer = new TextBuffer(gl, program, font, text, textSize, txtColor);
-    textBuffer.initialize();
     
     const textBufferInfo = {
         bufferInfo: textBuffer.getBufferInfo(),

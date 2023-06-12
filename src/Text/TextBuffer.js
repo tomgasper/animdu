@@ -67,6 +67,9 @@ export class TextBuffer {
          }
 
          this.position.data = this.generateTextBufferData(txtString, txtSize);
+         console.log(this.position.data);
+         
+         this.initialize();
      }
     
     initialize()
@@ -96,6 +99,7 @@ export class TextBuffer {
             let count = 0;
             for (let i = 0; i < txtString.length; i++)
                 {
+                    if (typeof txtString[i].data !== "string") throw Error("Incorrect data for text render!");
                     count += txtString[i].data.length;
                 }
 

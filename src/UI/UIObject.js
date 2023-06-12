@@ -1,6 +1,13 @@
 import { SceneObject } from "../SceneObject.js";
 
 export class UIObject{
+    UI;
+
+    constructor(UIRef)
+    {
+        this.UI = UIRef;
+    }
+
     objsToRender = [];
 
     clicked(fnc)

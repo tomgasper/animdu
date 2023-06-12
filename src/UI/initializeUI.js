@@ -6,6 +6,9 @@ import { UIBuffers } from "./UIBuffers.js"
 
 import { RenderableObject } from "../RenderableObject.js";
 
+import { TextFont } from "../Text/TextFont.js";
+import { roboto_bold_font } from "../fonts/roboto-bold.js";
+
 const initializeUIBuffers = (app, UI, program) => 
 {
     // Set up UI
@@ -53,19 +56,19 @@ const initViewer = (app, UI) =>
     const txtColor = [1,1,1,1];
 
     // Install Text
-    const txt_1 = createNewText(app.gl, app.programs[2], "New Object", 20, app.fontUI,txtColor);
+    const txt_1 = createNewText(app.gl, app.programs[2], "New Object", 20, UI.font,txtColor);
     txt_1.setPosition([x_offset,screen_height/2 + y_offset]);
     txt_1.canBeMoved = false;
     txt_1.blending = true;
     txt_1.setScale([0.6,0.6]);
 
-    const txt_2 = createNewText(app.gl, app.programs[2], "See stats", 20, app.fontUI,txtColor);
+    const txt_2 = createNewText(app.gl, app.programs[2], "See stats", 20, UI.font,txtColor);
     txt_2.setPosition([x_offset+130, screen_height/2 + y_offset]);
     txt_2.canBeMoved = false;
     txt_2.blending = true;
     txt_2.setScale([0.6,0.6]);
 
-    const txt_3 = createNewText(app.gl, app.programs[2], "Reset", 20, app.fontUI,txtColor);
+    const txt_3 = createNewText(app.gl, app.programs[2], "Reset", 20, UI.font,txtColor);
     txt_3.setPosition([x_offset+250, screen_height/2 + y_offset]);
     txt_3.canBeMoved = false;
     txt_3.blending = true;
@@ -80,7 +83,7 @@ const initViewer = (app, UI) =>
 
     // Manage event hadlers
     txt_1.handlers.onClick = () => {
-        const someText = createNewText(app.gl, app.programs[2], "Dynamic text", 14, app.fontUI, projectionMat);
+        const someText = createNewText(app.gl, app.programs[2], "Dynamic text", 14, UI.font, projectionMat);
         someText.setPosition([0,0]);
         someText.blending = true;
         someText.updateWorldMatrix();
@@ -91,8 +94,25 @@ const initViewer = (app, UI) =>
     UI.addObj(objsToAdd);
 }
 
+const setUpMainFont = (app, UI) =>
+    {
+     // Install font
+     const fontSettings = {
+        textureSrc: "./src/fonts/roboto-bold.png",
+        texResolution: [1024,1024],
+        color: [1,1,1.3,1],
+        subpixel: 1.0,
+        decoder: roboto_bold_font
+    };
+    const robotoBoldFont = new TextFont(app.gl, fontSettings, app.gl.LUMINANCE);
+    UI.font = robotoBoldFont;
+
+    console.log(UI);
+    }
+
 export const initUI = (app, UI) =>
 {
     initializeUIBuffers(app, UI, app.programs[0]);
+    setUpMainFont(app,UI);
     initViewer(app, UI);
 }

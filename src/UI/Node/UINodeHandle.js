@@ -1,9 +1,9 @@
-import { RenderableObject } from "../RenderableObject.js";
-import { InstancedLineBuffer } from "../Primitives/InstancedLineBuffer.js";
+import { RenderableObject } from "../../RenderableObject.js";
+import { InstancedLineBuffer } from "../../Primitives/InstancedLineBuffer.js";
 
-import { getProjectionMat } from "../utils.js";
+import { getProjectionMat } from "../../utils.js";
 
-import { deleteFromToDraw, getPosFromMat } from "../App/AppHelper.js";
+import { deleteFromToDraw, getPosFromMat } from "../../App/AppHelper.js";
 
 export class UINodeHandle extends RenderableObject
 {
@@ -30,13 +30,13 @@ export class UINodeHandle extends RenderableObject
 
     prevCrossOverIdx = -1;
 
-    constructor(scene, buffer, node, parent)
+    constructor(app, buffer, node, parent)
     {
         // create renderable object
-        super(buffer, getProjectionMat(scene.gl));
+        super(buffer, getProjectionMat(app.gl));
 
-        // save ref to scene
-        this.scene = scene;
+        // save ref to app
+        this.app = app;
 
         // Set up handlers
         this.handlers.onMouseMove = (mousePos) => this.handleHandleMouseMove(mousePos);
@@ -67,17 +67,17 @@ export class UINodeHandle extends RenderableObject
 
         this.line.data = [thisObjPos[0],thisObjPos[1], mousePos[0], mousePos[1]];
 
-        const lineBuffer = new InstancedLineBuffer(this.scene.gl, this.scene.programs[3], this.line.data,true);
-        const line = new RenderableObject(lineBuffer.getInfo(), getProjectionMat(this.scene.gl), lineBuffer);
+        const lineBuffer = new InstancedLineBuffer(this.app.gl, this.app.programs[3], this.line.data, true);
+        const line = new RenderableObject(lineBuffer.getInfo(), getProjectionMat(this.app.gl), lineBuffer);
 
         line.properties.width = this.line.width;
 
         this.line.obj = line;
 
-        this.scene.addObjToScene([this.line.obj]);
+        this.app.UI.addObj(this.line.obj);
     }
 
-    deleteLine(gl, scene, line)
+    deleteLine(gl, app, line)
     {
         const lineBuffer = line.obj.buffer;
 
@@ -87,7 +87,7 @@ export class UINodeHandle extends RenderableObject
         gl.deleteBuffer(lineBuffer.positionBuffer);
         gl.deleteVertexArray(lineBuffer.VAO);
 
-        deleteFromToDraw(scene.objsToDraw, line);
+        deleteFromToDraw(app.UI.objects, line);
 
         // clean up ref object
         line.data = [];
@@ -97,7 +97,7 @@ export class UINodeHandle extends RenderableObject
 
     handleHandleMouseUp(objUnderMouseID)
     {
-        const objUnderMouse = this.scene.objsToDraw[objUnderMouseID];
+        const objUnderMouse = this.app.objsToDraw[objUnderMouseID];
 
         if (objUnderMouse instanceof UINodeHandle && this != objUnderMouse)
         {
@@ -110,7 +110,7 @@ export class UINodeHandle extends RenderableObject
             this.line.update(data);
         } else {
             // no handle under the mouse on release so get rid of preview line
-            this.deleteLine(this.scene.gl, this.scene, this.line);
+            this.deleteLine(this.app.gl, this.app, this.line);
         }
     }
 
@@ -151,7 +151,7 @@ export class UINodeHandle extends RenderableObject
         if (handle.line.obj && deleteLine)
         {
             console.log("Deleting: " + handle.line);
-            this.deleteLine(this.scene.gl, this.scene, handle.line);
+            this.deleteLine(this.app.gl, this.app, handle.line);
         }
     }
 
