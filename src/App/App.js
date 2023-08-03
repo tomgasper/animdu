@@ -119,7 +119,17 @@ export class App
         console.log(myParamList);
 
         this.UI.addNode(myParamList);
-        this.UI.addNode(myParamList2);
+        // this.UI.addNode(myParamList2);
+
+
+        const myParamList3 = new UINodeParamList([
+            new UINodeParam("Speed"),
+            new UINodeParam("Acc"),
+            new UINodeParam("Position")
+        ]);
+        
+
+        //this.UI.addNode(myParamList3);
     }
 
     doFrame(elapsedTime, fps)
@@ -156,9 +166,6 @@ export class App
         // Look up id of the object under mouse cursor
         const underMouseObjId = getIdFromCurrentPixel(this.gl, this.mouseX, this.mouseY);
         handleUnderMouseCursor(this, underMouseObjId);
-
-        //console.log(this.objUnderMouseID);
-        //console.log(this.objsToDraw);
 
         // Handle move comp object
         if ( canMoveObj(this) )

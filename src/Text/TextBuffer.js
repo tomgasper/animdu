@@ -67,7 +67,7 @@ export class TextBuffer {
          }
 
          this.position.data = this.generateTextBufferData(txtString, txtSize);
-         console.log(this.position.data);
+         // console.log(this.position.data);
          
          this.initialize();
      }

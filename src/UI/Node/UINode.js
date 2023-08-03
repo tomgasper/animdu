@@ -144,7 +144,6 @@ export class UINode extends UIObject
         this.numOfParams = 0;
 
         params.forEach( (txt, indx) => {
-            {
                 txtArr.push({
                     data: txt.name.toString(),
                     pos: [0, indx*this.paramTextOffsetY ]
@@ -155,7 +154,6 @@ export class UINode extends UIObject
                 });
     
                 this.numOfParams = this.numOfParams + 1;
-            }
         })
         return txtArr;
     }
@@ -203,7 +201,10 @@ export class UINode extends UIObject
     {
         // Set up bg for slider
         const sliderBgBuffer = this.UIBuffers.sliderBg.buffer.getInfo();
+        const sliderBgSize = this.UIBuffers.sliderBg.size;
+
         const sliderBg = new RenderableObject(sliderBgBuffer, getProjectionMat(this.app.gl));
+        sliderBg.setPosition([(this.width-sliderBgSize[0])/2, this.numOfParams*this.paramTextOffsetY+sliderBgSize[1]/2]);
         sliderBg.setCanBeMoved(false);
         sliderBg.setCanBeHighlighted(false);
         sliderBg.setParent(parent);
@@ -213,10 +214,10 @@ export class UINode extends UIObject
         const sliderCircle = new RenderableObject(circleBuffer, getProjectionMat(this.app.gl));
         sliderCircle.setScale(size);
         sliderCircle.setCanBeMoved(true);
-        sliderCircle.setPosition([0,this.UIBuffers.sliderBg.size[1]/2]);
+        sliderCircle.setPosition([0,sliderBgSize[1]/2]);
         sliderCircle.setOriginalColor([0,0,0,1]);
         sliderCircle.setParent(sliderBg);
-        sliderCircle.moveRestriction = {x: [0,100], y: [this.UIBuffers.sliderBg.size[1]/2,this.UIBuffers.sliderBg.size[1]/2] };
+        sliderCircle.moveRestriction = {x: [0,100], y: [sliderBgSize[1]/2,sliderBgSize[1]/2] };
 
         return [sliderBg, sliderCircle];
     }
