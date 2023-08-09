@@ -60,7 +60,7 @@ export const getPosFromMat = (obj) =>
 
 export const moveObjectWithCoursor = (app) =>
     {
-        const objToDrag = app.objsToDraw[app.objectIDtoDrag];
+        const objToDrag = app.objsToDraw[app.objectToDragArrIndx].objs[app.objectIDtoDrag];
 
         if (!app.clickOffset)
                 {
@@ -114,11 +114,14 @@ export const moveObjectWithCoursor = (app) =>
 
     export const canMoveObj = (app) =>
     {
-        if (app.isMouseDown && app.objectIDtoDrag >= 0 && app.objsToDraw[app.objectIDtoDrag].canBeMoved === true) return true;
+        if (app.objectIDtoDrag < 0 || app.objectToDragArrIndx < 0) return false;
+
+        const objToMove = app.objsToDraw[app.objectToDragArrIndx].objs[app.objectIDtoDrag];
+        if (app.isMouseDown && objToMove.canBeMoved === true) return true;
         else return false;
 }
 
-export const drawObjects = (scene, objsToDraw, programInfo = undefined) =>
+export const drawObjects = (scene, objsToDraw, objsArrIndx, programInfo = undefined) =>
     {
         // to do
         let program;
@@ -137,10 +140,10 @@ export const drawObjects = (scene, objsToDraw, programInfo = undefined) =>
 
                 // if object is pickable then assign it a u_id
                 const u_id = [
-                        ((ii >>  0) & 0xFF) / 0xFF,
-                        ((ii >>  8) & 0xFF) / 0xFF,
-                        ((ii >> 16) & 0xFF) / 0xFF,
-                        ((ii >> 24) & 0xFF) / 0xFF
+                        ((objsArrIndx >>  0) & 0xFF) / 0xFF,
+                        ((ii >> 0 ) & 0xFF) / 0xFF,
+                        ((ii >> 8 ) & 0xFF) / 0xFF,
+                        ((ii >> 16) & 0xFF) / 0xFF
                     ];
 
                 obj.setID(u_id);
@@ -180,18 +183,18 @@ export const drawObjects = (scene, objsToDraw, programInfo = undefined) =>
         })}
     }
 
-    export const highlightObjUnderCursor = (document, object) =>
-    {
-        if (object.properties.highlight)
-            {
-                // change color of the object you're hovering over
-                object.setColor([1,1,0.3,1]);
+export const highlightObjUnderCursor = (document, object) =>
+{
+    if (object.properties.highlight)
+        {
+            // change color of the object you're hovering over
+            object.setColor([1,1,0.3,1]);
 
-                // change the mouse pointer style
-                document.style.cursor = "pointer";
+            // change the mouse pointer style
+            document.style.cursor = "pointer";
 
-            } else resetMousePointer(document);
-    }
+        } else resetMousePointer(document);
+}
 
 export const prepareForFirstPass = (gl, framebuffer) =>
 {
@@ -199,7 +202,7 @@ export const prepareForFirstPass = (gl, framebuffer) =>
     gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer);
 
     gl.viewport(0,0, gl.canvas.width, gl.canvas.height);
-    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT );
     gl.disable(gl.BLEND);
 };
 

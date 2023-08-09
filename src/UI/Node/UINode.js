@@ -10,6 +10,8 @@ import { getPosFromMat } from "../../App/AppHelper.js";
 
 import { UINodeParam } from "./UINodeParam.js";
 
+import { isNumeric } from "../../utils.js";
+
 
 export class UINode extends UIObject
 {
@@ -125,16 +127,6 @@ export class UINode extends UIObject
         this.txtBgArr = this.createTxtBg(txtBatch, this.parameters.length);
         this.addObjsToRender([...this.txtBgArr, ...sliderContObjs, txtBatch]);
 
-
-        // this.parameter.X.container.handlers.onClick = () => {
-        //     if (this.handleR.line.connection.isConnected)
-        //     {
-        //         console.log(this.handleR.line.connection.connectedObj.node);
-        //         this.handleR.line.connection.connectedObj.node.parameter.X.changeValue("HELLO G!");
-        //     }
-        // }
-
-        // this.addParam("New param!", txtBatch);
     }
 
     convertToTxtArr(params)
@@ -239,12 +231,19 @@ export class UINode extends UIObject
 
     handleInput(e,indx)
     {
-        if (this.parameters[indx].value === "0")
+        if (this.parameters[indx].value == "0" && e.key !== "Backspace")
         {
             this.parameters[indx].value = e.key;
         }
+        else if (e.key == "Backspace")
+        {
+                this.parameters[indx].value = this.parameters[indx].value.slice(0,-1);
+        }
         else {
-            this.parameters[indx].value = this.parameters[indx].value + e.key;
+            if (isNumeric(e.key) || e.key === ".")
+            {
+                this.parameters[indx].value = this.parameters[indx].value + e.key;
+            }
         }
 
         const newTextArr = this.convertToTxtArr(this.parameters);            

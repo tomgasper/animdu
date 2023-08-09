@@ -32,6 +32,11 @@ export class UIBuffers
             buffer: undefined,
             size: [],
         },
+        deleteButton:
+        {
+            buffer: undefined,
+            size: []
+        }
     }
 
     constructor()
@@ -71,6 +76,11 @@ export class UIBuffers
     {
         this.UILayerInfo.container.size = size;
         this.UILayerInfo.container.buffer = new RectangleBuffer(gl, program, size, roundness);
+
+        this.UILayerInfo.deleteButton.size = [size[0]/5, size[1]];
+        this.UILayerInfo.deleteButton.buffer = new CircleBuffer(gl, program, size[1]/2, 16);
+
+        return this.UILayerInfo;
     }
 
     getContainer()

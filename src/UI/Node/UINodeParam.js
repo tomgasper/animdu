@@ -1,9 +1,9 @@
 export class UINodeParam
 {
     name = "";
-    value = 0;
+    value = "0";
 
-    constructor(paramName, value = 0, type = "TEXT_INPUT")
+    constructor(paramName, value = "0", type = "TEXT_INPUT")
     {
         this.name = paramName;
         this.value = value;

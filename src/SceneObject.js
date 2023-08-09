@@ -6,11 +6,11 @@ export class SceneObject extends TransformNode
 {
     // If set to true can be detected by mouse move and picked up
     canBeMoved = true;
+    comp;
 
     constructor()
     {
         super();
-
 
         this.properties = {
             id: [0,0,0,1],
@@ -36,6 +36,11 @@ export class SceneObject extends TransformNode
         }
     }
 
+    assignToComp(comp)
+    {
+        this.comp = comp;
+    }
+
     setID(id)
     {
         this.properties.id = id;
@@ -45,10 +50,12 @@ export class SceneObject extends TransformNode
     {
         if(pos && pos.length == 2)
         {
+            if (typeof pos[0] !== "number" || typeof pos[1] !== "number") throw new Error("Wrong position data!");
+            
             this.properties.position = pos;
             // Transform must be matching
             this.updateTransform();
-        }
+        } else throw Error("Wrong position input!");
     }
 
     setRotation(angle)
@@ -137,7 +144,16 @@ export class SceneObject extends TransformNode
 
     updateTransform()
     {
-        this.localMatrix = computeTransform(this.properties.position,this.properties.rotation,this.properties.scale, this.properties.origin);
+        let position = this.properties.position;
+        /*
+        if (this.comp)
+        {
+            const viewportOffset = this.comp.viewport.position;
+            position = [this.properties.position[0] + viewportOffset[0], this.properties.position[1] + viewportOffset[1] ];
+        }
+        */
+
+        this.localMatrix = computeTransform(position,this.properties.rotation,this.properties.scale, this.properties.origin);
     }
 
     calcFinalTransform()

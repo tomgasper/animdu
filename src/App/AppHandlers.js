@@ -2,27 +2,35 @@ import { resetMousePointer, highlightObjUnderCursor } from "./AppHelper.js";
 
 export const handleHandleOnMouseMove = (app) =>
 {
-    if (app.objectIDtoDrag >= 0 && app.objsToDraw[app.objectIDtoDrag].handlers.onMouseMove)
+    if (app.objectIDtoDrag < 0 && app.objectToDragArrIndx < 0) return;
+
+    const objToMove = app.objsToDraw[app.objectToDragArrIndx].objs[app.objectIDtoDrag];
+    if (objToMove.handlers.onMouseMove)
         {
-            let currObj = app.objsToDraw[app.objectIDtoDrag].handlers;
-            currObj.onMouseMove.call(currObj, [app.mouseX, app.mouseY]);
+
+            objToMove.handlers.onMouseMove.call(objToMove, [app.mouseX, app.mouseY]);
         }
 }
 
 export const handleUnderMouseCursor = (app, id) =>
 {
-    if (id > 0)
+    if (id.id > 0)
         {
             // substract id by 1 to get correct place of the found object in objsToDraw array 
-            const pickNdx = id - 1;
-            const object = app.objsToDraw[pickNdx];
+            const arrIndx = id.arrIndx;
+            const pickNdx = id.id - 1;
+            const object = app.objsToDraw[arrIndx].objs[pickNdx];
+
+            // save refs to global state
+            app.objUnderMouseArrIndx = arrIndx;
             app.objUnderMouseID = pickNdx;
 
             highlightObjUnderCursor(app.document, object);
 
             // select object that will be dragged
-            if (app.isMouseDown && app.objectIDtoDrag < 0)
+            if (app.isMouseDown && app.objectIDtoDrag < 0 && app.objectToDragArrIndx < 0)
             {
+                app.objectToDragArrIndx = arrIndx;
                 app.objectIDtoDrag = pickNdx;
             }
 
@@ -31,11 +39,16 @@ export const handleUnderMouseCursor = (app, id) =>
             {
                 // Set ID of active object
                 app.prevActiveObjID = app.activeObjID;
-                app.activeObjID = pickNdx;
+                app.prevActiveObjArrIndx = app.activeObjArrIndx;
 
-                if (app.objsToDraw[app.activeObjID] && app.objsToDraw[app.activeObjID].handlers.onClick)
+                app.activeObjID = pickNdx;
+                app.activeObjArrIndx = arrIndx;
+
+                const activeObj = app.objsToDraw[app.activeObjArrIndx].objs[app.activeObjID];
+
+                if (activeObj && activeObj.handlers.onClick)
                 {
-                    app.objsToDraw[app.activeObjID].handlers.onClick.call(app.objsToDraw[app.activeObjID]);
+                    activeObj.handlers.onClick.call(activeObj);
                 }
             }
         }

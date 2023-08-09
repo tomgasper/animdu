@@ -19,7 +19,7 @@ function main()
 
     // Initialize the GL context
     const canvas = document.querySelector("#glcanvas")
-    const gl = canvas.getContext("webgl2");
+    const gl = canvas.getContext("webgl2", {stencil: true});
 
     // Extensions
     const ext = gl.getExtension('GMAN_webgl_memory');

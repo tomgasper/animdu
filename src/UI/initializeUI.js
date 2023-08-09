@@ -9,21 +9,7 @@ import { RenderableObject } from "../RenderableObject.js";
 import { TextFont } from "../Text/TextFont.js";
 import { roboto_bold_font } from "../fonts/roboto-bold.js";
 
-const initializeUIBuffers = (app, UI, program) => 
-{
-    // Set up UI
-    const UINodeSize = [130,120];
-    const UIBuffersStore = new UIBuffers();
-    UIBuffersStore.createUINodeBuffers(app.gl, program, UINodeSize, 0.05);
-
-    const UILayerInfoSize = [300, 50];
-    UIBuffersStore.createUILayerBuffers(app.gl, program, UILayerInfoSize);
-
-    // save ref
-    UI.UIBuffers = UIBuffersStore;
-}
-
-const initTopBar = (app, UI) =>
+export const initTopBar = (app, UI) =>
 {
     const projectionMat = getProjectionMat(app.gl);
     const screen_width = app.gl.canvas.clientWidth;
@@ -84,7 +70,7 @@ const initTopBar = (app, UI) =>
 
     const txt_3 = createNewText(app.gl, app.programs[2], "View", 9, UI.font, txtColor);
     const txt3Height = txt_3.txtBuffer.str.rect[3];
-    txt_3.setPosition([x_offset + x_txt_distance*2, barHeight/2-txt2Height/2]);
+    txt_3.setPosition([x_offset + x_txt_distance * 2, barHeight/2-txt2Height/2]);
     txt_3.setCanBeMoved(false);
     txt_3.setBlending(true);
     txt_3.setParent(UITopBar);
@@ -94,14 +80,132 @@ const initTopBar = (app, UI) =>
 
     const objsToAdd = [UITopBar, txt_1,txt_2, txt_3];
 
+    return objsToAdd;
+}
+
+export const initParamsPanel = (app, UI) =>
+{
+    const projectionMat = getProjectionMat(app.gl);
+    const screen_width = app.gl.canvas.clientWidth;
+    const screen_height = app.gl.canvas.clientHeight;
+
+    const barHeight = UI.topBarHeight;
+
+    const x_offset = screen_width * 0.02;
+    const y_offset = screen_height * 0.02;
+
+    const panelWidth = screen_width * 0.2;
+
+    const x_txt_distance = screen_width * 0.03;
+
+    const customVertsPos = [ 0, 0,
+                            panelWidth, 0,
+                            panelWidth, UI.viewerStartY-barHeight,
+                            
+                            panelWidth, UI.viewerStartY-barHeight,
+                            0, UI.viewerStartY-barHeight,
+                            0, 0
+                            ];
+
+    const UIParamsPanelBuffer = new CustomBuffer(app.gl, app.programs[0], customVertsPos);
+    const UIParamsPanelInfo = UIParamsPanelBuffer.getInfo();
+
+    const UIParamsPanel = new RenderableObject(UIParamsPanelInfo, projectionMat);
+
+
+    UIParamsPanel.setPosition([0,barHeight]);
+    UIParamsPanel.setCanBeMoved(false);
+    UIParamsPanel.setCanBeHighlighted(false);
+    UIParamsPanel.setColor([0,0.3,0.2,1]);
+    UIParamsPanel.setOriginalColor([0.5,0.5,0.5,1]);
+
+    const txtColor = [0,0,0,1];
+
+    // First text from left
+
+    const txt_1 = createNewText(app.gl, app.programs[2], "File", 9, UI.font, txtColor);
+    // Retrive txtHeight from newly created buffer
+    const txtHeight = txt_1.txtBuffer.str.rect[3];
+    txt_1.setPosition([x_offset, barHeight/2-txtHeight/2]);
+    txt_1.setCanBeMoved(false);
+    txt_1.setBlending(true);
+
+    txt_1.setParent(UIParamsPanel);
+
+
+    UIParamsPanel.updateWorldMatrix();
+
+    const objsToAdd = [UIParamsPanel, txt_1];
+
     UI.addObj(objsToAdd);
 }
 
-const initViewer = (app, UI) =>
+export const initObjectsPanel = (app, UI) =>
+{
+    const projectionMat = getProjectionMat(app.gl);
+    const screen_width = app.gl.canvas.clientWidth;
+    const screen_height = app.gl.canvas.clientHeight;
+
+    const barHeight = UI.topBarHeight;
+
+    const x_offset = screen_width * 0.02;
+    const y_offset = screen_height * 0.02;
+
+    const panelWidth = screen_width * 0.2;
+
+    const x_txt_distance = screen_width * 0.03;
+
+    const customVertsPos = [ 0, 0,
+                            panelWidth, 0,
+                            panelWidth, UI.viewerStartY-barHeight,
+                            
+                            panelWidth, UI.viewerStartY-barHeight,
+                            0, UI.viewerStartY-barHeight,
+                            0, 0
+        ];
+
+    const UIParamsPanelBuffer = new CustomBuffer(app.gl, app.programs[0], customVertsPos);
+    const UIParamsPanelInfo = UIParamsPanelBuffer.getInfo();
+
+    const UIParamsPanel = new RenderableObject(UIParamsPanelInfo, projectionMat);
+
+
+    // offset to the right and down
+    UIParamsPanel.setPosition([screen_width-panelWidth,barHeight]);
+
+    UIParamsPanel.setCanBeMoved(false);
+    UIParamsPanel.setCanBeHighlighted(false);
+    UIParamsPanel.setColor([0,0.3,0.2,1]);
+    UIParamsPanel.setOriginalColor([0.5,0.5,0.5,1]);
+
+    const txtColor = [0,0,0,1];
+
+    // First text from left
+
+    const txt_1 = createNewText(app.gl, app.programs[2], "Object 1", 9, UI.font, txtColor);
+    // Retrive txtHeight from newly created buffer
+    const txtHeight = txt_1.txtBuffer.str.rect[3];
+    txt_1.setPosition([x_offset, barHeight/2-txtHeight/2]);
+    txt_1.setCanBeMoved(false);
+    txt_1.setBlending(true);
+
+    txt_1.setParent(UIParamsPanel);
+
+
+    UIParamsPanel.updateWorldMatrix();
+
+    const objsToAdd = [UIParamsPanel, txt_1];
+
+    UI.addObj(objsToAdd);
+}
+
+export const initViewer = (app, UI) =>
 {
     const projectionMat = m3.projection(app.gl.canvas.clientWidth, app.gl.canvas.clientHeight);
     const screen_width = app.gl.canvas.clientWidth;
     const screen_height = app.gl.canvas.clientHeight;
+
+    console.log(screen_height);
 
     const y_offset = screen_height * 0.02;
     const x_offset = screen_width * 0.02;
@@ -165,10 +269,10 @@ const initViewer = (app, UI) =>
         console.log("added");
     };
 
-    UI.addObj(objsToAdd);
+    return objsToAdd;
 }
 
-const setUpMainFont = (app, UI) =>
+export const setUpMainFont = (app, UI) =>
     {
      // Install font
      const fontSettings = {
@@ -183,14 +287,3 @@ const setUpMainFont = (app, UI) =>
 
     console.log(UI);
     }
-
-export const initUI = (app, UI) =>
-{
-    initializeUIBuffers(app, UI, app.programs[0]);
-    setUpMainFont(app,UI);
-
-    initTopBar(app, UI);
-
-    initViewer(app, UI);
-
-}

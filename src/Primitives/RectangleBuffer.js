@@ -60,13 +60,6 @@ export class RectangleBuffer {
         // set custom size
         if (size && size.length == 2)
         {
-            // this.bufferData = [
-            //     -size[0], -size[1],
-            //     size[0], -size[1],
-            //     size[0], size[1],
-            //     -size[0], size[1]
-            // ];
-
             this.bufferData = [
                 0, 0,
                 size[0], 0,

@@ -74,7 +74,7 @@ export class UINodeHandle extends RenderableObject
 
         this.line.obj = line;
 
-        this.app.UI.addObj(this.line.obj);
+        this.app.UI.addObj(this.line.obj, ["nodes"]);
     }
 
     deleteLine(gl, app, line)
@@ -87,7 +87,7 @@ export class UINodeHandle extends RenderableObject
         gl.deleteBuffer(lineBuffer.positionBuffer);
         gl.deleteVertexArray(lineBuffer.VAO);
 
-        deleteFromToDraw(app.UI.objects, line);
+        deleteFromToDraw(app.UI.nodes.objects, line);
 
         // clean up ref object
         line.data = [];

@@ -20,9 +20,11 @@ export const initInputListeners = (app) =>
     });
 
     app.document.addEventListener("keydown", (e) => {
-        if (app.activeObjID >= 0 && app.objsToDraw[app.activeObjID].handlers.onInputKey)
+        if (app.activeObjID < 0 || app.activeObjArrIndx < 0) return;
+
+        if ( app.objsToDraw[app.activeObjArrIndx].objs[app.activeObjID].handlers.onInputKey)
         {
-            let currObj = app.objsToDraw[app.activeObjID].handlers;
+            let currObj = app.objsToDraw[app.activeObjArrIndx].objs[app.activeObjID].handlers;
             
             currObj.onInputKey.call(currObj,e);
         }
@@ -41,13 +43,32 @@ export const initInputListeners = (app) =>
      app.gl.canvas.addEventListener("mouseup", (e) => {
         app.isMouseDown = false;
 
-        if (app.objectIDtoDrag >= 0 && app.objsToDraw[app.objectIDtoDrag].handlers.onMouseUp)
+        if (app.objectIDtoDrag >= 0 && app.objectToDragArrIndx >= 0)
         {
-            let currObj = app.objsToDraw[app.objectIDtoDrag].handlers;
-            currObj.onMouseUp.call(currObj, app.objUnderMouseID);
+            const obj = app.objsToDraw[app.objectToDragArrIndx].objs[app.objectIDtoDrag];
+            if (obj && obj.handlers.onMouseUp)
+            {
+                obj.handlers.onMouseUp.call(obj.handlers, app.objUnderMouseID);
+            }
         }
 
         app.objectIDtoDrag = -1;
+        app.objectToDragArrIndx = -1;
+     });
+
+     app.gl.canvas.addEventListener("wheel", (e) => {
+        e.preventDefault();
+
+        const normalizedX = this.mouseX / app.gl.canvas.clientWidth;
+        const normalizedY = this.mouseY / app.gl.canvas.clientHeight;
+
+        const clipX = normalizedX * 2 - 1;
+        const clipY = normalizedY * -2 + 1;
+
+
+        if (app.isMouseDown === false) {
+            app.isMouseDown = true;
+        }
      });
 }
 

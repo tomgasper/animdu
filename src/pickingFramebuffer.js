@@ -66,6 +66,8 @@ export function getIdFromCurrentPixel(gl, mouseX, mouseY)
     gl.UNSIGNED_BYTE,  // type
     data);             // typed array to hold result
 
-const id = data[0] + (data[1] << 8) + (data[2] << 16) + (data[3] << 24);
-return id;
+    const arrIndx = data[0];
+    const id = (data[1] << 0) + (data[2] << 8) + (data[3] << 16);
+
+    return { arrIndx: arrIndx , id: id };
 }

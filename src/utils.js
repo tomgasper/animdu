@@ -23,7 +23,7 @@ function setUniforms(gl, programInfo, properties)
         if ( Object.hasOwn(properties, property))
         {
             const uniform = programInfo.uniforms[property];
-            if (property == "u_width") console.log(properties[property]);
+            // console.log(properties);
             switch(uniform.type)
             {
                 case "1i":
@@ -279,3 +279,9 @@ export const m3 = {
         a[8] = b[8];
     }
 };
+
+export const isNumeric = (str) => {
+    if (typeof str != "string") return false // we only process strings!  
+    return !isNaN(str) && // use type coercion to parse the _entirety_ of the string (`parseFloat` alone does not do this)...
+           !isNaN(parseFloat(str)) // ...and ensure strings of whitespace fail
+  };

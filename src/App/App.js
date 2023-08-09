@@ -4,7 +4,6 @@ import { RenderableObject } from "../RenderableObject.js";
 import { getIdFromCurrentPixel, setFramebufferAttachmentSizes } from "../pickingFramebuffer.js";
 import { initalizeApp } from "./initializeApp.js";
 import { initInputListeners } from "./initializeApp.js";
-import { initUI } from "../UI/initializeUI.js";
 import { prepareForFirstPass, prepareForScndPass, drawObjects, canMoveObj, moveObjectWithCoursor, resetMouseClick, resizeCanvas } from "./AppHelper.js";
 import { handleHandleOnMouseMove, handleUnderMouseCursor } from "./AppHandlers.js";
 
@@ -45,9 +44,16 @@ export class App
     fontUI = undefined;
 
     activeObjID = -1;
+    activeObjArrIndx = -1;
+
     prevActiveObjID = -1;
+    prevActiveObjArrIndx = -1;
+
     objectIDtoDrag = -1;
+    objectToDragArrIndx = -1;
+
     objUnderMouseID = -1;
+    objUnderMouseArrIndx = -1;
 
     eventsToProcess = [];
 
@@ -84,19 +90,20 @@ export class App
         this.UI = new UI(this);
 
         // Create main comp and set it as active
-        this.addNewComposition("Main comp");
+        const mainComp = this.addNewComposition("Main comp", this.UI.viewport);
 
         const obj1 = new RenderableObject(this.primitiveBuffers.circle, projectionMat);
-        obj1.setPosition([150,250]);
+        obj1.setPosition([0,0]);
         obj1.setScale([1,1]);
 
         const obj2 = new RenderableObject(this.primitiveBuffers.triangle, projectionMat);
-        obj2.setPosition([150,0]);
-        obj2.setRotation(0);
+        obj2.setPosition([50,50]);
 
         const obj3 = new RenderableObject(this.primitiveBuffers.rectangle, projectionMat);
-        obj3.setPosition([150,0]);
-        obj3.setScale([1,1]);
+        obj3.setPosition([50,50]);
+        obj3.setScale([0.5,1]);
+
+        const obj4 = new RenderableObject(this.primitiveBuffers.rectangle, projectionMat);
 
         obj3.setParent(obj2);
         obj2.setParent(obj1);
@@ -118,7 +125,8 @@ export class App
 
         console.log(myParamList);
 
-        this.UI.addNode(myParamList);
+        const node = this.UI.addNode(myParamList);
+        node.setPosition([300,400]);
         // this.UI.addNode(myParamList2);
 
 
@@ -128,6 +136,9 @@ export class App
             new UINodeParam("Position")
         ]);
         
+
+        // Finally can update UI fully
+        this.UI.initLayersPanel.call(this.UI, this);
 
         //this.UI.addNode(myParamList3);
     }
@@ -139,7 +150,7 @@ export class App
         this.fps = fps;
 
         // Gather objs to draw
-        this.createDrawList(this.UI.objects, this.activeComp.objects);
+        this.createDrawList(this.UI, this.activeComp.objects);
         this.drawFrame();
     }
 
@@ -150,21 +161,71 @@ export class App
 
         // Draw to texture - PASS 1
         prepareForFirstPass(this.gl, this.framebuffer);
-        drawObjects(this, this.objsToDraw, this.programs[1]);
+        this.drawPass(this.objsToDraw.slice(0,2), this.programs[1]);
 
+        // this.gl.viewport(650,0, this.gl.canvas.width, this.gl.canvas.height);
+        this.drawPass([this.objsToDraw[2]], this.programs[1], 2);
+
+        this.gl.viewport(0,0, this.gl.canvas.width, this.gl.canvas.height);
         this.handleEvents();
 
         // 2nd Pass - Draw "normally"
         prepareForScndPass(this.gl);
-        drawObjects(this, this.objsToDraw);
+        // passing undefined program so each object uses its own shader
+        this.drawPass(this.objsToDraw.slice(0,2), undefined);
+
+        // this.gl.viewport(650,0, this.gl.canvas.width, this.gl.canvas.height);
+        this.drawPass([this.objsToDraw[2]], undefined, 2);
+
+        this.gl.disable(this.gl.STENCIL_TEST);
+
+        this.gl.viewport(0,0, this.gl.canvas.width, this.gl.canvas.height);
 
         resetMouseClick(this);
+    }
+
+    drawInMask(i, program)
+    {
+        this.gl.enable(this.gl.STENCIL_TEST);
+        this.gl.clear(this.gl.STENCIL_BUFFER_BIT);
+        this.gl.stencilFunc(this.gl.ALWAYS,1,0xFF);
+        this.gl.stencilOp(this.gl.KEEP, this.gl.KEEP, this.gl.REPLACE);
+
+        drawObjects(this, this.objsToDraw[i].mask, i, program);
+
+        this.gl.stencilFunc(this.gl.EQUAL, 1, 0xFF);
+        this.gl.stencilOp(this.gl.KEEP, this.gl.KEEP, this.gl.KEEP);
+        drawObjects(this, this.objsToDraw[i].objs, i, program);
+
+        this.gl.disable(this.gl.STENCIL_TEST);
+    }
+
+    drawWithoutMask(i, program = undefined)
+    {
+        drawObjects(this, this.objsToDraw[i].objs, i, program);
+    }
+
+    drawPass(objsToDraw, program, indx = 0)
+    {
+        for (let i = 0; i < objsToDraw.length; i++)
+        {
+            if (objsToDraw[i].mask.length > 0)
+            {
+                this.drawInMask(indx, program);
+            }
+            else
+            {
+                this.drawWithoutMask(indx, program);
+            }
+            indx++;
+        }
     }
 
     handleEvents()
     {
         // Look up id of the object under mouse cursor
         const underMouseObjId = getIdFromCurrentPixel(this.gl, this.mouseX, this.mouseY);
+        // console.log(underMouseObjId);
         handleUnderMouseCursor(this, underMouseObjId);
 
         // Handle move comp object
@@ -177,18 +238,22 @@ export class App
         handleHandleOnMouseMove(this);
     }
 
-    addNewComposition(compName)
+    addNewComposition(compName, viewport)
     {
-        const newComp = new Composition(this, compName);
+        const newComp = new Composition(this, compName, viewport);
         this.comps.push(newComp);
         this.setActiveComp(newComp);
 
         return newComp;
     }
 
-    createDrawList(UIObjs, activeCompObjs)
+    createDrawList(UI, activeCompObjs)
     {
-        this.objsToDraw = [...UIObjs, ...activeCompObjs];
+        this.objsToDraw = [
+            { mask: [ ...UI.viewer.objects ], objs: [...UI.viewer.objects, ...UI.nodes.objects ] },
+            { mask: [], objs: UI.panels.layers.objects },
+            { mask: UI.viewport.objects, objs: [ ...UI.viewport.objects, ...activeCompObjs] },
+        ];
     }
 
     setActiveComp(comp)

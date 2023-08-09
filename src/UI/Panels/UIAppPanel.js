@@ -1,4 +1,4 @@
-import { RenderableObject } from "../../RenderableObject";
+/* import { RenderableObject } from "../../RenderableObject";
 import { UIObject } from "../UIObject";
 
 import { getProjectionMat } from "../../utils";
@@ -21,6 +21,8 @@ class UIAppPanel extends UIObject
         this.UIBuffers = this.app.UIBuffers.UILayerInfo;
 
         this.renderPanel(app.objsToDraw);
+
+        console.log("I'm working yaaay!");
     }
 
     renderPanel(compObjs)
@@ -46,3 +48,4 @@ class UIAppPanel extends UIObject
         return rect;
     }
 }
+*/
