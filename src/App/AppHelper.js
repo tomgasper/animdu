@@ -63,24 +63,41 @@ export const moveObjectWithCoursor = (app) =>
         const objToDrag = app.objsToDraw[app.objectToDragArrIndx].objs[app.objectIDtoDrag];
 
         if (!app.clickOffset)
-                {
-                    let curr_pos = [ objToDrag.worldMatrix[6], objToDrag.worldMatrix[7] ];
-                    
-                    app.clickOffset = [app.mouseX - curr_pos[0], app.mouseY - curr_pos[1]];
-                }
+        {
+            let curr_pos = [ objToDrag.worldMatrix[6], objToDrag.worldMatrix[7] ];
+
+            if (objToDrag.comp)
+            {
+                curr_pos = getPosFromMat(m3.multiply(app.activeComp.camera.matrix, objToDrag.worldMatrix));
+            }
+            
+            app.clickOffset = [app.mouseX - curr_pos[0], app.mouseY - curr_pos[1]];
+        }
 
                 let parentWorldMat;
                 let mouseTranslation = m3.translation(app.mouseX - app.clickOffset[0],app.mouseY - app.clickOffset[1]);
+                
+                
+                if (objToDrag.comp)
+                {
+                    const invViewMat = m3.inverse(app.activeComp.camera.matrix);
+                    mouseTranslation = m3.multiply(invViewMat, mouseTranslation);
+
+                    // we dont want mouse pos in view coords...
+                    // because we want to set local position for the object that will then be multiplied by view mat
+                }
 
                 let newPos;
 
                 // Object is a child of some other object
                 if (objToDrag.parent)
                 {
+                    const invViewMat = m3.inverse(app.activeComp.camera.matrix);
+
                     // Position of mouse in different coord space
                     parentWorldMat = objToDrag.parent.worldMatrix;
+
                     let parentWorldMatInv = m3.inverse(parentWorldMat);
-                    
                     let mousePosInDiffCord = m3.multiply(parentWorldMatInv, mouseTranslation);
 
                     newPos = getPosFromMat(mousePosInDiffCord);
@@ -109,7 +126,7 @@ export const moveObjectWithCoursor = (app) =>
 
                 objToDrag.setPosition(newPos);
 
-                objToDrag.updateWorldMatrix(parentWorldMat);
+                // objToDrag.updateWorldMatrix(parentWorldMat);
     }
 
     export const canMoveObj = (app) =>
@@ -146,10 +163,14 @@ export const drawObjects = (scene, objsToDraw, objsArrIndx, programInfo = undefi
                         ((ii >> 16) & 0xFF) / 0xFF
                     ];
 
+                obj.updateTransform();
+                if (obj.parent)
+                {
+                    obj.updateWorldMatrix(obj.parent.worldMatrix);
+                } else obj.updateWorldMatrix();
+                
                 obj.setID(u_id);
-
-                // here basically you can modify tings
-                obj.setProjection(projection);
+                obj.setProjectionAndCalcFinalTransform(projection);
 
                 renderObject(scene.gl, obj, program);
 

@@ -139,8 +139,6 @@ export class App
 
         // Finally can update UI fully
         this.UI.initLayersPanel.call(this.UI, this);
-
-        //this.UI.addNode(myParamList3);
     }
 
     doFrame(elapsedTime, fps)

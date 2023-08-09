@@ -120,7 +120,7 @@ export class SceneObject extends TransformNode
     }
     
 
-    setProjection(projectionMat)
+    setProjectionAndCalcFinalTransform(projectionMat)
     {
         if (projectionMat && projectionMat.length == 9)
         {
@@ -145,6 +145,7 @@ export class SceneObject extends TransformNode
     updateTransform()
     {
         let position = this.properties.position;
+
         /*
         if (this.comp)
         {
@@ -154,10 +155,28 @@ export class SceneObject extends TransformNode
         */
 
         this.localMatrix = computeTransform(position,this.properties.rotation,this.properties.scale, this.properties.origin);
+
+        // if (this.comp && this.comp.camera)
+        // {
+        //     m3.multiplyInPlace(this.localMatrix, this.comp.camera.matrix, this.localMatrix);
+        // }
+        
     }
 
     calcFinalTransform()
     {
-        this.properties.transform =  m3.multiply(this.properties.projection, this.worldMatrix);
+        // temp sol
+        // this.updateTransform();
+
+        let viewProjectionMat = this.properties.projection;
+
+        if (this.comp && this.comp.camera)
+        {
+            // m3.multiplyInPlace(this.properties.transform, this.comp.camera.matrix, this.properties.transform);
+            viewProjectionMat = m3.multiply(this.properties.projection, this.comp.camera.matrix);
+        }
+
+        this.properties.transform =  m3.multiply(viewProjectionMat, this.worldMatrix);
+        
     }
 }

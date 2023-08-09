@@ -187,6 +187,23 @@ export const m3 = {
           b20 * a02 + b21 * a12 + b22 * a22,
         ];
     },
+    multiplyVector: function(a, v)
+    {
+        // a = mat, v = vec
+
+        let b;
+        
+        if (v.length == 2) b = [v[0], v[1], 1];
+        else b = v;
+
+        let out = [0,0,0];
+
+        out[0] = a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
+        out[1] = a[3] * b[0] + a[4] * b[1] + a[5] * b[2];
+        out[2] = a[6] * b[0] + a[7] * b[1] + a[8] * b[2];
+
+        return out;
+    },
     transpose: function(a)
     {
         let t = [0,0,0,0,0,0,0,0,0];

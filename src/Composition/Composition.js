@@ -1,4 +1,5 @@
 import { RenderableObject } from "../RenderableObject.js";
+import { Camera } from "./Camera.js";
 
 export class Composition
 {
@@ -6,6 +7,8 @@ export class Composition
     objects = [];
     id;
     name;
+
+    camera;
 
     viewport;
     offset = [0,0];
@@ -18,6 +21,8 @@ export class Composition
         this.name = name;
 
         this.viewport = viewport;
+
+        this.camera = new Camera();
     }
 
     addObj(obj)
