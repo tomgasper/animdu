@@ -68,10 +68,11 @@ export const moveObjectWithCoursor = (app) =>
 
             if (objToDrag.comp)
             {
-                curr_pos = getPosFromMat(m3.multiply(app.activeComp.camera.matrix, objToDrag.worldMatrix));
+                curr_pos = getPosFromMat(m3.multiply(m3.inverse(app.activeComp.camera.matrix), objToDrag.worldMatrix));
             }
             
             app.clickOffset = [app.mouseX - curr_pos[0], app.mouseY - curr_pos[1]];
+            // app.clickOffset = [0,0];
         }
 
                 let parentWorldMat;
@@ -80,7 +81,7 @@ export const moveObjectWithCoursor = (app) =>
                 
                 if (objToDrag.comp)
                 {
-                    const invViewMat = m3.inverse(app.activeComp.camera.matrix);
+                    const invViewMat = app.activeComp.camera.matrix;
                     mouseTranslation = m3.multiply(invViewMat, mouseTranslation);
 
                     // we dont want mouse pos in view coords...

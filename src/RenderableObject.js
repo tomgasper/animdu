@@ -20,8 +20,8 @@ export class RenderableObject extends SceneObject
 
         this.buffer = buffer;
 
-        if (typeof projection === undefined || projection.length != 9) throw new Error("[SceneObject]: Wrong input projection matrix!");
-        this.setProjectionAndCalcFinalTransform(projection);
+        // if (typeof projection === undefined || projection.length != 9) throw new Error("[SceneObject]: Wrong input projection matrix!");
+        // this.setProjectionAndCalcFinalTransform(projection);
 
         // ok this will be some object which points to proper buffer
         this.renderInfo = {

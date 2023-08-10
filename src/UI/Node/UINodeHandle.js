@@ -97,7 +97,7 @@ export class UINodeHandle extends RenderableObject
 
     handleHandleMouseUp(objUnderMouseID)
     {
-        const objUnderMouse = this.app.objsToDraw[objUnderMouseID];
+        const objUnderMouse = this.app.objsToDraw[this.app.objUnderMouseArrIndx].objs[objUnderMouseID];
 
         if (objUnderMouse instanceof UINodeHandle && this != objUnderMouse)
         {

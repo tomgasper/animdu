@@ -5,6 +5,8 @@ import { RectangleBuffer } from "../Primitives/RectangleBuffer.js";
 import { getProjectionMat, m3 } from "../utils.js";
 import { getPosFromMat } from "./AppHelper.js";
 
+import { getClipSpaceMousePosition } from "../utils.js";
+
 export const initalizeApp = (app) =>
 {
     setUpPrimitveBuffers(app, app.programs[0]);
@@ -62,49 +64,41 @@ export const initInputListeners = (app) =>
      app.gl.canvas.addEventListener("wheel", (e) => {
         // based on greggman implementation:
         // https://webglfundamentals.org/webgl/lessons/webgl-qna-how-to-implement-zoom-from-mouse-in-2d-webgl.html
-
         e.preventDefault();
-
-        const normalizedX = app.mouseX / app.gl.canvas.clientWidth;
-        const normalizedY = app.mouseY / app.gl.canvas.clientHeight;
-
-        const clipX = normalizedX * 2 - 1;
-        const clipY = normalizedY * -2 + 1;
+        const [clipX, clipY] = getClipSpaceMousePosition(app,e);
 
         const compCamera = app.activeComp.camera;
         const projectionMat = getProjectionMat(app.gl);
+        let viewMat = m3.inverse(compCamera.matrix);
+        let viewProjectionMat = m3.multiply(projectionMat, viewMat);
 
-        let viewProjectionMat = m3.identity();
-        let invVPMat;
+        // position before zooming
+        const [preZoomX, preZoomY] = m3.transformPoint(
+            m3.inverse(viewProjectionMat), 
+            [clipX, clipY]);
 
-        m3.multiplyInPlace(viewProjectionMat, compCamera.matrix, projectionMat);
-        invVPMat = m3.inverse(viewProjectionMat);
 
-        let mousePos = m3.translation(clipX, clipY);
-        m3.multiplyInPlace(mousePos, invVPMat, mousePos);
-
-        let preZoom = getPosFromMat(mousePos);
+        console.log(preZoomX);
 
         const newZoom = compCamera.zoom * Math.pow(2, e.deltaY * -0.01);
-        compCamera.setZoom(newZoom);
+        compCamera.setZoom(Math.max(0.02, Math.min(100,newZoom) ));
 
-        //
-        viewProjectionMat = m3.multiply(compCamera.matrix, projectionMat);
-        invVPMat = m3.inverse(viewProjectionMat);
+        viewMat = m3.inverse(compCamera.matrix);
+        viewProjectionMat = m3.multiply(projectionMat, viewMat);
 
-        m3.multiplyInPlace(mousePos, invVPMat, mousePos);
+        // position after zooming
+        const [postZoomX, postZoomY] = m3.transformPoint(
+            m3.inverse(viewProjectionMat), 
+            [clipX, clipY]);
 
-        let postZoom = getPosFromMat(mousePos);
+        console.log(postZoomX);
 
-        const newCamPosX = compCamera.position[0] + ( preZoom[0] - postZoom[0]);
-        const newCamPosY = compCamera.position[1] + ( preZoom[1] - postZoom[1]);
+        // camera needs to be moved the difference of before and after
 
-        console.log(preZoom);
-        console.log(postZoom);
+        const newCamPosX = compCamera.position[0] + ( preZoomX - postZoomX );
+        const newCamPosY = compCamera.position[1] + ( preZoomY - postZoomY );
 
-        console.log(compCamera);
-
-        // compCamera.setPosition( [newCamPosX, newCamPosY]);
+        compCamera.setPosition( [newCamPosX, newCamPosY]);
      });
 }
 

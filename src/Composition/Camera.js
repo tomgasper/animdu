@@ -50,6 +50,6 @@ export class Camera
 
     updateTransform()
     {
-        this.matrix = computeTransform(this.position,this.rotation, [this.zoom, this.zoom], this.origin);
+        this.matrix = computeTransform(this.position,this.rotation, [1 / this.zoom, 1 / this.zoom], this.origin);
     }
 }

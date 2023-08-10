@@ -173,7 +173,8 @@ export class SceneObject extends TransformNode
         if (this.comp && this.comp.camera)
         {
             // m3.multiplyInPlace(this.properties.transform, this.comp.camera.matrix, this.properties.transform);
-            viewProjectionMat = m3.multiply(this.properties.projection, this.comp.camera.matrix);
+            const viewMat = m3.inverse(this.comp.camera.matrix);
+            viewProjectionMat = m3.multiply(this.properties.projection, viewMat);
         }
 
         this.properties.transform =  m3.multiply(viewProjectionMat, this.worldMatrix);

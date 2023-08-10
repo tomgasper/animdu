@@ -64,6 +64,23 @@ export function getProjectionMat(gl)
     return m3.projection(gl.canvas.clientWidth, gl.canvas.clientHeight);
 }
 
+export function getClipSpaceMousePosition(app, e) {
+    // get canvas relative css position
+    const rect = app.gl.canvas.getBoundingClientRect();
+    const cssX = e.clientX - rect.left;
+    const cssY = e.clientY - rect.top;
+    
+    // get normalized 0 to 1 position across and down canvas
+    const normalizedX = cssX / app.gl.canvas.clientWidth;
+    const normalizedY = cssY / app.gl.canvas.clientHeight;
+  
+    // convert to clip space
+    const clipX = normalizedX *  2 - 1;
+    const clipY = normalizedY * -2 + 1;
+    
+    return [clipX, clipY];
+  }
+
 // render generic object
 export function renderObject(gl, obj, program)
 {
@@ -283,6 +300,15 @@ export const m3 = {
         mInv[8] = (a_T[0]*a_T[4] - a_T[3]*a_T[1])*detInv;
 
         return mInv;
+    },
+    transformPoint: function (m, v) {
+        var v0 = v[0];
+        var v1 = v[1];
+        var d = v0 * m[0 * 3 + 2] + v1 * m[1 * 3 + 2] + m[2 * 3 + 2];
+        return [
+          (v0 * m[0 * 3 + 0] + v1 * m[1 * 3 + 0] + m[2 * 3 + 0]) / d,
+          (v0 * m[0 * 3 + 1] + v1 * m[1 * 3 + 1] + m[2 * 3 + 1]) / d,
+        ];
     },
     copy: function (a,b) {
         a[0] = b[0];

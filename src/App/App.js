@@ -12,6 +12,8 @@ import { Composition } from "../Composition/Composition.js";
 import { UI } from "../UI/UI.js";
 import { UINodeParamList } from "../UI/Node/UINodeParamList.js";
 import { UINodeParam } from "../UI/Node/UINodeParam.js";
+import { CustomBuffer } from "../Primitives/CustomBuffer.js";
+import { RectangleBuffer } from "../Primitives/RectangleBuffer.js";
 
 export class App
 {
@@ -92,24 +94,34 @@ export class App
         // Create main comp and set it as active
         const mainComp = this.addNewComposition("Main comp", this.UI.viewport);
 
+        const solidBuffer = new RectangleBuffer(this.gl, this.programs[0], [this.activeComp.viewport.width, this.activeComp.viewport.height]);
+        const solid = new RenderableObject(solidBuffer.getInfo());
+
+        solid.setPosition([0,0]);
+        solid.setCanBeMoved(false);
+        solid.setCanBeHighlighted(false);
+        solid.setOriginalColor([0.97,0.97,0.97,1]);
+
         const obj1 = new RenderableObject(this.primitiveBuffers.circle, projectionMat);
         obj1.setPosition([0,0]);
         obj1.setScale([1,1]);
 
-        const obj2 = new RenderableObject(this.primitiveBuffers.triangle, projectionMat);
-        obj2.setPosition([50,50]);
+        const obj2 = new RenderableObject(this.primitiveBuffers.circle, projectionMat);
+        obj2.setPosition([100,0]);
 
-        const obj3 = new RenderableObject(this.primitiveBuffers.rectangle, projectionMat);
-        obj3.setPosition([50,50]);
-        obj3.setScale([0.5,1]);
+        const obj3 = new RenderableObject(this.primitiveBuffers.circle, projectionMat);
+        obj3.setPosition([100,100]);
+        obj3.setScale([1,1]);
 
-        const obj4 = new RenderableObject(this.primitiveBuffers.rectangle, projectionMat);
+        const obj4 = new RenderableObject(this.primitiveBuffers.circle, projectionMat);
+        obj4.setPosition([0, 100]);
 
+        obj4.setParent(obj3);
         obj3.setParent(obj2);
         obj2.setParent(obj1);
         obj1.updateWorldMatrix();
 
-        this.activeComp.addObj([obj1,obj2,obj3]);
+        this.activeComp.addObj([solid, obj1,obj2,obj3, obj4]);
 
         const myParamList = new UINodeParamList([
             new UINodeParam("Param1"),
@@ -127,7 +139,9 @@ export class App
 
         const node = this.UI.addNode(myParamList);
         node.setPosition([300,400]);
-        // this.UI.addNode(myParamList2);
+
+        const node2 = this.UI.addNode(myParamList2);
+        node2.setPosition([200,500]);
 
 
         const myParamList3 = new UINodeParamList([
@@ -138,7 +152,7 @@ export class App
         
 
         // Finally can update UI fully
-        this.UI.initLayersPanel.call(this.UI, this);
+        this.UI.initLayersPanel(this);
     }
 
     doFrame(elapsedTime, fps)
@@ -161,7 +175,7 @@ export class App
         prepareForFirstPass(this.gl, this.framebuffer);
         this.drawPass(this.objsToDraw.slice(0,2), this.programs[1]);
 
-        // this.gl.viewport(650,0, this.gl.canvas.width, this.gl.canvas.height);
+        // this.gl.viewport(650,-150, this.gl.canvas.width, this.gl.canvas.height);
         this.drawPass([this.objsToDraw[2]], this.programs[1], 2);
 
         this.gl.viewport(0,0, this.gl.canvas.width, this.gl.canvas.height);
@@ -172,7 +186,7 @@ export class App
         // passing undefined program so each object uses its own shader
         this.drawPass(this.objsToDraw.slice(0,2), undefined);
 
-        // this.gl.viewport(650,0, this.gl.canvas.width, this.gl.canvas.height);
+        // this.gl.viewport(650,-150, this.gl.canvas.width, this.gl.canvas.height);
         this.drawPass([this.objsToDraw[2]], undefined, 2);
 
         this.gl.disable(this.gl.STENCIL_TEST);
