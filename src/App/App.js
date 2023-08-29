@@ -12,8 +12,8 @@ import { Composition } from "../Composition/Composition.js";
 import { UI } from "../UI/UI.js";
 import { UINodeParamList } from "../UI/Node/UINodeParamList.js";
 import { UINodeParam } from "../UI/Node/UINodeParam.js";
-import { CustomBuffer } from "../Primitives/CustomBuffer.js";
 import { RectangleBuffer } from "../Primitives/RectangleBuffer.js";
+
 
 export class App
 {
@@ -124,9 +124,9 @@ export class App
         this.activeComp.addObj([solid, obj1,obj2,obj3, obj4]);
 
         const myParamList = new UINodeParamList([
-            new UINodeParam("Param1"),
-            new UINodeParam("Param2"),
-            new UINodeParam("Param3")
+            new UINodeParam("Position X"),
+            new UINodeParam("Position Y"),
+            new UINodeParam("Scale")
         ]);
 
         const myParamList2 = new UINodeParamList([
@@ -135,13 +135,11 @@ export class App
             new UINodeParam("Param3")
         ]);
 
-        console.log(myParamList);
+        const node = this.UI.addNode(myParamList, [300,400]);
+        const node2 = this.UI.addNode(myParamList2, [200,500]);
 
-        const node = this.UI.addNode(myParamList);
-        node.setPosition([300,400]);
-
-        const node2 = this.UI.addNode(myParamList2);
-        node2.setPosition([200,500]);
+        const objNode = this.UI.addObjNode(obj1, undefined);
+        objNode.setPosition([50,500]);
 
 
         const myParamList3 = new UINodeParamList([
@@ -149,7 +147,14 @@ export class App
             new UINodeParam("Acc"),
             new UINodeParam("Position")
         ]);
-        
+
+        const paramList4 = new UINodeParamList(
+            [
+                new UINodeParam("Hello", "TEXT_READ")
+            ]
+        );
+
+        const obj = this.UI.addNode("hello mate!");
 
         // Finally can update UI fully
         this.UI.initLayersPanel(this);
@@ -175,18 +180,18 @@ export class App
         prepareForFirstPass(this.gl, this.framebuffer);
         this.drawPass(this.objsToDraw.slice(0,2), this.programs[1]);
 
-        // this.gl.viewport(650,-150, this.gl.canvas.width, this.gl.canvas.height);
+        this.gl.viewport(650,0, this.gl.canvas.width, this.gl.canvas.height);
         this.drawPass([this.objsToDraw[2]], this.programs[1], 2);
 
-        this.gl.viewport(0,0, this.gl.canvas.width, this.gl.canvas.height);
         this.handleEvents();
 
         // 2nd Pass - Draw "normally"
+        this.gl.viewport(0,0, this.gl.canvas.width, this.gl.canvas.height);
         prepareForScndPass(this.gl);
         // passing undefined program so each object uses its own shader
         this.drawPass(this.objsToDraw.slice(0,2), undefined);
 
-        // this.gl.viewport(650,-150, this.gl.canvas.width, this.gl.canvas.height);
+        this.gl.viewport(650,0, this.gl.canvas.width, this.gl.canvas.height);
         this.drawPass([this.objsToDraw[2]], undefined, 2);
 
         this.gl.disable(this.gl.STENCIL_TEST);
@@ -237,7 +242,7 @@ export class App
     {
         // Look up id of the object under mouse cursor
         const underMouseObjId = getIdFromCurrentPixel(this.gl, this.mouseX, this.mouseY);
-        // console.log(underMouseObjId);
+        
         handleUnderMouseCursor(this, underMouseObjId);
 
         // Handle move comp object

@@ -284,6 +284,4 @@ export const setUpMainFont = (app, UI) =>
     };
     const robotoBoldFont = new TextFont(app.gl, fontSettings, app.gl.LUMINANCE);
     UI.font = robotoBoldFont;
-
-    console.log(UI);
     }

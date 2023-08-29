@@ -10,7 +10,7 @@ export class UIViewport
     height;
     bgColor;
 
-    position = [0,0];
+    position = [650,0];
 
     appRef = undefined;
 
@@ -44,7 +44,7 @@ export class UIViewport
 
         viewport.setCanBeHighlighted(false);
         viewport.setCanBeMoved(false);
-        viewport.setPosition(this.position);
+        // viewport.setPosition(this.position);
         viewport.setOriginalColor(colour);
 
         viewport.updateWorldMatrix();

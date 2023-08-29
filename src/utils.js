@@ -64,15 +64,15 @@ export function getProjectionMat(gl)
     return m3.projection(gl.canvas.clientWidth, gl.canvas.clientHeight);
 }
 
-export function getClipSpaceMousePosition(app, e) {
+export function getClipSpaceMousePosition(app, e, offset) {
     // get canvas relative css position
     const rect = app.gl.canvas.getBoundingClientRect();
-    const cssX = e.clientX - rect.left;
-    const cssY = e.clientY - rect.top;
+    const cssX = e.clientX - offset.x/2 - rect.left;
+    const cssY = e.clientY - offset.y/2 - rect.top;
     
     // get normalized 0 to 1 position across and down canvas
-    const normalizedX = cssX / app.gl.canvas.clientWidth;
-    const normalizedY = cssY / app.gl.canvas.clientHeight;
+    const normalizedX = (cssX) / app.gl.canvas.clientWidth;
+    const normalizedY = (cssY) / app.gl.canvas.clientHeight;
   
     // convert to clip space
     const clipX = normalizedX *  2 - 1;

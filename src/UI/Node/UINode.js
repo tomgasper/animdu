@@ -27,6 +27,9 @@ export class UINode extends UIObject
     txtSize = 9;
     txtColor = [1,1,1,1];
 
+    type = undefined;
+    
+    parameters = undefined;
     numOfParams = 0;
     paramTextOffsetY = 20;
     paramTextOffsetX = undefined;
@@ -49,20 +52,18 @@ export class UINode extends UIObject
 
     constructor(app, paramsList)
     {
-        console.log(app.UI);
         super(app.UI);
 
         this.app = app;
-        this.parameters = paramsList.params;
 
-        this.initialize();
+        this.parameters = paramsList;
+
+        // this.initialize();
     }
 
     initialize()
     {
         const projectionMat = getProjectionMat(this.app.gl);
-
-        console.log(this.UI);
 
         // Set size based on the background container size
         this.UIBuffers = this.UI.UIBuffers.UINode;
@@ -112,7 +113,8 @@ export class UINode extends UIObject
             ]
        */
 
-        this.txtArr = this.convertToTxtArr(this.parameters);
+        // Render text
+        this.txtArr = this.convertToTxtArr(this.parameters.list);
 
        // creating text batch for this node, to avoid creating a lot of small buffers
         const txtBatch = createNewText(this.app.gl, this.app.programs[2], this.txtArr, this.txtSize, this.UI.font, this.txtColor);
@@ -121,12 +123,12 @@ export class UINode extends UIObject
         txtBatch.setParent(this.container);
 
         // Create slider
-        const sliderContObjs = this.createSlider([1,1], this.container);
+        // const sliderContObjs = this.createSlider([1,1], this.container);
 
+        // Create text boxes
         this.txtBuffer = txtBatch;
-        this.txtBgArr = this.createTxtBg(txtBatch, this.parameters.length);
-        this.addObjsToRender([...this.txtBgArr, ...sliderContObjs, txtBatch]);
-
+        this.txtBgArr = this.createTxtBg(txtBatch, this.parameters.list.length);
+        this.addObjsToRender([...this.txtBgArr, txtBatch]);
     }
 
     convertToTxtArr(params)
@@ -160,14 +162,14 @@ export class UINode extends UIObject
         this.removeObjs(this.app, [this.txtBuffer, ...this.txtBgArr]);
         this.numOfParams = 0;
 
-        this.parameters.push(
+        this.parameters.addNewParam(
             new UINodeParam(paramNameStr)
         );
 
-        const newTxtBg = this.createTxtBg(parent, this.parameters.length);
+        const newTxtBg = this.createTxtBg(parent, this.parameters.list.length);
         this.txtBgArr = newTxtBg;
 
-        const newTxtArr = this.convertToTxtArr(this.parameters);
+        const newTxtArr = this.convertToTxtArr(this.parameters.list);
         this.txtBuffer.txtBuffer.updateTextBufferData(newTxtArr, 9);
         this.container.updateWorldMatrix();
 
@@ -231,23 +233,34 @@ export class UINode extends UIObject
 
     handleInput(e,indx)
     {
-        if (this.parameters[indx].value == "0" && e.key !== "Backspace")
+        if (this.parameters.list[indx].value == "0" && e.key !== "Backspace")
         {
-            this.parameters[indx].value = e.key;
+            this.parameters.list[indx].value = e.key;
         }
         else if (e.key == "Backspace")
         {
-                this.parameters[indx].value = this.parameters[indx].value.slice(0,-1);
+                this.parameters.list[indx].value = this.parameters.list[indx].value.slice(0,-1);
         }
         else {
             if (isNumeric(e.key) || e.key === ".")
             {
-                this.parameters[indx].value = this.parameters[indx].value + e.key;
+                this.parameters.list[indx].value = this.parameters.list[indx].value + e.key;
             }
         }
 
-        const newTextArr = this.convertToTxtArr(this.parameters);            
+        const newTextArr = this.convertToTxtArr(this.parameters.list);            
         this.txtBuffer.txtBuffer.updateTextBufferData(newTextArr, 9);
+
+        // console.log(this.handleL);
+
+        console.log(this.parameters.list[indx]);
+
+
+        const leftConnectedObj = this.handleL.line.connection.connectedObj.node.obj;
+        const currentVal =  parseFloat(this.parameters.list[indx].value);
+        leftConnectedObj.setPosition([currentVal, 500]);
+
+        // console.log(this.handleR);
     }
 
     handleMouseMove()

@@ -26,6 +26,29 @@ export class UIBuffers
         }
     };
 
+    ObjNode = {
+        container:{
+            buffer: undefined,
+            size: [],
+        },
+        textInput: {
+            buffer: undefined,
+            size: [],
+        },
+        handle: {
+            buffer: undefined,
+            size: [],
+        },
+        sliderCircle: {
+            buffer: undefined,
+            size: []
+        },
+        sliderBg: {
+            buffer: undefined,
+            size: []
+        }
+    };
+
 
     UILayerInfo = {
         container:{
@@ -55,7 +78,7 @@ export class UIBuffers
         this.UINode.textInput.buffer = new RectangleBuffer(gl, program, textInputSize, roundness);
 
         const handleResolution = 16;
-        const handleSize = size[1]*0.05;
+        const handleSize = 5;
         this.UINode.handle.size = handleSize;
         this.UINode.handle.buffer = new CircleBuffer(gl, program, handleSize, handleResolution);
 
@@ -72,6 +95,34 @@ export class UIBuffers
         return this.UINode;
     }
 
+    createObjNodeBuffers(gl, program, size, roundness = 0.05)
+    {
+        this.ObjNode.container.size = size;
+        this.ObjNode.container.buffer = new RectangleBuffer(gl, program, size, roundness);
+
+        // Text input size proportional to the nodes container
+        const textInputSize = [size[0]*0.3, size[1]*0.15];
+        this.ObjNode.textInput.size = textInputSize;
+        this.ObjNode.textInput.buffer = new RectangleBuffer(gl, program, textInputSize, roundness);
+
+        const handleResolution = 16;
+        const handleSize = 5;
+        this.ObjNode.handle.size = handleSize;
+        this.ObjNode.handle.buffer = new CircleBuffer(gl, program, handleSize, handleResolution);
+
+        // Slider buffers
+        const sliderBgSize = [size[0]*0.8, size[1]*0.15];
+        this.ObjNode.sliderBg.size = sliderBgSize;
+        this.ObjNode.sliderBg.buffer = new RectangleBuffer(gl, program, sliderBgSize, 0.3);
+
+        const sliderCirclerRes = 16;
+        const sliderCircleSize = size[1] * 0.2;
+        this.ObjNode.sliderCircle.size = handleSize;
+        this.ObjNode.sliderCircle.buffer = new CircleBuffer(gl, program, sliderCircleSize, sliderCirclerRes);
+
+        return this.ObjNode;
+    }
+
     createUILayerBuffers(gl, program, size, roundness = 0.0)
     {
         this.UILayerInfo.container.size = size;
@@ -81,10 +132,5 @@ export class UIBuffers
         this.UILayerInfo.deleteButton.buffer = new CircleBuffer(gl, program, size[1]/2, 16);
 
         return this.UILayerInfo;
-    }
-
-    getContainer()
-    {
-        if (this.container) return this.container;
     }
 }

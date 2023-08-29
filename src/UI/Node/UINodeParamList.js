@@ -2,7 +2,7 @@ import { UINodeParam } from "./UINodeParam.js";
 
 export class UINodeParamList
 {
-    params = [];
+    list = [];
 
     constructor(initParamName)
     {
@@ -16,7 +16,7 @@ export class UINodeParamList
             {
                 if (!(obj instanceof UINodeParam)) throw Error("Error creaing UINodeParamList Object, incorrect input!");
             })
-            this.params = initParamName;
+            this.list = initParamName;
         }
         else throw Error("Param name must be of type string");
     }
@@ -25,13 +25,13 @@ export class UINodeParamList
     {
         if (!(param instanceof UINodeParam)) throw Error("Incorrect parameter type");
 
-        this.params.push(param);
+        this.list.push(param);
     }
 
     removeParam(paramNames)
     {
         paramNames.forEach( (paramName) => {
-            this.params = this.params.filter( param => param.name !== paramName );
+            this.list = this.list.filter( param => param.name !== paramName );
         })
     }
 }

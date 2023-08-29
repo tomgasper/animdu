@@ -1,6 +1,7 @@
 import { RenderableObject } from "../RenderableObject.js";
 
 import { UINode } from "./Node/UINode.js";
+import { ObjNode } from "./Node/ObjNode.js";
 
 import { UINodeParam } from "./Node/UINodeParam.js";
 import { UINodeParamList } from "./Node/UINodeParamList.js";
@@ -81,15 +82,19 @@ export class UI
     initializeUIBuffers = (app, program) => 
     {
         // Set up UI
-        const UINodeSize = [130,120];
         const UIBuffersStore = new UIBuffers();
+
+        const UINodeSize = [130,120];
         UIBuffersStore.createUINodeBuffers(app.gl, program, UINodeSize, 0.05);
+
+        const ObjNodeSize = [130,50];
+        UIBuffersStore.createObjNodeBuffers(app.gl, program, ObjNodeSize, 0.2);
 
         // save ref
         this.UIBuffers = UIBuffersStore;
     }
 
-    addNode(paramList)
+    addNode(paramList, pos = [0,0])
     {
         let params = paramList;
 
@@ -102,11 +107,22 @@ export class UI
         } else throw Error ("Incorrect input!");
 
         const node = new UINode(this.app, params);
-        node.setPosition([0,0]);
+        node.initialize();
+
+        node.setPosition(pos);
 
         this.addObj(node.getObjsToRender(), ["nodes"]);
 
         return node;
+    }
+
+    addObjNode(obj, params)
+    {
+        const newNode = new ObjNode(obj, this.app, params);
+        newNode.initialize();
+
+        this.addObj(newNode.getObjsToRender(), ["nodes"]);
+        return newNode;
     }
 
     addObj(obj, dir)
@@ -117,6 +133,8 @@ export class UI
         {
             for (let i = 1; i < dir.length; i++)
             {
+                if (!dest[dir[i]]) throw new Error("Incorrect render location!");
+
                 dest = dest[dir[i]];
             }
         }

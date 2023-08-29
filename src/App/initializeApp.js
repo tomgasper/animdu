@@ -22,11 +22,37 @@ export const initInputListeners = (app) =>
      });
 
     app.document.addEventListener("keyup", (e) => {
+        // Reset active obj info
+            if (e.keyCode === 27)
+            {
+                console.log("Reseting active obj!");
+
+                // Reset active obj
+                app.activeObjID = -1;
+                app.activeObjArrIndx = 1;
+            }
     });
 
     app.document.addEventListener("keydown", (e) => {
-        if (app.activeObjID < 0 || app.activeObjArrIndx < 0) return;
+        // No scene object selected
+        if (app.activeObjID < 0 || app.activeObjArrIndx < 0)
+        {
+            if (e.keyCode === 32)
+            {
+                // To do later
+                // Set camera
+                
+                // First set spacedown state
+                // Second go to mousedown handler
+                // Handle movement when space down
+                const compCamera = app.activeComp.camera;
+                compCamera.setPosition( [0, 0]);
+            }
 
+            return;
+        }
+
+        // Some scene object selected
         if ( app.objsToDraw[app.activeObjArrIndx].objs[app.activeObjID].handlers.onInputKey)
         {
             let currObj = app.objsToDraw[app.activeObjArrIndx].objs[app.activeObjID].handlers;
@@ -65,7 +91,13 @@ export const initInputListeners = (app) =>
         // based on greggman implementation:
         // https://webglfundamentals.org/webgl/lessons/webgl-qna-how-to-implement-zoom-from-mouse-in-2d-webgl.html
         e.preventDefault();
-        const [clipX, clipY] = getClipSpaceMousePosition(app,e);
+
+        const viewportOffset = {
+            x: app.UI.viewport.position[0],
+            y: -app.UI.viewport.position[1]
+        };
+
+        const [clipX, clipY] = getClipSpaceMousePosition(app,e, viewportOffset);
 
         const compCamera = app.activeComp.camera;
         const projectionMat = getProjectionMat(app.gl);
@@ -77,9 +109,6 @@ export const initInputListeners = (app) =>
             m3.inverse(viewProjectionMat), 
             [clipX, clipY]);
 
-
-        console.log(preZoomX);
-
         const newZoom = compCamera.zoom * Math.pow(2, e.deltaY * -0.01);
         compCamera.setZoom(Math.max(0.02, Math.min(100,newZoom) ));
 
@@ -90,8 +119,6 @@ export const initInputListeners = (app) =>
         const [postZoomX, postZoomY] = m3.transformPoint(
             m3.inverse(viewProjectionMat), 
             [clipX, clipY]);
-
-        console.log(postZoomX);
 
         // camera needs to be moved the difference of before and after
 
