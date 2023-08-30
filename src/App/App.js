@@ -14,6 +14,7 @@ import { UINodeParamList } from "../UI/Node/UINodeParamList.js";
 import { UINodeParam } from "../UI/Node/UINodeParam.js";
 import { RectangleBuffer } from "../Primitives/RectangleBuffer.js";
 
+import { Effector } from "../UI/Node/Effector.js";
 
 export class App
 {
@@ -123,38 +124,24 @@ export class App
 
         this.activeComp.addObj([solid, obj1,obj2,obj3, obj4]);
 
-        const myParamList = new UINodeParamList([
-            new UINodeParam("Position X"),
-            new UINodeParam("Position Y"),
-            new UINodeParam("Scale")
+        const paramList = new UINodeParamList([
+            new UINodeParam("position", "TEXT_READ"),
+            new UINodeParam("scale", "TEXT_READ")
         ]);
 
-        const myParamList2 = new UINodeParamList([
-            new UINodeParam("Param1"),
-            new UINodeParam("Param2"),
-            new UINodeParam("Param3")
-        ]);
+        const fnc = () => console.log("Hello, this is some function!");
+        const effectorFunction = new Effector("Custom function", fnc, 2, 1);
+        console.log(effectorFunction);
 
-        const node = this.UI.addNode(myParamList, [300,400]);
-        const node2 = this.UI.addNode(myParamList2, [200,500]);
+        const functionNode = this.UI.addFunctionNode(effectorFunction);
+        functionNode.setPosition([200, 500]);
 
-        const objNode = this.UI.addObjNode(obj1, undefined);
-        objNode.setPosition([50,500]);
+        // Param node
+        const paramNode = this.UI.addParamNode("IN", paramList);
+        paramNode.setPosition([0,500]);
 
-
-        const myParamList3 = new UINodeParamList([
-            new UINodeParam("Speed"),
-            new UINodeParam("Acc"),
-            new UINodeParam("Position")
-        ]);
-
-        const paramList4 = new UINodeParamList(
-            [
-                new UINodeParam("Hello", "TEXT_READ")
-            ]
-        );
-
-        const obj = this.UI.addNode("hello mate!");
+        const outParamNode = this.UI.addParamNode("OUT", paramList);
+        outParamNode.setPosition([400,500]);
 
         // Finally can update UI fully
         this.UI.initLayersPanel(this);

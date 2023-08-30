@@ -64,6 +64,8 @@ export function getProjectionMat(gl)
     return m3.projection(gl.canvas.clientWidth, gl.canvas.clientHeight);
 }
 
+
+
 export function getClipSpaceMousePosition(app, e, offset) {
     // get canvas relative css position
     const rect = app.gl.canvas.getBoundingClientRect();

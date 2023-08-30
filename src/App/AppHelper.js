@@ -32,6 +32,21 @@ export const createNewRect = (scene, width, height, roundness = 0.05) =>
     return rect;
 }
 
+export const modifyParameter = (obj, paramCode, value) =>
+{
+        switch(paramCode)
+        {
+            case "position":
+                obj.setPosition(value);
+                break;
+
+            case "scale":
+
+                obj.setScale(value);
+                break;
+        } 
+    }
+
 export const deleteFromToDraw = (arr, obj) =>
 {
     arr.forEach((arr_obj, indx, arr_read_only) => {

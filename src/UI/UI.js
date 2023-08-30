@@ -2,6 +2,8 @@ import { RenderableObject } from "../RenderableObject.js";
 
 import { UINode } from "./Node/UINode.js";
 import { ObjNode } from "./Node/ObjNode.js";
+import { FunctionNode } from "./Node/FunctionNode.js";
+import { ParamNode } from "./Node/ParamNode.js";
 
 import { UINodeParam } from "./Node/UINodeParam.js";
 import { UINodeParamList } from "./Node/UINodeParamList.js";
@@ -87,7 +89,7 @@ export class UI
         const UINodeSize = [130,120];
         UIBuffersStore.createUINodeBuffers(app.gl, program, UINodeSize, 0.05);
 
-        const ObjNodeSize = [130,50];
+        const ObjNodeSize = [130,100];
         UIBuffersStore.createObjNodeBuffers(app.gl, program, ObjNodeSize, 0.2);
 
         // save ref
@@ -119,6 +121,24 @@ export class UI
     addObjNode(obj, params)
     {
         const newNode = new ObjNode(obj, this.app, params);
+        newNode.initialize();
+
+        this.addObj(newNode.getObjsToRender(), ["nodes"]);
+        return newNode;
+    }
+
+    addFunctionNode(effectorFnc)
+    {
+        const newNode = new FunctionNode(this.app, effectorFnc);
+        newNode.initialize();
+
+        this.addObj(newNode.getObjsToRender(), ["nodes"]);
+        return newNode;
+    }
+
+    addParamNode(type, params)
+    {
+        const newNode = new ParamNode(this.app, type, params);
         newNode.initialize();
 
         this.addObj(newNode.getObjsToRender(), ["nodes"]);

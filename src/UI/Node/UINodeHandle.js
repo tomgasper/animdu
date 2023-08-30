@@ -14,7 +14,9 @@ export class UINodeHandle extends RenderableObject
 
     objToConnect = undefined;
 
-    node = {}
+    node = {};
+
+    parameter = undefined;
 
     line = {
         width: 5,
@@ -188,6 +190,11 @@ export class UINodeHandle extends RenderableObject
             this.line.connection.connectedObj = objToConnect;
             this.line.connection.isConnected = true;
         }
+    }
+
+    setParameter(param)
+    {
+        this.parameter = param;
     }
 }
 

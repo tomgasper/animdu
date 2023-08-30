@@ -10,15 +10,15 @@ import { UINodeParam } from "./UINodeParam.js";
 
 import { TransformNode } from "../../Node/TransformNode.js";
 
-export class ObjNode extends UINode
+export class ParamNode extends UINode
 {
-    obj = undefined;
+    type = undefined;
 
-    constructor(obj, app, paramsList)
+    constructor(app, type, paramsList)
     {
         super(app,paramsList);
 
-        this.obj = obj;
+        this.setType(type);
     }
 
     initialize()
@@ -35,8 +35,6 @@ export class ObjNode extends UINode
         this.marginX = this.width/10;
         this.marginY = this.height/10;
 
-        const anchor = new TransformNode();
-
         // Retrieve previously initialized buffer
         const UINodeContainerBuffer = this.UIBuffers.container.buffer.getInfo();
         const rect = new RenderableObject(UINodeContainerBuffer, projectionMat);
@@ -48,34 +46,14 @@ export class ObjNode extends UINode
         this.container = rect;
 
         // Init graphical handlers
-        const cirlceBuffer = this.UIBuffers.handle.buffer.getInfo();
-
         // Render handle for each param to modify
+        const handlesType = this.type === "IN" ? "OUT" : "IN";
+        this.addIOHandles(handlesType, this.parameters.list.length, this.paramTextOffsetY);
 
-        const paramsNum = this.parameters.list.length;
 
-        for (let i = 0; i < paramsNum; i++)
-        {
-            const handleR = new UINodeHandle(this.app, cirlceBuffer, this, this.container);
-            handleR.setPosition([this.width, this.marginY + ((i+2)*this.paramTextOffsetY + this.txtSize)]);
-            handleR.setOriginalColor([0.2,0.2,0.2,1])
-            handleR.setCanBeMoved(false);
-            handleR.setParameter(this.parameters.list[i]);
-
-            this.handleR.push(handleR);
-        }
-
-        const handleL = new UINodeHandle(this.app, cirlceBuffer, this, this.container);
-        handleL.setPosition([0, this.height/2]);
-        handleL.setOriginalColor([0.2,0.2,0.2,1])
-        handleL.setCanBeMoved(false);
-        this.handleL = [ handleL ];
-
+        // Push to draw list
         this.addObjToRender(rect);
         this.addObjsToRender([...this.handleL, ...this.handleR]);
-
-        console.log(this.obj);
-        
 
         /* this is how txtArr obj looks like:
             const txtArr = [
@@ -87,11 +65,10 @@ export class ObjNode extends UINode
        */
 
         // Render text
-        this.txtArr = this.convertToTxtArr([
-            {name: this.obj.id },
-            {name: "Parameters: " }, 
-            ...this.parameters.list
-        ]);
+        this.txtArr = [
+            { data: this.type, pos: [0, 0 ] },
+            ...this.convertToTxtArr(this.parameters.list, 0, this.paramTextOffsetY)
+        ];
 
        // creating text batch for this node, to avoid creating a lot of small buffers
         const txtBatch = createNewText(this.app.gl, this.app.programs[2], this.txtArr, this.txtSize, this.UI.font, this.txtColor);
@@ -108,20 +85,8 @@ export class ObjNode extends UINode
         this.addObjsToRender([txtBatch]);
     }
 
-    convertToTxtArr(txtIn)
+    setType(type)
     {
-        const txtArr = [];
-
-        this.numOfParams = 0;
-
-        txtIn.forEach( (txt, indx) => {
-                txtArr.push({
-                    data: txt.name.toString(),
-                    pos: [0, indx*this.paramTextOffsetY ]
-                });
-    
-                this.numOfParams = this.numOfParams + 1;
-        })
-        return txtArr;
+        this.type = type;
     }
 }

@@ -11,6 +11,7 @@ import { getPosFromMat } from "../../App/AppHelper.js";
 import { UINodeParam } from "./UINodeParam.js";
 
 import { isNumeric } from "../../utils.js";
+import { modifyParameter } from "../../App/AppHelper.js";
 
 
 export class UINode extends UIObject
@@ -39,8 +40,8 @@ export class UINode extends UIObject
 
     container = {};
 
-    handleL = {};
-    handleR = {};
+    handleL = [];
+    handleR = [];
 
     // array of objs
     // { 
@@ -70,6 +71,8 @@ export class UINode extends UIObject
         this.width = this.UIBuffers.container.size[0];
         this.height = this.UIBuffers.container.size[1];
 
+        this.numOfParams = this.parameters.list.length;
+
         // Stylize Node
         this.paramTextOffsetX = this.width/2;
         this.marginX = this.width/10;
@@ -92,16 +95,16 @@ export class UINode extends UIObject
         handleR.setPosition([this.width, this.height/2]);
         handleR.setOriginalColor([0.2,0.2,0.2,1])
         handleR.setCanBeMoved(false);
-        this.handleR = handleR;
+        this.handleR = [ handleR ];
 
         const handleL = new UINodeHandle(this.app, cirlceBuffer, this, this.container);
         handleL.setPosition([0, this.height/2]);
         handleL.setOriginalColor([0.2,0.2,0.2,1])
         handleL.setCanBeMoved(false);
-        this.handleL = handleL;
+        this.handleL = [ handleL ];
 
         this.addObjToRender(rect);
-        this.addObjsToRender([handleL, handleR]);
+        this.addObjsToRender([...this.handleL, ...this.handleR]);
         
 
         /* this is how txtArr obj looks like:
@@ -131,23 +134,20 @@ export class UINode extends UIObject
         this.addObjsToRender([...this.txtBgArr, txtBatch]);
     }
 
-    convertToTxtArr(params)
+    convertToTxtArr(params, offX = 0, offY = 0)
     {
         const txtArr = [];
-
-        this.numOfParams = 0;
 
         params.forEach( (txt, indx) => {
                 txtArr.push({
                     data: txt.name.toString(),
-                    pos: [0, indx*this.paramTextOffsetY ]
+                    pos: [0+offX, (indx*this.paramTextOffsetY) + offY ]
                 },
                 {
                     data: txt.value.toString(),
-                    pos: [this.paramTextOffsetX, indx*this.paramTextOffsetY]
+                    pos: [this.paramTextOffsetX + offX, (indx*this.paramTextOffsetY) + offY]
                 });
     
-                this.numOfParams = this.numOfParams + 1;
         })
         return txtArr;
     }
@@ -160,7 +160,7 @@ export class UINode extends UIObject
 
         // remove objs
         this.removeObjs(this.app, [this.txtBuffer, ...this.txtBgArr]);
-        this.numOfParams = 0;
+        this.numOfParams = this.parameters.list.length;
 
         this.parameters.addNewParam(
             new UINodeParam(paramNameStr)
@@ -250,22 +250,11 @@ export class UINode extends UIObject
 
         const newTextArr = this.convertToTxtArr(this.parameters.list);            
         this.txtBuffer.txtBuffer.updateTextBufferData(newTextArr, 9);
-
-        // console.log(this.handleL);
-
-        console.log(this.parameters.list[indx]);
-
-
-        const leftConnectedObj = this.handleL.line.connection.connectedObj.node.obj;
-        const currentVal =  parseFloat(this.parameters.list[indx].value);
-        leftConnectedObj.setPosition([currentVal, 500]);
-
-        // console.log(this.handleR);
     }
 
     handleMouseMove()
     {
-        const handles = [this.handleR, this.handleL];
+        const handles = [...this.handleR, ...this.handleL];
 
         handles.forEach( (handle) => {
             const isConnectedIN = handle.line.connection.type == "IN" ? true : false;
@@ -297,5 +286,79 @@ export class UINode extends UIObject
     {
         this.container.setPosition(pos);
         this.container.updateWorldMatrix();
+    }
+
+    createHandle(pos, parameter)
+    {
+        const cirlceBuffer = this.UIBuffers.handle.buffer.getInfo();
+
+        const handle = new UINodeHandle(this.app, cirlceBuffer, this, this.container);
+        handle.setPosition(pos);
+        handle.setOriginalColor([0.2,0.2,0.2,1])
+        handle.setCanBeMoved(false);
+
+        if (parameter)
+        {
+            handle.setParameter(parameter);
+        }
+
+        return handle;
+    }
+
+    addIOHandles(type, paramsNum, offsetY = 0)
+    {
+        let offsetX, arrToPush;
+
+        if (type === "IN")
+        {
+            offsetX = 0;
+            arrToPush = this.handleR;
+        } else if (type === "OUT")
+        {
+            offsetX = this.width;
+            arrToPush = this.handleL;
+        }
+
+        for (let i = 0; i < paramsNum; i++)
+        {
+        const pos = [offsetX, this.marginY + ((i)*this.paramTextOffsetY + this.txtSize + offsetY)];
+        let param = undefined;
+
+        if (this.parameters)
+        {
+            param = this.parameters.list[i];
+        }
+        
+        const newHandle = this.createHandle(pos, param);
+        arrToPush.push(newHandle);
+        }
+
+        /*
+
+        if (type === "IN")
+        {
+            for (let i = 0; i < paramsNum; i++)
+            {
+            const pos = [this.width, this.marginY + ((i+1)*this.paramTextOffsetY + this.txtSize + offsetY)];
+
+
+            const param = this.parameters.list[i];
+
+            const newHandle = this.createHandle(pos, param);
+
+            this.handleR.push(newHandle);
+            }
+        } else if (type === "OUT")
+        {
+            for (let i = 0; i < paramsNum; i++)
+            {
+                const pos = [0, this.marginY + ((i+1)*this.paramTextOffsetY + this.txtSize + offsetY)];
+                const param = this.parameters.list[i];
+
+                const newHandle = this.createHandle(pos, param);
+
+                this.handleL.push(newHandle);
+            }
+        }*/
     }
 }
