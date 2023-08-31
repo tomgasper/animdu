@@ -16,6 +16,11 @@ import { RectangleBuffer } from "../Primitives/RectangleBuffer.js";
 
 import { Effector } from "../UI/Node/Effector.js";
 
+import { ComponentNode } from "../UI/Node/ComponentNode.js";
+
+import { Button } from "../UI/Button.js";
+import { SceneObject } from "../SceneObject.js";
+
 export class App
 {
     gl = {};
@@ -103,24 +108,25 @@ export class App
         solid.setCanBeHighlighted(false);
         solid.setOriginalColor([0.97,0.97,0.97,1]);
 
-        const obj1 = new RenderableObject(this.primitiveBuffers.circle, projectionMat);
+        const obj1 = new RenderableObject(this.primitiveBuffers.circle);
         obj1.setPosition([0,0]);
         obj1.setScale([1,1]);
+        // obj1.setRotation(0.4);
 
-        const obj2 = new RenderableObject(this.primitiveBuffers.circle, projectionMat);
+        const obj2 = new RenderableObject(this.primitiveBuffers.circle);
         obj2.setPosition([100,0]);
+        obj2.setScale([0.5,1]);
 
-        const obj3 = new RenderableObject(this.primitiveBuffers.circle, projectionMat);
-        obj3.setPosition([100,100]);
+        const obj3 = new RenderableObject(this.primitiveBuffers.rectangle);
+        obj3.setPosition([200, 0]);
         obj3.setScale([1,1]);
 
-        const obj4 = new RenderableObject(this.primitiveBuffers.circle, projectionMat);
-        obj4.setPosition([0, 100]);
+        const obj4 = new RenderableObject(this.primitiveBuffers.circle);
+        obj4.setPosition([300, 0]);
 
         obj4.setParent(obj3);
         obj3.setParent(obj2);
         obj2.setParent(obj1);
-        obj1.updateWorldMatrix();
 
         this.activeComp.addObj([solid, obj1,obj2,obj3, obj4]);
 
@@ -133,15 +139,13 @@ export class App
         const effectorFunction = new Effector("Custom function", fnc, 2, 1);
         console.log(effectorFunction);
 
-        const functionNode = this.UI.addFunctionNode(effectorFunction);
-        functionNode.setPosition([200, 500]);
+        const compNode = new ComponentNode(this, [500, 300]);
+        compNode.addParamNode("IN", paramList);
+        compNode.addFunctionNode(effectorFunction);
+        compNode.addParamNode("OUT", paramList);
 
-        // Param node
-        const paramNode = this.UI.addParamNode("IN", paramList);
-        paramNode.setPosition([0,500]);
-
-        const outParamNode = this.UI.addParamNode("OUT", paramList);
-        outParamNode.setPosition([400,500]);
+        this.UI.addObj(compNode.getObjsToRender(), ["nodes"]);
+        compNode.setPosition([500,500]);
 
         // Finally can update UI fully
         this.UI.initLayersPanel(this);
@@ -254,7 +258,7 @@ export class App
     createDrawList(UI, activeCompObjs)
     {
         this.objsToDraw = [
-            { mask: [ ...UI.viewer.objects ], objs: [...UI.viewer.objects, ...UI.nodes.objects ] },
+            { mask: [ ...UI.viewer.objects ], objs: [...UI.viewer.objects, ...UI.nodes.objects, ...UI.buttons.objects ] },
             { mask: [], objs: UI.panels.layers.objects },
             { mask: UI.viewport.objects, objs: [ ...UI.viewport.objects, ...activeCompObjs] },
         ];
@@ -280,6 +284,18 @@ export class App
         objs.forEach( (obj) => {
             this.objsToDraw = this.objsToDraw.filter( objToDraw => objToDraw.id !== obj.id );
         })
+    }
+
+    addObjToDrawList(obj, drawList)
+    {
+        if (!obj || !(obj.children)) return;
+        if (!(obj instanceof RenderableObject)) throw new Error("Incorrect object pushed to draw list!");
+
+        drawList.push(obj);
+        for (let i = 0; i < obj.children.length; i++)
+        {
+            this.addObjToDrawList(obj.children[i]);
+        }
     }
 
     getSceneObjs() {

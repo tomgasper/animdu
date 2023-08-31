@@ -41,6 +41,11 @@ export class UI
         objects: [],
     }
 
+    buttons =
+    {
+        objects: []
+    }
+
     leftPanelWidth = 300;
     rightPanelWidth = 300;
     topBarHeight;
@@ -160,7 +165,7 @@ export class UI
         }
 
         // handle array of objects
-        if (obj.length && obj.length > 1)
+        if (obj.length && obj.length >= 1)
         {
             obj.forEach((obj) => {
                 if (obj && obj instanceof RenderableObject) dest.objects.push(obj);

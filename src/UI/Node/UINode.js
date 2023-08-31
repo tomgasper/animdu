@@ -12,6 +12,7 @@ import { UINodeParam } from "./UINodeParam.js";
 
 import { isNumeric } from "../../utils.js";
 import { modifyParameter } from "../../App/AppHelper.js";
+import { SceneObject } from "../../SceneObject.js";
 
 
 export class UINode extends UIObject
@@ -286,6 +287,13 @@ export class UINode extends UIObject
     {
         this.container.setPosition(pos);
         this.container.updateWorldMatrix();
+    }
+
+    setParent(parent)
+    {
+        if (!(parent instanceof SceneObject)) throw new Error("Incorrect parent object!");
+
+        this.container.setParent(parent);
     }
 
     createHandle(pos, parameter)

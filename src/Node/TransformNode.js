@@ -45,10 +45,24 @@ export class TransformNode
             m3.copy(this.worldMatrix, this.localMatrix);
         }
 
+        // cancel out scaling for children
+        let worldMatrix = this.worldMatrix;
+        if (this.properties.scale[0] !== 1 || this.properties.scale[1] !== 1 )
+        {
+            worldMatrix = this.cancelScaling(worldMatrix);
+        }
+
         // process all the children
-        const worldMatrix = this.worldMatrix;
         this.children.forEach((child) => {
             child.updateWorldMatrix(worldMatrix);
         });
+    }
+
+    cancelScaling(worldMatrix)
+    {
+        const unScaleMatrix = m3.scaling(1/this.properties.scale[0], 1/this.properties.scale[1]);
+        const newParentMatrix = m3.multiply(worldMatrix, unScaleMatrix);
+
+        return newParentMatrix;
     }
 }

@@ -108,10 +108,14 @@ export const moveObjectWithCoursor = (app) =>
                 // Object is a child of some other object
                 if (objToDrag.parent)
                 {
-                    const invViewMat = m3.inverse(app.activeComp.camera.matrix);
-
                     // Position of mouse in different coord space
                     parentWorldMat = objToDrag.parent.worldMatrix;
+
+                    // Need to account for canceling scale inheritance
+                    const [ parentScaleX, parentScaleY ] = objToDrag.parent.properties.scale;
+                    const unScaleMatrix = m3.scaling(1/parentScaleX, 1/parentScaleY);
+
+                    m3.multiplyInPlace(parentWorldMat, parentWorldMat, unScaleMatrix );
 
                     let parentWorldMatInv = m3.inverse(parentWorldMat);
                     let mousePosInDiffCord = m3.multiply(parentWorldMatInv, mouseTranslation);
@@ -179,11 +183,10 @@ export const drawObjects = (scene, objsToDraw, objsArrIndx, programInfo = undefi
                         ((ii >> 16) & 0xFF) / 0xFF
                     ];
 
-                obj.updateTransform();
-                if (obj.parent)
-                {
-                    obj.updateWorldMatrix(obj.parent.worldMatrix);
-                } else obj.updateWorldMatrix();
+                // obj.updateTransform();
+
+                
+                if (!obj.parent) obj.updateWorldMatrix();
                 
                 obj.setID(u_id);
                 obj.setProjectionAndCalcFinalTransform(projection);

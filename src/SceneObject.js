@@ -180,4 +180,12 @@ export class SceneObject extends TransformNode
         this.properties.transform =  m3.multiply(viewProjectionMat, this.worldMatrix);
         
     }
+
+    // handlers
+
+    setOnClick(fnc)
+    {
+        if (!(typeof fnc === "function")) throw new Error("Incorrect input, must be a function!");
+        this.handlers.onClick = fnc;
+    }
 }
