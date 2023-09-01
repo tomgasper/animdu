@@ -62,6 +62,7 @@ export const deleteFromToDraw = (arr, obj) =>
 
 export const getPosFromMat = (obj) =>
 {
+    // accept node instance or matrix
     if ( obj instanceof TransformNode || obj.length == 9 )
     {
         let pos;
@@ -98,9 +99,6 @@ export const moveObjectWithCoursor = (app) =>
                 {
                     const invViewMat = app.activeComp.camera.matrix;
                     mouseTranslation = m3.multiply(invViewMat, mouseTranslation);
-
-                    // we dont want mouse pos in view coords...
-                    // because we want to set local position for the object that will then be multiplied by view mat
                 }
 
                 let newPos;
@@ -109,7 +107,8 @@ export const moveObjectWithCoursor = (app) =>
                 if (objToDrag.parent)
                 {
                     // Position of mouse in different coord space
-                    parentWorldMat = objToDrag.parent.worldMatrix;
+                    parentWorldMat = m3.identity();
+                    m3.copy(parentWorldMat, objToDrag.parent.worldMatrix);
 
                     // Need to account for canceling scale inheritance
                     const [ parentScaleX, parentScaleY ] = objToDrag.parent.properties.scale;
@@ -145,8 +144,7 @@ export const moveObjectWithCoursor = (app) =>
                 }
 
                 objToDrag.setPosition(newPos);
-
-                // objToDrag.updateWorldMatrix(parentWorldMat);
+                objToDrag.updateWorldMatrix(parentWorldMat);
     }
 
     export const canMoveObj = (app) =>
@@ -241,6 +239,7 @@ export const prepareForFirstPass = (gl, framebuffer) =>
     // Draw the objects to the texture
     gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer);
 
+    gl.disable(gl.STENCIL_TEST);
     gl.viewport(0,0, gl.canvas.width, gl.canvas.height);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT );
     gl.disable(gl.BLEND);
@@ -249,6 +248,7 @@ export const prepareForFirstPass = (gl, framebuffer) =>
 export const prepareForScndPass = (gl) => 
 {
     gl.disable(gl.DEPTH_TEST);
+    gl.viewport(0,0, gl.canvas.width, gl.canvas.height);
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
     gl.bindTexture(gl.TEXTURE_2D, null);
 };
@@ -271,3 +271,42 @@ export const resizeCanvas = (app) =>
         setFramebufferAttachmentSizes(app.gl, app.depthBuffer, app.gl.canvas.width, app.gl.canvas.height, app.renderTexture);
     }
 }
+
+// Drawing
+const drawInMask = (appRef, objsArrIndx, program) =>
+    {
+        appRef.gl.enable(appRef.gl.STENCIL_TEST);
+        appRef.gl.clear(appRef.gl.STENCIL_BUFFER_BIT);
+        appRef.gl.stencilFunc(appRef.gl.ALWAYS,1,0xFF);
+        appRef.gl.stencilOp(appRef.gl.KEEP, appRef.gl.KEEP, appRef.gl.REPLACE);
+
+        drawObjects(appRef, appRef.objsToDraw[objsArrIndx].mask, objsArrIndx, program);
+
+        appRef.gl.stencilFunc(appRef.gl.EQUAL, 1, 0xFF);
+        appRef.gl.stencilOp(appRef.gl.KEEP, appRef.gl.KEEP, appRef.gl.KEEP);
+        drawObjects(appRef, appRef.objsToDraw[objsArrIndx].objs, objsArrIndx, program);
+
+        appRef.gl.disable(appRef.gl.STENCIL_TEST);
+    }
+
+const drawWithoutMask = (appRef,objsArrIndx, program = undefined) =>
+    {
+        drawObjects(appRef, appRef.objsToDraw[i].objs, objsArrIndx, program);
+    }
+
+export const drawPass = (appRef, objsToDraw, program, indx = 0) =>
+    {
+        // indx complication is needed for correct retrieval of object under mouse coursor
+        for (let i = 0; i < objsToDraw.length; i++)
+        {
+            if (objsToDraw[i].mask.length > 0)
+            {
+                drawInMask(appRef,indx, program);
+            }
+            else
+            {
+                drawWithoutMask(appRef, indx, program);
+            }
+            indx++;
+        }
+    }

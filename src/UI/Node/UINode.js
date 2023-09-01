@@ -14,35 +14,44 @@ import { isNumeric } from "../../utils.js";
 import { modifyParameter } from "../../App/AppHelper.js";
 import { SceneObject } from "../../SceneObject.js";
 
+import { transformToParentSpace } from "../../utils.js";
+
 
 export class UINode extends UIObject
 {
-    // App ref
-    app = {};
-    objsToRender = [];
-
-    // Standard size
-    height = undefined;
-    width = undefined;
-
-    containerColor = [0.05,0.5,0.95,1];
-    txtSize = 9;
-    txtColor = [1,1,1,1];
-
     type = undefined;
-    
     parameters = undefined;
-    numOfParams = 0;
-    paramTextOffsetY = 20;
-    paramTextOffsetX = undefined;
 
-    marginX = undefined;
-    marginY = undefined;
+    _ref = {
+        ...this._ref,
+        component: undefined
+    };
 
-    container = {};
+    style = {
+        container:
+        {
+            width: undefined,
+            height: undefined,
+            colour: [0.05,0.5,0.95,1]
+        },
+        marginX: undefined,
+        marginY: undefined,
+        text: {
+            size: 9,
+            colour: [1,1,1,1],
+            paramTextOffsetY: 20,
+            paramTextOffsetX: undefined,
+        },
+    }
 
-    handleL = [];
-    handleR = [];
+    elements =
+    {
+        handles:
+        {
+            L: [],
+            R: []
+        }
+    }
 
     // array of objs
     // { 
@@ -50,15 +59,13 @@ export class UINode extends UIObject
     //  value: "0"
     // }
 
-    parameters = [];
-
-    constructor(app, paramsList)
+    constructor(appRef, paramsList)
     {
-        super(app.UI);
-
-        this.app = app;
+        super(appRef);
 
         this.parameters = paramsList;
+
+        console.log(this);
 
         // this.initialize();
     }
@@ -68,19 +75,17 @@ export class UINode extends UIObject
         const projectionMat = getProjectionMat(this.app.gl);
 
         // Set size based on the background container size
-        this.UIBuffers = this.UI.UIBuffers.UINode;
-        this.width = this.UIBuffers.container.size[0];
-        this.height = this.UIBuffers.container.size[1];
+        const UIBuffers = this._ref.UI.UIBuffers.UINode;
 
-        this.numOfParams = this.parameters.list.length;
+        [this.style.container.width, this.style.container.height ] = UIBuffers.container.size;
 
         // Stylize Node
-        this.paramTextOffsetX = this.width/2;
-        this.marginX = this.width/10;
-        this.marginY = this.height/10;
+        this.style.text.paramTextOffsetX = this.style.container.width/2;
+        this.style.marginX = this.width/10;
+        this.style.marginY = this.height/10;
 
         // Retrieve previously initialized buffer
-        const UINodeContainerBuffer = this.UIBuffers.container.buffer.getInfo();
+        const UINodeContainerBuffer = UIBuffers.container.buffer.getInfo();
         const rect = new RenderableObject(UINodeContainerBuffer, projectionMat);
         rect.setPosition([0,0]);
         rect.setOriginalColor(this.containerColor);
@@ -90,23 +95,19 @@ export class UINode extends UIObject
         this.container = rect;
 
         // Init graphical handlers
-        const cirlceBuffer = this.UIBuffers.handle.buffer.getInfo();
+        const cirlceBuffer = UIBuffers.handle.buffer.getInfo();
 
-        const handleR = new UINodeHandle(this.app, cirlceBuffer, this, this.container);
-        handleR.setPosition([this.width, this.height/2]);
+        const handleR = new UINodeHandle(this._ref.app, cirlceBuffer, this, this.container);
+        handleR.setPosition([this.style.container.width, this.style.container.height/2]);
         handleR.setOriginalColor([0.2,0.2,0.2,1])
         handleR.setCanBeMoved(false);
-        this.handleR = [ handleR ];
+        this.elements.handles.R = [ handleR ];
 
-        const handleL = new UINodeHandle(this.app, cirlceBuffer, this, this.container);
-        handleL.setPosition([0, this.height/2]);
+        const handleL = new UINodeHandle(this._ref.app, cirlceBuffer, this, this.container);
+        handleL.setPosition([0, this.style.container.height/2]);
         handleL.setOriginalColor([0.2,0.2,0.2,1])
         handleL.setCanBeMoved(false);
-        this.handleL = [ handleL ];
-
-        this.addObjToRender(rect);
-        this.addObjsToRender([...this.handleL, ...this.handleR]);
-        
+        this.elements.handles.L = [ handleL ];
 
         /* this is how txtArr obj looks like:
             const txtArr = [
@@ -142,11 +143,11 @@ export class UINode extends UIObject
         params.forEach( (txt, indx) => {
                 txtArr.push({
                     data: txt.name.toString(),
-                    pos: [0+offX, (indx*this.paramTextOffsetY) + offY ]
+                    pos: [0+offX, (indx*this.style.text.paramTextOffsetY) + offY ]
                 },
                 {
                     data: txt.value.toString(),
-                    pos: [this.paramTextOffsetX + offX, (indx*this.paramTextOffsetY) + offY]
+                    pos: [this.style.text.paramTextOffsetX + offX, (indx*this.style.text.paramTextOffsetY) + offY]
                 });
     
         })
@@ -161,7 +162,6 @@ export class UINode extends UIObject
 
         // remove objs
         this.removeObjs(this.app, [this.txtBuffer, ...this.txtBgArr]);
-        this.numOfParams = this.parameters.list.length;
 
         this.parameters.addNewParam(
             new UINodeParam(paramNameStr)
@@ -199,7 +199,10 @@ export class UINode extends UIObject
         const sliderBgSize = this.UIBuffers.sliderBg.size;
 
         const sliderBg = new RenderableObject(sliderBgBuffer, getProjectionMat(this.app.gl));
-        sliderBg.setPosition([(this.width-sliderBgSize[0])/2, this.numOfParams*this.paramTextOffsetY+sliderBgSize[1]/2]);
+        const paramsNum = this.parameters.list.length;
+        const pos = [(this.style.container.width-sliderBgSize[0])/2, paramsNum*this.style.text.paramTextOffsetY+sliderBgSize[1]/2];
+
+        sliderBg.setPosition(pos);
         sliderBg.setCanBeMoved(false);
         sliderBg.setCanBeHighlighted(false);
         sliderBg.setParent(parent);
@@ -255,7 +258,7 @@ export class UINode extends UIObject
 
     handleMouseMove()
     {
-        const handles = [...this.handleR, ...this.handleL];
+        const handles = [...this.elements.handles.L, ...this.elements.handles.R];
 
         handles.forEach( (handle) => {
             const isConnectedIN = handle.line.connection.type == "IN" ? true : false;
@@ -266,8 +269,18 @@ export class UINode extends UIObject
             let data;
             let objToUpdate;
             const connectedObj = handle.line.connection.connectedObj;
-            const connectedObjPos = getPosFromMat(connectedObj);
-            const handlePos = getPosFromMat(handle);
+
+            // this.container.parent.updateWorldMatrix(this.container.parent.parent.worldMatrix);
+
+            let connectedObjPos = getPosFromMat(connectedObj);
+            let handlePos = getPosFromMat(handle);
+
+            // center the line end
+            const vecs= [ connectedObjPos, handlePos ];
+            transformToParentSpace(this.container.parent, vecs, true);
+            [ connectedObjPos, handlePos ] = vecs;
+
+            console.log(connectedObjPos, handlePos);
 
             if (isConnectedIN === true)
             {
@@ -286,21 +299,15 @@ export class UINode extends UIObject
     setPosition(pos)
     {
         this.container.setPosition(pos);
-        this.container.updateWorldMatrix();
+        // this.container.updateWorldMatrix();
     }
-
-    setParent(parent)
+    
+    createHandle(pos, parent, parameter)
     {
-        if (!(parent instanceof SceneObject)) throw new Error("Incorrect parent object!");
+        const cirlceBuffer = this._ref.UIBuffers.handle.buffer.getInfo();
 
-        this.container.setParent(parent);
-    }
-
-    createHandle(pos, parameter)
-    {
-        const cirlceBuffer = this.UIBuffers.handle.buffer.getInfo();
-
-        const handle = new UINodeHandle(this.app, cirlceBuffer, this, this.container);
+        const handle = new UINodeHandle(this._ref.app, cirlceBuffer, this, this.container);
+        handle.setParent(parent);
         handle.setPosition(pos);
         handle.setOriginalColor([0.2,0.2,0.2,1])
         handle.setCanBeMoved(false);
@@ -313,23 +320,23 @@ export class UINode extends UIObject
         return handle;
     }
 
-    addIOHandles(type, paramsNum, offsetY = 0)
+    addIOHandles(type, paramsNum, parent, offsetY = 0)
     {
         let offsetX, arrToPush;
 
         if (type === "IN")
         {
             offsetX = 0;
-            arrToPush = this.handleR;
+            arrToPush = this.elements.handles.R;
         } else if (type === "OUT")
         {
-            offsetX = this.width;
-            arrToPush = this.handleL;
+            offsetX = this.style.container.width;
+            arrToPush = this.elements.handles.L;
         }
 
         for (let i = 0; i < paramsNum; i++)
         {
-        const pos = [offsetX, this.marginY + ((i)*this.paramTextOffsetY + this.txtSize + offsetY)];
+        const pos = [offsetX, this.style.marginY + ((i)*this.style.text.paramTextOffsetY + this.style.text.size + offsetY)];
         let param = undefined;
 
         if (this.parameters)
@@ -337,36 +344,8 @@ export class UINode extends UIObject
             param = this.parameters.list[i];
         }
         
-        const newHandle = this.createHandle(pos, param);
+        const newHandle = this.createHandle(pos, parent, param);
         arrToPush.push(newHandle);
         }
-
-        /*
-
-        if (type === "IN")
-        {
-            for (let i = 0; i < paramsNum; i++)
-            {
-            const pos = [this.width, this.marginY + ((i+1)*this.paramTextOffsetY + this.txtSize + offsetY)];
-
-
-            const param = this.parameters.list[i];
-
-            const newHandle = this.createHandle(pos, param);
-
-            this.handleR.push(newHandle);
-            }
-        } else if (type === "OUT")
-        {
-            for (let i = 0; i < paramsNum; i++)
-            {
-                const pos = [0, this.marginY + ((i+1)*this.paramTextOffsetY + this.txtSize + offsetY)];
-                const param = this.parameters.list[i];
-
-                const newHandle = this.createHandle(pos, param);
-
-                this.handleL.push(newHandle);
-            }
-        }*/
     }
 }

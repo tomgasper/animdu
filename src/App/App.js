@@ -1,10 +1,8 @@
-import { m3  } from "../utils.js"
-import { UINode } from "../UI/Node/UINode.js";
 import { RenderableObject } from "../RenderableObject.js";
 import { getIdFromCurrentPixel, setFramebufferAttachmentSizes } from "../pickingFramebuffer.js";
 import { initalizeApp } from "./initializeApp.js";
 import { initInputListeners } from "./initializeApp.js";
-import { prepareForFirstPass, prepareForScndPass, drawObjects, canMoveObj, moveObjectWithCoursor, resetMouseClick, resizeCanvas } from "./AppHelper.js";
+import { prepareForFirstPass, prepareForScndPass, drawPass, canMoveObj, moveObjectWithCoursor, resetMouseClick, resizeCanvas } from "./AppHelper.js";
 import { handleHandleOnMouseMove, handleUnderMouseCursor } from "./AppHandlers.js";
 
 import { Composition } from "../Composition/Composition.js";
@@ -17,9 +15,6 @@ import { RectangleBuffer } from "../Primitives/RectangleBuffer.js";
 import { Effector } from "../UI/Node/Effector.js";
 
 import { ComponentNode } from "../UI/Node/ComponentNode.js";
-
-import { Button } from "../UI/Button.js";
-import { SceneObject } from "../SceneObject.js";
 
 export class App
 {
@@ -88,9 +83,6 @@ export class App
 
     start()
     {
-        // Calculate projection matrix for scene objects
-        const projectionMat = m3.projection(this.gl.canvas.clientWidth, this.gl.canvas.clientHeight);
-
         // Set up primitve buffers, font etc.
         initalizeApp(this);
 
@@ -100,6 +92,7 @@ export class App
         // Create main comp and set it as active
         const mainComp = this.addNewComposition("Main comp", this.UI.viewport);
 
+        // Background
         const solidBuffer = new RectangleBuffer(this.gl, this.programs[0], [this.activeComp.viewport.width, this.activeComp.viewport.height]);
         const solid = new RenderableObject(solidBuffer.getInfo());
 
@@ -136,26 +129,28 @@ export class App
         ]);
 
         const fnc = () => console.log("Hello, this is some function!");
-        const effectorFunction = new Effector("Custom function", fnc, 2, 1);
-        console.log(effectorFunction);
-
-        const compNode = new ComponentNode(this, [500, 300]);
+        const effectorFunction = new Effector("Custom function", fnc, 3, 2)
+        const compNode = new ComponentNode(this, [500, 300], [0.1,0.1,0.1,1], "myComponent");
         compNode.addParamNode("IN", paramList);
         compNode.addFunctionNode(effectorFunction);
         compNode.addParamNode("OUT", paramList);
 
-        this.UI.addObj(compNode.getObjsToRender(), ["nodes"]);
+        // this.UI.addObj(compNode.getObjsToRender(), ["nodes"]);
         compNode.setPosition([500,500]);
 
         // Finally can update UI fully
-        this.UI.initLayersPanel(this);
+        // this.UI.initLayersPanel(this);
     }
 
+    // render loop function called from RenderLoop class
     doFrame(elapsedTime, fps)
     {
         // convert elapsed time in ms to s
         this.time = elapsedTime * 0.001;
         this.fps = fps;
+
+        // calculate world matrices for all objects
+        // this.UI.viewer.container.children.forEach( (obj) => obj.updateWorldMatrix() );
 
         // Gather objs to draw
         this.createDrawList(this.UI, this.activeComp.objects);
@@ -167,66 +162,54 @@ export class App
         // Resize canvas to display
         resizeCanvas(this);
 
+        const UIList = 0;
+        const activeCompList = 1;
+
+        const pickingShader = 1;
+        const objShader = undefined;
+
         // Draw to texture - PASS 1
         prepareForFirstPass(this.gl, this.framebuffer);
-        this.drawPass(this.objsToDraw.slice(0,2), this.programs[1]);
-
-        this.gl.viewport(650,0, this.gl.canvas.width, this.gl.canvas.height);
-        this.drawPass([this.objsToDraw[2]], this.programs[1], 2);
+        this.drawUI(UIList, pickingShader);
+        this.drawComp(activeCompList, pickingShader);
 
         this.handleEvents();
 
         // 2nd Pass - Draw "normally"
-        this.gl.viewport(0,0, this.gl.canvas.width, this.gl.canvas.height);
         prepareForScndPass(this.gl);
         // passing undefined program so each object uses its own shader
-        this.drawPass(this.objsToDraw.slice(0,2), undefined);
-
-        this.gl.viewport(650,0, this.gl.canvas.width, this.gl.canvas.height);
-        this.drawPass([this.objsToDraw[2]], undefined, 2);
-
-        this.gl.disable(this.gl.STENCIL_TEST);
-
-        this.gl.viewport(0,0, this.gl.canvas.width, this.gl.canvas.height);
+        this.drawUI(UIList, objShader);
+        this.drawComp(activeCompList, objShader);
 
         resetMouseClick(this);
     }
 
-    drawInMask(i, program)
+    createDrawList()
     {
-        this.gl.enable(this.gl.STENCIL_TEST);
-        this.gl.clear(this.gl.STENCIL_BUFFER_BIT);
-        this.gl.stencilFunc(this.gl.ALWAYS,1,0xFF);
-        this.gl.stencilOp(this.gl.KEEP, this.gl.KEEP, this.gl.REPLACE);
+        // need to:
+        // 1. calc world matrices for each object
+        // 2. render via tree traversal
 
-        drawObjects(this, this.objsToDraw[i].mask, i, program);
+        const viewerObjs = this.retrieveRenderObjs(this.UI.viewer);
+        const activeCompObjs = this.retrieveRenderObjs(this.activeComp.viewport);
 
-        this.gl.stencilFunc(this.gl.EQUAL, 1, 0xFF);
-        this.gl.stencilOp(this.gl.KEEP, this.gl.KEEP, this.gl.KEEP);
-        drawObjects(this, this.objsToDraw[i].objs, i, program);
-
-        this.gl.disable(this.gl.STENCIL_TEST);
+        this.objsToDraw = [
+            { mask: [ this.UI.viewer.container ], objs: [ ...viewerObjs ] },
+            // { mask: [], objs: UI.panels.layers.objects },
+            { mask: [ this.UI.viewport.container ], objs: [ ...activeCompObjs] },
+        ];
     }
 
-    drawWithoutMask(i, program = undefined)
+    drawUI(listToUse, programIndx)
     {
-        drawObjects(this, this.objsToDraw[i].objs, i, program);
+        drawPass(this, [this.objsToDraw[listToUse]], this.programs[programIndx], listToUse);
     }
 
-    drawPass(objsToDraw, program, indx = 0)
+    drawComp(listToUse, programIndx)
     {
-        for (let i = 0; i < objsToDraw.length; i++)
-        {
-            if (objsToDraw[i].mask.length > 0)
-            {
-                this.drawInMask(indx, program);
-            }
-            else
-            {
-                this.drawWithoutMask(indx, program);
-            }
-            indx++;
-        }
+        const [viewportOffsetX, viewportOffsetY] = this.UI.viewport.position;
+        this.gl.viewport(viewportOffsetX, viewportOffsetY, this.gl.canvas.width, this.gl.canvas.height);
+        drawPass(this,[this.objsToDraw[listToUse]], this.programs[programIndx], listToUse);
     }
 
     handleEvents()
@@ -255,27 +238,17 @@ export class App
         return newComp;
     }
 
-    createDrawList(UI, activeCompObjs)
+    retrieveRenderObjs(section)
     {
-        this.objsToDraw = [
-            { mask: [ ...UI.viewer.objects ], objs: [...UI.viewer.objects, ...UI.nodes.objects, ...UI.buttons.objects ] },
-            { mask: [], objs: UI.panels.layers.objects },
-            { mask: UI.viewport.objects, objs: [ ...UI.viewport.objects, ...activeCompObjs] },
-        ];
+        const objsToDraw = [];
+        this.addObjToDrawList(section.container, objsToDraw);
+        return objsToDraw;
     }
 
     setActiveComp(comp)
     {
         if (comp && comp instanceof Composition) this.activeComp = comp;
         else console.log("Trying to set incorrect composition as active!");
-    }
-
-    addObjToScene(objs)
-    {
-        // Appropriate checks for valid obj
-        objs.forEach((obj) => {
-            if (obj) { this.objsToDraw.push(obj); }  
-        })
     }
 
     removeObjsFromScene(objs)
@@ -294,11 +267,7 @@ export class App
         drawList.push(obj);
         for (let i = 0; i < obj.children.length; i++)
         {
-            this.addObjToDrawList(obj.children[i]);
+            this.addObjToDrawList(obj.children[i],drawList);
         }
-    }
-
-    getSceneObjs() {
-        return this.objsToDraw;
     }
 }

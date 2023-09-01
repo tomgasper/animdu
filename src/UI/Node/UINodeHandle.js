@@ -5,6 +5,8 @@ import { getProjectionMat } from "../../utils.js";
 
 import { deleteFromToDraw, getPosFromMat } from "../../App/AppHelper.js";
 
+import { m3, transformToParentSpace } from "../../utils.js";
+
 export class UINodeHandle extends RenderableObject
 {
     // ref to scene object
@@ -72,11 +74,15 @@ export class UINodeHandle extends RenderableObject
         const lineBuffer = new InstancedLineBuffer(this.app.gl, this.app.programs[3], this.line.data, true);
         const line = new RenderableObject(lineBuffer.getInfo(), getProjectionMat(this.app.gl), lineBuffer);
 
+        // Set parent
+        if (this.node.container.parent) line.setParent(this.node.container.parent);
+        else line.setParent(this.app.UI.viewer.container);
+        
+        line.name = "INSTANCED LINE!";
+
         line.properties.width = this.line.width;
 
         this.line.obj = line;
-
-        this.app.UI.addObj(this.line.obj, ["nodes"]);
     }
 
     deleteLine(gl, app, line)
@@ -89,7 +95,10 @@ export class UINodeHandle extends RenderableObject
         gl.deleteBuffer(lineBuffer.positionBuffer);
         gl.deleteVertexArray(lineBuffer.VAO);
 
-        deleteFromToDraw(app.UI.nodes.objects, line);
+        // update children list of parent
+        const lineParent = line.obj.parent;
+        lineParent.deleteChild(line.obj);
+        
 
         // clean up ref object
         line.data = [];
@@ -107,8 +116,12 @@ export class UINodeHandle extends RenderableObject
             const objUnderMousePos = getPosFromMat(objUnderMouse);
             
             // center the line end
+            const componentViewer = this.parent.parent;
+            const vecs= [ objUnderMousePos ];
+            transformToParentSpace(componentViewer, vecs);
+
             let data = this.line.data;
-            data = [data[0],data[1],objUnderMousePos[0], objUnderMousePos[1]];
+            data = [data[0],data[1],vecs[0][0], vecs[0][1]];
             this.line.update(data);
         } else {
             // no handle under the mouse on release so get rid of preview line
@@ -120,10 +133,18 @@ export class UINodeHandle extends RenderableObject
     {
         if (!this.canMove) return;
 
+        console.log("MOVING!");
+
         // create new line if one doesn't exist yet
         if (!this.line.obj) this.createNewLine(mousePos);
 
-        const data = [this.worldMatrix[6],this.worldMatrix[7], mousePos[0], mousePos[1]];
+        const componentViewer = this.parent.parent;
+        const vecs= [ [this.worldMatrix[6], this.worldMatrix[7]],
+                        mousePos ];
+        
+        transformToParentSpace(componentViewer, vecs);
+
+        const data = [vecs[0][0], vecs[0][1], vecs[1][0], vecs[1][1]];
         this.line.update(data);
     }
 

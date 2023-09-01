@@ -1,46 +1,38 @@
-import { getProjectionMat } from "../../utils.js";
 import { UINode } from "./UINode.js";
-
 import { RenderableObject } from "../../RenderableObject.js";
-import { UINodeHandle } from "./UINodeHandle.js";
-
 import { createNewText } from "../../Text/textHelper.js";
-import { UINodeParamList } from "./UINodeParamList.js";
-import { UINodeParam } from "./UINodeParam.js";
-
-import { TransformNode } from "../../Node/TransformNode.js";
 
 export class ParamNode extends UINode
 {
     type = undefined;
 
-    constructor(app, type, paramsList)
+    constructor(app, type, paramsList, name = "Node")
     {
         super(app,paramsList);
 
         this.setType(type);
+        this.setName(name);
     }
 
     initialize()
     {
-        const projectionMat = getProjectionMat(this.app.gl);
-
         // Set size based on the background container size
-        this.UIBuffers = this.UI.UIBuffers.ObjNode;
-        this.width = this.UIBuffers.container.size[0];
-        this.height = this.UIBuffers.container.size[1];
+        this._ref.UIBuffers = this._ref.app.UI.UIBuffers.ObjNode;
+
+        [this.style.container.width, this.style.container.height ] = this._ref.UIBuffers.container.size;
 
         // Stylize Node
-        this.paramTextOffsetX = this.width/2;
-        this.marginX = this.width/10;
-        this.marginY = this.height/10;
+        this.style.text.paramTextOffsetX = this.style.container.width/2;
+        this.style.marginX = this.style.container.width/10;
+        this.style.marginY = this.style.container.height/10;
 
         // Retrieve previously initialized buffer
-        const UINodeContainerBuffer = this.UIBuffers.container.buffer.getInfo();
-        const rect = new RenderableObject(UINodeContainerBuffer, projectionMat);
+        const UINodeContainerBuffer = this._ref.UIBuffers.container.buffer.getInfo();
+        const rect = new RenderableObject(UINodeContainerBuffer);
         rect.setPosition([0,0]);
-        rect.setOriginalColor(this.containerColor);
-        rect.handlers.onMouseMove = () => { this.handleMouseMove() };
+        rect.setOriginalColor(this.style.container.colour);
+        rect.handlers.onMouseMove = () => { this.handleMouseMove()
+        };
 
         // Save ref
         this.container = rect;
@@ -48,12 +40,7 @@ export class ParamNode extends UINode
         // Init graphical handlers
         // Render handle for each param to modify
         const handlesType = this.type === "IN" ? "OUT" : "IN";
-        this.addIOHandles(handlesType, this.parameters.list.length, this.paramTextOffsetY);
-
-
-        // Push to draw list
-        this.addObjToRender(rect);
-        this.addObjsToRender([...this.handleL, ...this.handleR]);
+        this.addIOHandles(handlesType, this.parameters.list.length, this.container, this.style.text.paramTextOffsetY);
 
         /* this is how txtArr obj looks like:
             const txtArr = [
@@ -67,22 +54,14 @@ export class ParamNode extends UINode
         // Render text
         this.txtArr = [
             { data: this.type, pos: [0, 0 ] },
-            ...this.convertToTxtArr(this.parameters.list, 0, this.paramTextOffsetY)
+            ...this.convertToTxtArr(this.parameters.list, 0, this.style.text.paramTextOffsetY)
         ];
 
        // creating text batch for this node, to avoid creating a lot of small buffers
-        const txtBatch = createNewText(this.app.gl, this.app.programs[2], this.txtArr, this.txtSize, this.UI.font, this.txtColor);
+        const txtBatch = createNewText(this._ref.app.gl, this._ref.app.programs[2], this.txtArr, this.style.text.size, this._ref.UI.font, this.style.text.colour);
         txtBatch.setCanBeMoved(false);
-        txtBatch.setPosition([ this.marginX, this.marginY ]);
+        txtBatch.setPosition([ this.style.marginX, this.style.marginY ]);
         txtBatch.setParent(this.container);
-
-        // Create slider
-        // const sliderContObjs = this.createSlider([1,1], this.container);
-
-        // Create text boxes
-        // this.txtBuffer = txtBatch;
-        // this.txtBgArr = this.createTxtBg(txtBatch, this.parameters.list.length);
-        this.addObjsToRender([txtBatch]);
     }
 
     setType(type)

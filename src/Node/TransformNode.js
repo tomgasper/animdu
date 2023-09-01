@@ -65,4 +65,9 @@ export class TransformNode
 
         return newParentMatrix;
     }
+
+    deleteChild(child)
+    {
+        this.children = this.children.filter( (children) => children !== child );
+    }
 }

@@ -3,7 +3,6 @@ import { CircleBuffer } from "../Primitives/CircleBuffer.js";
 import { RectangleBuffer } from "../Primitives/RectangleBuffer.js";
 
 import { getProjectionMat, m3 } from "../utils.js";
-import { getPosFromMat } from "./AppHelper.js";
 
 import { getClipSpaceMousePosition } from "../utils.js";
 

@@ -90,7 +90,6 @@ export function renderObject(gl, obj, program)
     if (!(obj instanceof RenderableObject)) throw Error("Object is not renderable!");
 
     gl.bindVertexArray(obj.renderInfo.vertexArrInfo.VAO);
-
     setUniforms(gl, program, obj.properties);
     
      // Bind texture if there's any
@@ -325,8 +324,28 @@ export const m3 = {
     }
 };
 
+export const transformToParentSpace = (parent, vecArr, unscale = true) =>
+    {
+        let invMat = parent.worldMatrix;
+
+        if (unscale)
+        {
+            console.log(parent.id);
+            console.log(invMat);
+            invMat = m3.scale(parent.worldMatrix, 1/parent.properties.scale[0], 1/parent.properties.scale[1]);
+            console.log(invMat);
+        }
+        invMat = m3.inverse(invMat);
+
+        for (let i = 0; i < vecArr.length; i++)
+        {
+            vecArr[i] = m3.transformPoint(invMat, vecArr[i]);
+        }
+    } 
+
 export const isNumeric = (str) => {
     if (typeof str != "string") return false // we only process strings!  
     return !isNaN(str) && // use type coercion to parse the _entirety_ of the string (`parseFloat` alone does not do this)...
            !isNaN(parseFloat(str)) // ...and ensure strings of whitespace fail
   };
+

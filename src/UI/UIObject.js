@@ -2,14 +2,27 @@ import { RenderableObject } from "../RenderableObject.js";
 import { SceneObject } from "../SceneObject.js";
 
 export class UIObject{
-    UI;
-
-    constructor(UIRef)
+    _ref = 
     {
-        this.UI = UIRef;
+        app: undefined,
+        UI: undefined
     }
 
-    objsToRender = [];
+    container = undefined;
+    elements = {};
+
+    name = "";
+    style = {
+        width: undefined,
+        height: undefined,
+    }
+
+
+    constructor(appRef)
+    {
+        this._ref.app = appRef;
+        this._ref.UI = appRef.UI;
+    }
 
     getObjsToRender()
     {
@@ -50,14 +63,20 @@ export class UIObject{
 
     setParent(parent)
     {
-        if (!(parent instanceof SceneObject)) throw new Error("Incorrect type of parent!");
-        if (!this.container ||!(this.container instanceof SceneObject) ) throw new Error("No container to attach to!");
+        if (!(parent instanceof RenderableObject || parent instanceof UIObject)) throw new Error("Incorrect type of parent!");
+        if (!this.container ||!(this.container instanceof RenderableObject) ) throw new Error("No container to attach to!");
 
-        this.container.setParent(parent);
+        let newParent = parent instanceof UIObject ? parent.container : parent;
+        this.container.setParent(newParent);
     }
 
     addToUIList(dest)
     {
-        this.UI.addObj(this.getObjsToRender(), dest);
+        this._ref.UI.addObj(this.getObjsToRender(), dest);
+    }
+
+    setName(name)
+    {
+        this.name = name;
     }
 }

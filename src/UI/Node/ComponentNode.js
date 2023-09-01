@@ -11,60 +11,73 @@ import { Button } from "../Button.js";
 
 export class ComponentNode extends UIObject
 {
-    nodes = [];
+    elements = {
+        nodes: {
+            IN: [],
+            function: [],
+            OUT: [],
+        }
+    }
 
-    constructor(app, size)
+    constructor(appRef, size, colour, name = "New component")
     {
-        super(app.UI);
-
-        this.appRef = app;
+        super(appRef);
 
         this.initialize(size);
+        this.setName(name);
 
         console.log("THIS IS HOW A COMPONENT NODE LOOKS LIKE:")
         console.log(this);
     }
 
-    initialize(size = [700, 350])
+    initialize(size = [700, 350], colour = [0.1,0.1,0.1,1])
     {
         const [sizeX, sizeY] = size;
 
-        const rect = new RenderableObject(this.appRef.primitiveBuffers.rectangle);
+        const rect = new RenderableObject(this._ref.app.primitiveBuffers.rectangle);
         rect.setScale([sizeX/100,sizeY/100]);
+        rect.setOriginalColor(colour);
 
-        // Save ref
+        // Save ref and connect to UIViewer
         this.container = rect;
+        this.container.setParent(this._ref.UI.viewer.container);
+
+
+        this.container.name = "NodeCompViewer";
+
+        // Put on handlers
+        this.container.onMouseMove = () => { this.handleMouseMove() };
+
 
         // Add button
-        const newButton = new Button(this.appRef, () => console.log("Hello!"));
-        newButton.setParent(this.container);
+        const newButton = new Button(this._ref.app, () => console.log("Hello!"));
+        newButton.setParent(this);
         newButton.setPosition([sizeX/2 - sizeX*0.1,-sizeY/2 + sizeY * 0.1]);
-
-        this.addObjsToRender([rect, ...newButton.getObjsToRender()]);
     }
 
     addParamNode(type, params)
     {
-        const newNode = new ParamNode(this.appRef, type, params);
+        const newNode = new ParamNode(this._ref.app, type, params);
         newNode.initialize();
-        newNode.setParent(this.container);
+        newNode.setParent(this);
 
-        this.nodes.push(newNode);
-
-        this.addObjsToRender(newNode.getObjsToRender());
-
-        // Add to UI elements to render
-        // this.appRef.UI.addObj(newNode.getObjsToRender(), ["nodes"]);
+        // Save ref
+        if (type === "IN") this.elements.nodes.IN.push(newNode);
+        else if (type === "OUT") this.elements.nodes.OUT.push(newNode);
     }
 
     addFunctionNode(effectorFnc)
     {
-        const newNode = new FunctionNode(this.appRef, effectorFnc);
+        const newNode = new FunctionNode(this._ref.app, effectorFnc);
         newNode.initialize();
-        newNode.setParent(this.container);
+        newNode.setParent(this);
 
-        this.nodes.push(newNode);
+        // Save ref
+        this.elements.nodes.function.push(newNode);
+    }
 
-        this.addObjsToRender(newNode.getObjsToRender());
+    handleMouseMove()
+    {
+
     }
 }

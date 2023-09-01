@@ -12,9 +12,10 @@ import { UILayersPanel } from "./Panels/UILayersPanel.js";
 
 import { UIBuffers } from "./UIBuffers.js";
 
-import { initViewer, initTopBar, initParamsPanel, setUpMainFont } from "./initializeUI.js";
+import { initTopBar, initParamsPanel, setUpMainFont } from "./initializeUI.js";
 
 import { UIViewport } from "./UIViewport.js";
+import { UIViewer } from "./UIViewer.js";
 
 export class UI
 {
@@ -62,7 +63,7 @@ export class UI
 
         // set dimensions of different panels
         this.topBarHeight = this.app.gl.canvas.clientHeight * 0.03;
-        this.viewerStartY = this.app.gl.canvas.clientHeight/2;
+        // this.viewerStartY = this.app.gl.canvas.clientHeight/2;
 
         this.start(app);
     }
@@ -79,11 +80,14 @@ export class UI
 
         this.topBar.objects = initTopBar(app, this);
 
-        this.viewport = new UIViewport(this.app, this, 800, 400, [0.6,0.6,0.6,1]);
+        this.viewport = new UIViewport(this.app, [800,400], [0.6,0.6,0.6,1]);
 
         // initParamsPanel(app, this);
 
-        this.viewer.objects = initViewer(app, this);
+        // Init Viewer
+        const viewerDims = [0, this.app.gl.canvas.clientWidth,
+                            this.app.gl.canvas.clientHeight/2, this.app.gl.canvas.clientHeight];
+        this.viewer = new UIViewer(this.app, "UIViewer", viewerDims);
     }
 
     initializeUIBuffers = (app, program) => 

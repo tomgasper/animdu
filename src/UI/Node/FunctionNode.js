@@ -1,9 +1,5 @@
-import { getProjectionMat } from "../../utils.js";
 import { UINode } from "./UINode.js";
-
 import { RenderableObject } from "../../RenderableObject.js";
-import { UINodeHandle } from "./UINodeHandle.js";
-
 import { createNewText } from "../../Text/textHelper.js";
 
 import { Effector } from "./Effector.js";
@@ -12,64 +8,39 @@ export class FunctionNode extends UINode
 {
     effector = undefined;
 
-    constructor(app, fnc)
+    constructor(appRef, fnc)
     {
-        super(app);
+        super(appRef);
 
         this.setFunction(fnc);
     }
 
     initialize()
     {
-        const projectionMat = getProjectionMat(this.app.gl);
-
         // Set size based on the background container size
-        this.UIBuffers = this.UI.UIBuffers.UINode;
-        this.width = this.UIBuffers.container.size[0];
-        this.height = this.UIBuffers.container.size[1];
+        this._ref.UIBuffers = this._ref.app.UI.UIBuffers.UINode;
+
+        [this.style.container.width, this.style.container.height ] = this._ref.UIBuffers.container.size;
 
         // Stylize Node
-        this.paramTextOffsetX = this.width/2;
-        this.marginX = this.width/10;
-        this.marginY = this.height/10;
+        this.style.text.paramTextOffsetX = this.style.container.width/2;
+        this.style.marginX = this.style.container.width/10;
+        this.style.marginY = this.style.container.height/10;
 
         // Retrieve previously initialized buffer
-        const UINodeContainerBuffer = this.UIBuffers.container.buffer.getInfo();
-        const rect = new RenderableObject(UINodeContainerBuffer, projectionMat);
+        const UINodeContainerBuffer = this._ref.UIBuffers.container.buffer.getInfo();
+        const rect = new RenderableObject(UINodeContainerBuffer);
         rect.setPosition([0,0]);
-        rect.setOriginalColor(this.containerColor);
+        rect.setOriginalColor(this.style.container.colour);
+
         rect.handlers.onMouseMove = () => { this.handleMouseMove() };
 
         // Save ref
         this.container = rect;
 
-        // Init graphical handlers
-        const cirlceBuffer = this.UIBuffers.handle.buffer.getInfo();
-
-        /*
-        const handleR = new UINodeHandle(this.app, cirlceBuffer, this, this.container);
-        handleR.setPosition([this.width, this.height/2]);
-        handleR.setOriginalColor([0.2,0.2,0.2,1])
-        handleR.setCanBeMoved(false);
-        this.handleR = [ handleR ];
-
-        const handleL = new UINodeHandle(this.app, cirlceBuffer, this, this.container);
-        handleL.setPosition([0, this.height/4]);
-        handleL.setOriginalColor([0.2,0.2,0.2,1])
-        handleL.setCanBeMoved(false);
-        this.handleL = [ handleL ];
-
-        */
-
-        this.addIOHandles("IN", this.effector.argc, this.height/4 - this.txtSize);
-        this.addIOHandles("OUT", this.effector.outc, this.height/2 - this.txtSize);
-
-
-
-        this.addObjToRender(rect);
-        this.addObjsToRender([...this.handleL, ...this.handleR]);
+        this.addIOHandles("IN", this.effector.argc, this.container, this.style.container.height/4 - this.style.text.size);
+        this.addIOHandles("OUT", this.effector.outc, this.container, this.style.container.height/2 - this.style.text.size);
         
-
         /* this is how txtArr obj looks like:
             const txtArr = [
                 {
@@ -81,27 +52,19 @@ export class FunctionNode extends UINode
 
         // Render text
         this.txtArr = [
-            { data: this.effector.name, pos: [this.marginX,0] },
+            { data: this.effector.name, pos: [0,0] },
             ...this.createIOTxt("IN"),
             ...this.createIOTxt("OUT")
-        ]
+        ];
 
        // creating text batch for this node, to avoid creating a lot of small buffers
-        const txtBatch = createNewText(this.app.gl, this.app.programs[2], this.txtArr, this.txtSize, this.UI.font, this.txtColor);
+        const txtBatch = createNewText(this._ref.app.gl, this._ref.app.programs[2], this.txtArr, this.style.text.size, this._ref.UI.font, this.style.text.colour);
         txtBatch.setCanBeMoved(false);
-        txtBatch.setPosition([ 0, 0 ]);
+        txtBatch.setPosition([ this.style.marginX, this.style.marginY ]);
         txtBatch.setParent(this.container);
-
-        // Create slider
-        // const sliderContObjs = this.createSlider([1,1], this.container);
-
-        // Create text boxes
-        // this.txtBuffer = txtBatch;
-        // this.txtBgArr = this.createTxtBg(txtBatch, this.parameters.list.length);
-        this.addObjsToRender([txtBatch]);
     }
 
-    createIOTxt(type)
+    createIOTxt(type, offset = 0)
     {
         const txtArr = [];
 
@@ -110,7 +73,7 @@ export class FunctionNode extends UINode
             for (let i = 0; i < this.effector.argc; i++)
             {
                 txtArr.push(
-                    { data: "IN" + "(" + i + ")", pos: [10, this.height/4 + this.paramTextOffsetY * i ] }
+                    { data: "IN" + "(" + i + ")", pos: [10, this.style.container.height/4 + this.style.text.paramTextOffsetY * (i + offset) - this.style.text.size] }
                 )
             }
         } else if (type === "OUT")
@@ -118,7 +81,7 @@ export class FunctionNode extends UINode
             for (let i = 0; i < this.effector.outc; i++)
             {
                 txtArr.push(
-                    { data: "OUT" + "(" + i + ")", pos: [this.width-50, this.height/2 + this.paramTextOffsetY * i ] }
+                    { data: "OUT" + "(" + i + ")", pos: [this.style.container.width-65, this.style.container.height/2 + this.style.text.paramTextOffsetY * (i + offset) - this.style.text.size ] }
                 )
             }
         }

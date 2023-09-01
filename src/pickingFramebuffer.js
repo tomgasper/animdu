@@ -4,8 +4,8 @@ export function setUpPickingFramebuffer(gl, targetTexture, depthBuffer)
    let fb = gl.createFramebuffer();
    gl.bindFramebuffer(gl.FRAMEBUFFER,fb);
 
-   // attache the texture as the first color attachment
-   gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, targetTexture, 0);
+   // attach the texture as the first color attachment
+   gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, targetTexture, 0)
    gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.RENDERBUFFER, depthBuffer);
 
    gl.checkFramebufferStatus(gl.FRAMEBUFFER);

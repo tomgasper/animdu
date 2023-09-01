@@ -1,32 +1,26 @@
 import { CustomBuffer } from "../Primitives/CustomBuffer.js";
 import { RenderableObject } from "../RenderableObject.js";
 import { getProjectionMat } from "../utils.js";
+import { UIObject } from "./UIObject.js";
 
-export class UIViewport
+export class UIViewport extends UIObject
 {
-    objects = [];
-
-    width;
-    height;
-    bgColor;
-
     position = [650,0];
 
     appRef = undefined;
 
-    constructor(appRef, UIRef, width, height, bgColor)
+    constructor(appRef, size, colour)
     {
-        this.appRef = appRef;
+        super(appRef);
 
-        this.width = width;
-        this.height = height;
+        this.width = size[0];
+        this.height = size[1];
+        this.style.colour = colour;
 
-        this.bgColor = bgColor;
-
-        this.initViewport(UIRef, width, height, bgColor);
+        this.initViewport(this.width, this.height, colour);
     }
 
-    initViewport(UIRef, width,height,colour)
+    initViewport(width,height,colour)
     {
         const data = [
             0,0,
@@ -39,16 +33,15 @@ export class UIViewport
         ];
 
         // create new objects that garbage collector will hopefully delete when it's time to go
-        const customBuffer = new CustomBuffer(this.appRef.gl, this.appRef.programs[0], data);
-        const viewport = new RenderableObject(customBuffer.getInfo(), getProjectionMat(this.appRef.gl));
+        const customBuffer = new CustomBuffer(this._ref.app.gl, this._ref.app.programs[0], data);
+        const viewport = new RenderableObject(customBuffer.getInfo());
+
+        this.container = viewport;
 
         viewport.setCanBeHighlighted(false);
         viewport.setCanBeMoved(false);
         // viewport.setPosition(this.position);
         viewport.setOriginalColor(colour);
-
         viewport.updateWorldMatrix();
-        
-        this.objects.push(viewport);
     }
 }
