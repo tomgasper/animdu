@@ -1,9 +1,10 @@
 import { RenderableObject } from "../RenderableObject.js";
-import { getIdFromCurrentPixel, setFramebufferAttachmentSizes } from "../pickingFramebuffer.js";
 import { initalizeApp } from "./initializeApp.js";
 import { initInputListeners } from "./initializeApp.js";
-import { prepareForFirstPass, prepareForScndPass, drawPass, canMoveObj, moveObjectWithCoursor, resetMouseClick, resizeCanvas } from "./AppHelper.js";
-import { handleHandleOnMouseMove, handleUnderMouseCursor } from "./AppHandlers.js";
+import { prepareForFirstPass, prepareForScndPass, retrieveRenderObjs, setActiveComp, resetMouseClick, resizeCanvas } from "./AppHelper.js";
+import { drawPass } from "./AppDraw.js";
+
+import { handleEvents } from "./AppHandlers.js";
 
 import { Composition } from "../Composition/Composition.js";
 
@@ -13,7 +14,6 @@ import { UINodeParam } from "../UI/Node/UINodeParam.js";
 import { RectangleBuffer } from "../Primitives/RectangleBuffer.js";
 
 import { Effector } from "../UI/Node/Effector.js";
-
 import { ComponentNode } from "../UI/Node/ComponentNode.js";
 
 export class App
@@ -139,6 +139,7 @@ export class App
         compNode.setPosition([500,500]);
 
         // Finally can update UI fully
+        // Might move to DOM UI...
         // this.UI.initLayersPanel(this);
     }
 
@@ -165,15 +166,16 @@ export class App
         const UIList = 0;
         const activeCompList = 1;
 
-        const pickingShader = 1;
+        // Shaders
         const objShader = undefined;
+        const pickingShader = 1;
 
         // Draw to texture - PASS 1
         prepareForFirstPass(this.gl, this.framebuffer);
         this.drawUI(UIList, pickingShader);
         this.drawComp(activeCompList, pickingShader);
 
-        this.handleEvents();
+        handleEvents(this);
 
         // 2nd Pass - Draw "normally"
         prepareForScndPass(this.gl);
@@ -190,8 +192,8 @@ export class App
         // 1. calc world matrices for each object
         // 2. render via tree traversal
 
-        const viewerObjs = this.retrieveRenderObjs(this.UI.viewer);
-        const activeCompObjs = this.retrieveRenderObjs(this.activeComp.viewport);
+        const viewerObjs = retrieveRenderObjs(this.UI.viewer);
+        const activeCompObjs = retrieveRenderObjs(this.activeComp.viewport);
 
         this.objsToDraw = [
             { mask: [ this.UI.viewer.container ], objs: [ ...viewerObjs ] },
@@ -212,62 +214,12 @@ export class App
         drawPass(this,[this.objsToDraw[listToUse]], this.programs[programIndx], listToUse);
     }
 
-    handleEvents()
-    {
-        // Look up id of the object under mouse cursor
-        const underMouseObjId = getIdFromCurrentPixel(this.gl, this.mouseX, this.mouseY);
-        
-        handleUnderMouseCursor(this, underMouseObjId);
-
-        // Handle move comp object
-        if ( canMoveObj(this) )
-        {
-            moveObjectWithCoursor(this);
-        }
-
-        // Handle UI Node handles events
-        handleHandleOnMouseMove(this);
-    }
-
     addNewComposition(compName, viewport)
     {
         const newComp = new Composition(this, compName, viewport);
         this.comps.push(newComp);
-        this.setActiveComp(newComp);
+        setActiveComp(this, newComp);
 
         return newComp;
-    }
-
-    retrieveRenderObjs(section)
-    {
-        const objsToDraw = [];
-        this.addObjToDrawList(section.container, objsToDraw);
-        return objsToDraw;
-    }
-
-    setActiveComp(comp)
-    {
-        if (comp && comp instanceof Composition) this.activeComp = comp;
-        else console.log("Trying to set incorrect composition as active!");
-    }
-
-    removeObjsFromScene(objs)
-    {
-        // UNOPTIMIZED, implement hash set later on!
-        objs.forEach( (obj) => {
-            this.objsToDraw = this.objsToDraw.filter( objToDraw => objToDraw.id !== obj.id );
-        })
-    }
-
-    addObjToDrawList(obj, drawList)
-    {
-        if (!obj || !(obj.children)) return;
-        if (!(obj instanceof RenderableObject)) throw new Error("Incorrect object pushed to draw list!");
-
-        drawList.push(obj);
-        for (let i = 0; i < obj.children.length; i++)
-        {
-            this.addObjToDrawList(obj.children[i],drawList);
-        }
     }
 }

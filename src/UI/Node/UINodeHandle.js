@@ -3,7 +3,7 @@ import { InstancedLineBuffer } from "../../Primitives/InstancedLineBuffer.js";
 
 import { getProjectionMat } from "../../utils.js";
 
-import { deleteFromToDraw, getPosFromMat } from "../../App/AppHelper.js";
+import {  getPosFromMat } from "../../App/AppHelper.js";
 
 import { m3, transformToParentSpace } from "../../utils.js";
 

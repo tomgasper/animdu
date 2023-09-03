@@ -1,4 +1,23 @@
+import { getIdFromCurrentPixel } from "../pickingFramebuffer.js";
 import { resetMousePointer, highlightObjUnderCursor } from "./AppHelper.js";
+import { canMoveObj, moveObjectWithCoursor } from "./AppHelper.js";
+
+export const handleEvents = (app) =>
+{
+        // Look up id of the object under mouse cursor
+        const underMouseObjId = getIdFromCurrentPixel(app.gl, app.mouseX, app.mouseY);
+        
+        handleUnderMouseCursor(app, underMouseObjId);
+
+        // Handle move comp object
+        if ( canMoveObj(app) )
+        {
+            moveObjectWithCoursor(app);
+        }
+
+        // Handle UI Node handles events
+        handleHandleOnMouseMove(app);
+}
 
 export const handleHandleOnMouseMove = (app) =>
 {

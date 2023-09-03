@@ -64,10 +64,6 @@ export class UINode extends UIObject
         super(appRef);
 
         this.parameters = paramsList;
-
-        console.log(this);
-
-        // this.initialize();
     }
 
     initialize()
@@ -279,8 +275,6 @@ export class UINode extends UIObject
             const vecs= [ connectedObjPos, handlePos ];
             transformToParentSpace(this.container.parent, vecs, true);
             [ connectedObjPos, handlePos ] = vecs;
-
-            console.log(connectedObjPos, handlePos);
 
             if (isConnectedIN === true)
             {
