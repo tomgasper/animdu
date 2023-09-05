@@ -11,6 +11,10 @@ export const initalizeApp = (app) =>
     setUpPrimitveBuffers(app, app.programs[0]);
 }
 
+let timer = 0;
+const delay = 150;
+let prevent = false;
+
 export const initInputListeners = (app) => 
 {
     // LISTENERS FOR USER INPUT
@@ -68,6 +72,11 @@ export const initInputListeners = (app) =>
 
      app.gl.canvas.addEventListener("click", (e) => {
         app.isMouseClicked = true;
+     });
+
+     app.gl.canvas.addEventListener("dblclick", (e) => {
+        app.isMouseClickedTwice = true;
+        // app.isMouseClicked = true;
      });
 
      app.gl.canvas.addEventListener("mouseup", (e) => {

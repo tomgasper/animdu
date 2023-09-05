@@ -155,20 +155,31 @@ export const highlightObjUnderCursor = (document, object) =>
         } else resetMousePointer(document);
 }
 
-export const prepareForFirstPass = (gl, framebuffer) =>
+export const prepareForFirstPass = (gl, framebuffer, mousePos) =>
 {
     // Draw the objects to the texture
     gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer);
 
-    gl.disable(gl.STENCIL_TEST);
     gl.viewport(0,0, gl.canvas.width, gl.canvas.height);
+    gl.disable(gl.STENCIL_TEST);
+
+    const pixelX = mousePos[0] * gl.canvas.width / gl.canvas.clientWidth;
+    const pixelY = gl.canvas.height - mousePos[1] * gl.canvas.height / gl.canvas.clientHeight - 1;
+
+    gl.enable(gl.SCISSOR_TEST);
+    gl.scissor(pixelX, pixelY, 1,1);
+
+    gl.clearColor(0,0,0,0);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT );
+    // gl.enable(gl.DEPTH_TEST);
+
     gl.disable(gl.BLEND);
 };
 
 export const prepareForScndPass = (gl) => 
 {
     gl.disable(gl.DEPTH_TEST);
+    gl.disable(gl.SCISSOR_TEST);
     gl.viewport(0,0, gl.canvas.width, gl.canvas.height);
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
     gl.bindTexture(gl.TEXTURE_2D, null);
@@ -183,6 +194,7 @@ export const resetMouseClick = (app) =>
     }
     
     app.isMouseClicked = false;
+    app.isMouseClickedTwice = false;
 }
 
 export const resizeCanvas = (app) =>
@@ -198,7 +210,9 @@ export const addObjToDrawList = (obj, drawList) =>
     if (!obj || !(obj.children)) return;
     if (!(obj instanceof RenderableObject)) throw new Error("Incorrect object pushed to draw list!");
 
-    drawList.push(obj);
+    // avoid non-visible objects in draw list
+    if (obj.properties.visible) drawList.push(obj);
+
     for (let i = 0; i < obj.children.length; i++)
     {
         addObjToDrawList(obj.children[i],drawList);
@@ -212,8 +226,17 @@ export const retrieveRenderObjs = (section) =>
     return objsToDraw;
 }
 
-export const setActiveComp = (appRef, comp) =>
+const setActiveComp = (appRef, comp) =>
 {
     if (comp && comp instanceof Composition) appRef.activeComp = comp;
     else console.log("Trying to set incorrect composition as active!");
 }
+
+export const addNewComposition = (appRef, compName, viewport) =>
+    {
+        const newComp = new Composition(appRef, compName, viewport);
+        appRef.comps.push(newComp);
+        setActiveComp(appRef, newComp);
+
+        return newComp;
+    }

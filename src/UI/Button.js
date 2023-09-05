@@ -24,4 +24,9 @@ export class Button extends UIObject
         rect.setCanBeMoved(false);
         rect.setCanBeHighlighted(true);
     }
+
+    setOnClick(fnc)
+    {
+        this.container.setOnClick(fnc);
+    }
 }

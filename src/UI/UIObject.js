@@ -13,8 +13,11 @@ export class UIObject{
 
     name = "";
     style = {
-        width: undefined,
-        height: undefined,
+        container:
+        {
+            width: undefined,
+            height: undefined
+        }
     }
 
 
@@ -61,10 +64,18 @@ export class UIObject{
         } else throw new Error("No/Incorrect container object of the UIObject!");
     }
 
+    setVisible(isVisible)
+    {
+        this.container.setVisible(isVisible);
+    }
+
     setParent(parent)
     {
         if (!(parent instanceof RenderableObject || parent instanceof UIObject)) throw new Error("Incorrect type of parent!");
-        if (!this.container ||!(this.container instanceof RenderableObject) ) throw new Error("No container to attach to!");
+        if (!this.container || !(this.container instanceof RenderableObject) ) throw new Error("No container to attach to!");
+
+        // Save ref
+        if (parent instanceof UIObject) this._ref.parent = parent;
 
         let newParent = parent instanceof UIObject ? parent.container : parent;
         this.container.setParent(newParent);

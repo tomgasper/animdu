@@ -11,8 +11,6 @@ import { getPosFromMat } from "../../App/AppHelper.js";
 import { UINodeParam } from "./UINodeParam.js";
 
 import { isNumeric } from "../../utils.js";
-import { modifyParameter } from "../../App/AppHelper.js";
-import { SceneObject } from "../../SceneObject.js";
 
 import { transformToParentSpace } from "../../utils.js";
 
@@ -42,6 +40,18 @@ export class UINode extends UIObject
             paramTextOffsetY: 20,
             paramTextOffsetX: undefined,
         },
+
+        handles:
+        {
+            L:
+            {
+                position: undefined
+            },
+            R:
+            {
+                position: undefined
+            }
+        }
     }
 
     elements =
@@ -68,8 +78,6 @@ export class UINode extends UIObject
 
     initialize()
     {
-        const projectionMat = getProjectionMat(this.app.gl);
-
         // Set size based on the background container size
         const UIBuffers = this._ref.UI.UIBuffers.UINode;
 
@@ -82,7 +90,7 @@ export class UINode extends UIObject
 
         // Retrieve previously initialized buffer
         const UINodeContainerBuffer = UIBuffers.container.buffer.getInfo();
-        const rect = new RenderableObject(UINodeContainerBuffer, projectionMat);
+        const rect = new RenderableObject(UINodeContainerBuffer);
         rect.setPosition([0,0]);
         rect.setOriginalColor(this.containerColor);
         rect.handlers.onMouseMove = () => { this.handleMouseMove() };
@@ -114,11 +122,16 @@ export class UINode extends UIObject
             ]
        */
 
+        this.txtArr;
+
         // Render text
-        this.txtArr = this.convertToTxtArr(this.parameters.list);
+        if (this.parameters)
+        {
+            this.txtArr = this.convertToTxtArr(this.parameters.list);
+        }
 
        // creating text batch for this node, to avoid creating a lot of small buffers
-        const txtBatch = createNewText(this.app.gl, this.app.programs[2], this.txtArr, this.txtSize, this.UI.font, this.txtColor);
+        const txtBatch = createNewText(this._ref.app.gl, this._ref.app.programs[2], this.txtArr, this.txtSize, this._ref.UI.font, this.txtColor);
         txtBatch.setCanBeMoved(false);
         txtBatch.setPosition([ this.marginX, this.marginY ]);
         txtBatch.setParent(this.container);
@@ -169,8 +182,6 @@ export class UINode extends UIObject
         const newTxtArr = this.convertToTxtArr(this.parameters.list);
         this.txtBuffer.txtBuffer.updateTextBufferData(newTxtArr, 9);
         this.container.updateWorldMatrix();
-
-        this.addObjsToRender([...newTxtBg, this.txtBuffer]);
     }
 
     createTxtBg(parent = this.container, n)
@@ -266,8 +277,6 @@ export class UINode extends UIObject
             let objToUpdate;
             const connectedObj = handle.line.connection.connectedObj;
 
-            // this.container.parent.updateWorldMatrix(this.container.parent.parent.worldMatrix);
-
             let connectedObjPos = getPosFromMat(connectedObj);
             let handlePos = getPosFromMat(handle);
 
@@ -295,6 +304,12 @@ export class UINode extends UIObject
         this.container.setPosition(pos);
         // this.container.updateWorldMatrix();
     }
+
+    setVisible(isVisible)
+    {
+        this.container.setVisible(isVisible);
+        this.container.children.forEach( (child) => child.setVisible(isVisible)) ;
+    }
     
     createHandle(pos, parent, parameter)
     {
@@ -321,11 +336,11 @@ export class UINode extends UIObject
         if (type === "IN")
         {
             offsetX = 0;
-            arrToPush = this.elements.handles.R;
+            arrToPush = this.elements.handles.L;
         } else if (type === "OUT")
         {
             offsetX = this.style.container.width;
-            arrToPush = this.elements.handles.L;
+            arrToPush = this.elements.handles.R;
         }
 
         for (let i = 0; i < paramsNum; i++)

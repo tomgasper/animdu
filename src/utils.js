@@ -330,10 +330,7 @@ export const transformToParentSpace = (parent, vecArr, unscale = true) =>
 
         if (unscale)
         {
-            console.log(parent.id);
-            console.log(invMat);
             invMat = m3.scale(parent.worldMatrix, 1/parent.properties.scale[0], 1/parent.properties.scale[1]);
-            console.log(invMat);
         }
         invMat = m3.inverse(invMat);
 

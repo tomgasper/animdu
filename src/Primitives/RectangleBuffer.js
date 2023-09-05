@@ -14,11 +14,20 @@ export class RectangleBuffer {
      
          this.programInfo = programInfo;
  
+         /*
          this.bufferData = [
             -50, -50,
             50,-50,
             50,50,
             -50, 50
+         ]
+         */
+
+         this.bufferData = [
+            0, 0,
+            100, 0,
+            100,100,
+            0, 100
          ]
 
          this.indiciesData = [

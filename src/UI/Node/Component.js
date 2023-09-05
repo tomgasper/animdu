@@ -1,0 +1,174 @@
+import { RenderableObject } from "../../RenderableObject.js";
+import { UIObject } from "../UIObject.js";
+
+import { ParamNode } from "./ParamNode.js";
+import { FunctionNode } from "./FunctionNode.js";
+import { Button } from "../Button.js";
+
+import { ComponentNode } from "./ComponentNode.js";
+
+export class Component extends UIObject
+{
+    elements = {
+        nodes: {
+            IN: [],
+            function: [],
+            OUT: [],
+        },
+        buttons:
+        {
+            hide: undefined,
+        },
+        lines: [],
+        outside: undefined
+    }
+
+    style = {
+        ...this.style,
+        text: {
+            paramTextOffsetX: undefined
+        },
+    }
+
+    isExtended = true;
+
+    constructor(appRef, size, colour, name = "New component")
+    {
+        super(appRef);
+
+        this.initialize(size);
+        this.setName(name);
+    }
+
+    initialize(size = [700, 350], colour = [0.1,0.1,0.1,1])
+    {
+        [this.style.container.width, this.style.container.height] = size;
+
+        // Stylize Node
+        this.style.text.paramTextOffsetX = this.style.container.width/2;
+        this.style.marginX = this.style.container.width/10;
+        this.style.marginY = this.style.container.height/10;
+
+        const rect = new RenderableObject(this._ref.app.primitiveBuffers.rectangle);
+        rect.setScale([this.style.container.width/100,this.style.container.height/100]);
+        rect.setOriginalColor(colour);
+
+        // Save ref and connect to UIViewer
+        this.container = rect;
+        this.container.setParent(this._ref.UI.viewer.container);
+
+        this.container.name = "NodeCompViewer";
+
+        // Add button
+        const newButton = new Button(this._ref.app, () => console.log("Hello!"));
+        newButton.setParent(this);
+        newButton.setPosition([this.style.container.width*0.9, this.style.container.height*0.1]);
+
+        // Handlers
+        newButton.setOnClick(this.transformToNode.bind(this));
+        this.container.handlers.onDblClick = this.transformToInsideComponent.bind(this);
+
+        // Save ref
+        this.elements.buttons.hide = newButton;
+    }
+
+    initializeNode()
+    {
+        const outsideNode = new ComponentNode(this._ref.app, this);
+        outsideNode.initialize();
+
+        this.elements.outside = outsideNode;
+    }
+
+    addParamNode(type, params)
+    {
+        const newNode = new ParamNode(this._ref.app, type, params);
+        newNode.initialize();
+        newNode.setParent(this);
+
+        // Save ref
+        if (type === "IN") this.elements.nodes.IN.push(newNode);
+        else if (type === "OUT") this.elements.nodes.OUT.push(newNode);
+    }
+
+    addFunctionNode(effectorFnc)
+    {
+        const newNode = new FunctionNode(this._ref.app, effectorFnc);
+        newNode.initialize();
+        newNode.setParent(this);
+
+        // Save ref
+        this.elements.nodes.function.push(newNode);
+    }
+
+    transformToNode()
+    {
+        this.changeNodesVisibility(false);
+        this.changeSize(false);
+        this.elements.buttons.hide.container.setVisible(false);
+
+        if (!this.elements.outside) this.initializeNode();
+        else this.elements.outside.transformToNode(true);
+
+        // need to update world matrix property as a new position of components
+        // won't be available til redraw
+        this.elements.outside.container.updateWorldMatrix(this.elements.outside.container.parent.worldMatrix);
+        this.elements.outside.handleMouseMove();
+
+        //this.elements.outside.handleMouseMove.call(this.elements.outside);
+
+        this.isExtended = false;
+    }
+
+    transformToInsideComponent()
+    {
+        if (this.isExtended) return;
+
+        this.changeNodesVisibility(true);
+        this.changeSize(true);
+        this.elements.buttons.hide.container.setVisible(true);
+
+        this.elements.outside.transformToNode(false);
+
+        // need to update world matrix property as a new position of components
+        // won't be available til redraw
+        this.elements.outside.container.updateWorldMatrix(this.elements.outside.container.parent.worldMatrix);
+        this.elements.outside.handleMouseMove();
+
+        this.isExtended = true;
+    }
+
+    changeSize(extend)
+    {
+        const newNodeSize = [130, 130];
+
+        let newSize;
+        if (extend)
+        {
+            const currPos = this.container.properties.position;
+            newSize = [ this.style.container.width/100, this.style.container.height/100 ];
+            this.container.setPosition( [currPos[0] - this.style.container.width/2 + newNodeSize[0]/2, currPos[1] - this.style.container.height/2 + newNodeSize[1]/2] );
+        }
+        else {
+            newSize = [1.3, 1.3];
+            const currPos = this.container.properties.position;
+            this.container.setPosition( [currPos[0] + this.style.container.width/2 - newNodeSize[0]/2, currPos[1] + this.style.container.height/2 - newNodeSize[1]/2] );
+        }
+
+        this.container.setScale(newSize);
+    }
+
+    changeNodesVisibility(isVisible)
+    {
+        // hide lines
+        this.container.children.forEach( (child) => child.setVisible(isVisible));
+
+        // hide nodes
+        for (const nodeType in this.elements.nodes)
+            {
+                this.elements.nodes[nodeType].forEach( (nodeArr) => {
+                    nodeArr.setVisible(isVisible);
+                });
+            }
+    }
+}

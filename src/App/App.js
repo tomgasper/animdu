@@ -1,12 +1,10 @@
 import { RenderableObject } from "../RenderableObject.js";
 import { initalizeApp } from "./initializeApp.js";
 import { initInputListeners } from "./initializeApp.js";
-import { prepareForFirstPass, prepareForScndPass, retrieveRenderObjs, setActiveComp, resetMouseClick, resizeCanvas } from "./AppHelper.js";
+import { prepareForFirstPass, prepareForScndPass, retrieveRenderObjs, addNewComposition, resetMouseClick, resizeCanvas } from "./AppHelper.js";
 import { drawPass } from "./AppDraw.js";
 
 import { handleEvents } from "./AppHandlers.js";
-
-import { Composition } from "../Composition/Composition.js";
 
 import { UI } from "../UI/UI.js";
 import { UINodeParamList } from "../UI/Node/UINodeParamList.js";
@@ -14,7 +12,7 @@ import { UINodeParam } from "../UI/Node/UINodeParam.js";
 import { RectangleBuffer } from "../Primitives/RectangleBuffer.js";
 
 import { Effector } from "../UI/Node/Effector.js";
-import { ComponentNode } from "../UI/Node/ComponentNode.js";
+import { Component } from "../UI/Node/Component.js";
 
 export class App
 {
@@ -36,9 +34,12 @@ export class App
 
     isMouseDown = false;
     isMouseClicked = false;
+    isMouseClickedTwice = false;
     clickOffset = undefined;
     mouseX = 0;
     mouseY = 0;
+
+    pickingData = new Uint8Array(4);
 
     comps = [];
     activeComp = {};
@@ -90,7 +91,7 @@ export class App
         this.UI = new UI(this);
 
         // Create main comp and set it as active
-        const mainComp = this.addNewComposition("Main comp", this.UI.viewport);
+        const mainComp = addNewComposition(this, "Main comp", this.UI.viewport);
 
         // Background
         const solidBuffer = new RectangleBuffer(this.gl, this.programs[0], [this.activeComp.viewport.width, this.activeComp.viewport.height]);
@@ -104,7 +105,6 @@ export class App
         const obj1 = new RenderableObject(this.primitiveBuffers.circle);
         obj1.setPosition([0,0]);
         obj1.setScale([1,1]);
-        // obj1.setRotation(0.4);
 
         const obj2 = new RenderableObject(this.primitiveBuffers.circle);
         obj2.setPosition([100,0]);
@@ -130,13 +130,21 @@ export class App
 
         const fnc = () => console.log("Hello, this is some function!");
         const effectorFunction = new Effector("Custom function", fnc, 3, 2)
-        const compNode = new ComponentNode(this, [500, 300], [0.1,0.1,0.1,1], "myComponent");
+        const compNode = new Component(this, [500, 300], [0.1,0.1,0.1,1], "myComponent");
         compNode.addParamNode("IN", paramList);
         compNode.addFunctionNode(effectorFunction);
         compNode.addParamNode("OUT", paramList);
 
+        const fnc2 = () => console.log("Another function!");
+        const effectorFunction2 = new Effector("Custom function2", fnc2, 3, 2)
+        const compNode2 = new Component(this, [600, 300], [0.1,0.1,0.1,1], "myComponent2");
+        compNode2.addParamNode("IN", paramList);
+        compNode2.addFunctionNode(effectorFunction2);
+        compNode2.addParamNode("OUT", paramList);
+
         // this.UI.addObj(compNode.getObjsToRender(), ["nodes"]);
         compNode.setPosition([500,500]);
+        compNode2.setPosition([500,400]);
 
         // Finally can update UI fully
         // Might move to DOM UI...
@@ -158,34 +166,6 @@ export class App
         this.drawFrame();
     }
 
-    drawFrame()
-    {
-        // Resize canvas to display
-        resizeCanvas(this);
-
-        const UIList = 0;
-        const activeCompList = 1;
-
-        // Shaders
-        const objShader = undefined;
-        const pickingShader = 1;
-
-        // Draw to texture - PASS 1
-        prepareForFirstPass(this.gl, this.framebuffer);
-        this.drawUI(UIList, pickingShader);
-        this.drawComp(activeCompList, pickingShader);
-
-        handleEvents(this);
-
-        // 2nd Pass - Draw "normally"
-        prepareForScndPass(this.gl);
-        // passing undefined program so each object uses its own shader
-        this.drawUI(UIList, objShader);
-        this.drawComp(activeCompList, objShader);
-
-        resetMouseClick(this);
-    }
-
     createDrawList()
     {
         // need to:
@@ -202,6 +182,34 @@ export class App
         ];
     }
 
+    drawFrame()
+    {
+        // Resize canvas to display
+        resizeCanvas(this);
+
+        const UIList = 0;
+        const activeCompList = 1;
+
+        // Shaders
+        const objShader = undefined;
+        const pickingShader = 1;
+
+        // Draw to texture - PASS 1
+        prepareForFirstPass(this.gl, this.framebuffer, [this.mouseX, this.mouseY]);
+        this.drawUI(UIList, pickingShader);
+        this.drawComp(activeCompList, pickingShader);
+
+        handleEvents(this);
+
+        // 2nd Pass - Draw "normally"
+        prepareForScndPass(this.gl);
+        // passing undefined program so each object uses its own shader
+        this.drawUI(UIList, objShader);
+        this.drawComp(activeCompList, objShader);
+
+        resetMouseClick(this);
+    }
+
     drawUI(listToUse, programIndx)
     {
         drawPass(this, [this.objsToDraw[listToUse]], this.programs[programIndx], listToUse);
@@ -212,14 +220,5 @@ export class App
         const [viewportOffsetX, viewportOffsetY] = this.UI.viewport.position;
         this.gl.viewport(viewportOffsetX, viewportOffsetY, this.gl.canvas.width, this.gl.canvas.height);
         drawPass(this,[this.objsToDraw[listToUse]], this.programs[programIndx], listToUse);
-    }
-
-    addNewComposition(compName, viewport)
-    {
-        const newComp = new Composition(this, compName, viewport);
-        this.comps.push(newComp);
-        setActiveComp(this, newComp);
-
-        return newComp;
     }
 }

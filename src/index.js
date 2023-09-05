@@ -22,7 +22,8 @@ function main()
     const gl = canvas.getContext("webgl2", {stencil: true});
 
     // Extensions
-    const ext = gl.getExtension('GMAN_webgl_memory');
+    let ext;
+    // const ext = gl.getExtension('GMAN_webgl_memory');
 
     // Only continue if WebGL is available and working
     if (gl === null) {
@@ -180,6 +181,15 @@ function main()
                           instancedLineProgramInfo,
                           instancedLineCapProgramInfo
     ];
+
+    const input = document.createElement("input");
+    input.setAttribute("type", "text");
+    input.id = "functionText"
+
+    const body = document.getElementById("mainWindow");
+    body.appendChild(input);
+
+
 
     // Framebuffer for retriving object under mouse
 

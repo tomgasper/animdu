@@ -5,7 +5,7 @@ import { canMoveObj, moveObjectWithCoursor } from "./AppHelper.js";
 export const handleEvents = (app) =>
 {
         // Look up id of the object under mouse cursor
-        const underMouseObjId = getIdFromCurrentPixel(app.gl, app.mouseX, app.mouseY);
+        const underMouseObjId = getIdFromCurrentPixel(app, app.mouseX, app.mouseY);
         
         handleUnderMouseCursor(app, underMouseObjId);
 
@@ -68,6 +68,16 @@ export const handleUnderMouseCursor = (app, id) =>
                 if (activeObj && activeObj.handlers.onClick)
                 {
                     activeObj.handlers.onClick.call(activeObj);
+                }
+
+                // on double click
+                if (app.isMouseClickedTwice === true)
+                {
+                    console.log("dbl click!");
+                    if (activeObj && activeObj.handlers.onDblClick)
+                    {
+                        activeObj.handlers.onDblClick.call(activeObj);
+                    }
                 }
             }
         }

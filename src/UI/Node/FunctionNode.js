@@ -34,6 +34,9 @@ export class FunctionNode extends UINode
         rect.setOriginalColor(this.style.container.colour);
 
         rect.handlers.onMouseMove = () => { this.handleMouseMove() };
+        rect.handlers.onClick = () => {
+            document.getElementById("functionText").value = this.effector.fnc;
+        }
 
         // Save ref
         this.container = rect;

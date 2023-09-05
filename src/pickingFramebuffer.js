@@ -1,3 +1,5 @@
+import { readPixelsAsync } from "../lib/asyncreadpixels.js";
+
 export function setUpPickingFramebuffer(gl, targetTexture, depthBuffer)
 {
    // Create and bind the framebuffer
@@ -51,23 +53,44 @@ export function setFramebufferAttachmentSizes(gl, depthBuffer, width, height, re
     gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_COMPONENT16,width,height);
   }
 
-export function getIdFromCurrentPixel(gl, mouseX, mouseY)
+export function getIdFromCurrentPixel(appRef, mouseX, mouseY)
 {
-  const pixelX = mouseX * gl.canvas.width / gl.canvas.clientWidth;
-  const pixelY = gl.canvas.height - mouseY * gl.canvas.height / gl.canvas.clientHeight - 1;
+  const pixelX = mouseX * appRef.gl.canvas.width / appRef.gl.canvas.clientWidth;
+  const pixelY = appRef.gl.canvas.height - mouseY * appRef.gl.canvas.height / appRef.gl.canvas.clientHeight - 1;
 
+  /*
     const data = new Uint8Array(4);
-    gl.readPixels(
+    appRef.gl.readPixels(
     pixelX,            // x
     pixelY,            // y
     1,                 // width
     1,                 // height
-    gl.RGBA,           // format
-    gl.UNSIGNED_BYTE,  // type
+    appRef.gl.RGBA,           // format
+    appRef.gl.UNSIGNED_BYTE,  // type
     data);             // typed array to hold result
 
     const arrIndx = data[0];
     const id = (data[1] << 0) + (data[2] << 8) + (data[3] << 16);
 
     return { arrIndx: arrIndx , id: id };
+
+    */
+
+    const data = appRef.pickingData;
+
+    readPixelsAsync(
+      appRef.gl,
+      pixelX,            // x
+      pixelY,            // y
+      1,                 // width
+      1,                 // height
+      appRef.gl.RGBA,           // format
+      appRef.gl.UNSIGNED_BYTE,  // type
+      data);             // typed array to hold result
+  
+      const arrIndx = data[0];
+      const id = (data[1] << 0) + (data[2] << 8) + (data[3] << 16);
+  
+      return { arrIndx: arrIndx , id: id };
+    
 }

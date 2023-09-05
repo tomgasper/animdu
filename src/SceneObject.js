@@ -26,7 +26,7 @@ export class SceneObject extends TransformNode
             projection : undefined,
             blending: false,
             highlight: true,
-
+            visible: true
             // add height,width
         }
 
@@ -179,6 +179,12 @@ export class SceneObject extends TransformNode
 
         this.properties.transform =  m3.multiply(viewProjectionMat, this.worldMatrix);
         
+    }
+
+    setVisible(isVisible)
+    {
+        if (typeof isVisible !== "boolean" ) throw new Error("Incorrect type!");
+        this.properties.visible = isVisible;
     }
 
     // handlers
