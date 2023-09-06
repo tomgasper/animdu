@@ -182,15 +182,6 @@ function main()
                           instancedLineCapProgramInfo
     ];
 
-    const input = document.createElement("input");
-    input.setAttribute("type", "text");
-    input.id = "functionText"
-
-    const body = document.getElementById("mainWindow");
-    body.appendChild(input);
-
-
-
     // Framebuffer for retriving object under mouse
 
     // Textures and renderbuffers will be attached to framebuffer

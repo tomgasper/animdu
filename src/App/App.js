@@ -82,10 +82,62 @@ export class App
         this.start();
     }
 
+    constructLayersPanel(compViewer)
+    {
+        const layersPanel = document.getElementById("layersPanel");
+        layersPanel.innerHTML = "";
+
+        function createTxtNode(obj, parentDom)
+        {
+            const ul = document.createElement("ul");
+
+            obj.forEach( (child) => {
+                const li = document.createElement('li');
+                li.textContent = child.name;
+                createTxtNode(child.children, ul);
+
+                ul.appendChild(li);
+            });
+
+
+            parentDom.appendChild(ul);
+        }
+
+        createTxtNode(compViewer.container.children, layersPanel);
+    }
+
+    changeEffectorFunction(appRef, value)
+    {
+        const activeObj = appRef.objsToDraw[this.activeObjArrIndx].objs[this.activeObjID];
+        console.log(activeObj);
+
+        if (activeObj.effector)
+        {
+            activeObj.effector.fnc = value;
+        } else console.log("NO EFFECTOR");
+
+    }
+
     start()
     {
         // Set up primitve buffers, font etc.
         initalizeApp(this);
+
+        // Create DOM UI
+        const body = document.getElementById("mainWindow");
+        const input = document.createElement("input");
+        const layers = document.createElement("div");
+
+        input.setAttribute("type", "text");
+        input.id = "functionText";
+        input.addEventListener("change", () => {
+            this.changeEffectorFunction(this, input.textContent);
+        });
+
+        layers.id = "layersPanel";
+
+        body.appendChild(input);
+        body.appendChild(layers);
 
         // Create UI
         this.UI = new UI(this);
@@ -96,6 +148,7 @@ export class App
         // Background
         const solidBuffer = new RectangleBuffer(this.gl, this.programs[0], [this.activeComp.viewport.width, this.activeComp.viewport.height]);
         const solid = new RenderableObject(solidBuffer.getInfo());
+        solid.name = "solid";
 
         solid.setPosition([0,0]);
         solid.setCanBeMoved(false);
@@ -105,17 +158,21 @@ export class App
         const obj1 = new RenderableObject(this.primitiveBuffers.circle);
         obj1.setPosition([0,0]);
         obj1.setScale([1,1]);
+        obj1.name = "myCircle";
 
         const obj2 = new RenderableObject(this.primitiveBuffers.circle);
         obj2.setPosition([100,0]);
         obj2.setScale([0.5,1]);
+        obj2.name = "circle2";
 
         const obj3 = new RenderableObject(this.primitiveBuffers.rectangle);
         obj3.setPosition([200, 0]);
         obj3.setScale([1,1]);
+        obj3.name = "rect";
 
         const obj4 = new RenderableObject(this.primitiveBuffers.circle);
         obj4.setPosition([300, 0]);
+        obj4.name = "circle4";
 
         obj4.setParent(obj3);
         obj3.setParent(obj2);
@@ -162,6 +219,7 @@ export class App
         // this.UI.viewer.container.children.forEach( (obj) => obj.updateWorldMatrix() );
 
         // Gather objs to draw
+        this.constructLayersPanel(this.activeComp.viewport);
         this.createDrawList(this.UI, this.activeComp.objects);
         this.drawFrame();
     }
@@ -177,7 +235,6 @@ export class App
 
         this.objsToDraw = [
             { mask: [ this.UI.viewer.container ], objs: [ ...viewerObjs ] },
-            // { mask: [], objs: UI.panels.layers.objects },
             { mask: [ this.UI.viewport.container ], objs: [ ...activeCompObjs] },
         ];
     }

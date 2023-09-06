@@ -144,35 +144,15 @@ export class SceneObject extends TransformNode
 
     updateTransform()
     {
-        let position = this.properties.position;
-
-        /*
-        if (this.comp)
-        {
-            const viewportOffset = this.comp.viewport.position;
-            position = [this.properties.position[0] + viewportOffset[0], this.properties.position[1] + viewportOffset[1] ];
-        }
-        */
-
-        this.localMatrix = computeTransform(position,this.properties.rotation,this.properties.scale, this.properties.origin);
-
-        // if (this.comp && this.comp.camera)
-        // {
-        //     m3.multiplyInPlace(this.localMatrix, this.comp.camera.matrix, this.localMatrix);
-        // }
-        
+        this.localMatrix = computeTransform(this.properties.position,this.properties.rotation,this.properties.scale, this.properties.origin);
     }
 
     calcFinalTransform()
     {
-        // temp sol
-        // this.updateTransform();
-
         let viewProjectionMat = this.properties.projection;
 
         if (this.comp && this.comp.camera)
         {
-            // m3.multiplyInPlace(this.properties.transform, this.comp.camera.matrix, this.properties.transform);
             const viewMat = m3.inverse(this.comp.camera.matrix);
             viewProjectionMat = m3.multiply(this.properties.projection, viewMat);
         }

@@ -13,6 +13,22 @@ body {
 
 #functionText
 {
-    width:500px;
-    height:300px;
+    position: fixed;
+    top: 0;
+    right: 0;
+
+    width:300px;
+    height:400px;
+}
+
+#layersPanel
+{
+    position:fixed;
+
+    top:0;
+    left:0;
+
+
+    width:200px;
+    height:500px;
 }

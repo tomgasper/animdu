@@ -69,9 +69,9 @@ export class UINode extends UIObject
     //  value: "0"
     // }
 
-    constructor(appRef, paramsList)
+    constructor(appRef, paramsList, buffInfo)
     {
-        super(appRef);
+        super(appRef, buffInfo);
 
         this.parameters = paramsList;
     }
