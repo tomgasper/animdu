@@ -59,4 +59,15 @@ export class Composition
     {
         return this.objects;
     }
+
+    calculateComponents()
+    {
+        const activeViewer = this.app.UI.viewer;
+
+        activeViewer.components.forEach( (compon) => console.log(compon) );
+
+        // first go to the earliest in params
+        // start from that point
+        
+    }
 }
