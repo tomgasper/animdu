@@ -2,8 +2,12 @@ import { RenderableObject } from "../RenderableObject.js";
 import { UIObject } from "./UIObject.js";
 import { CustomBuffer } from "../Primitives/CustomBuffer.js";
 
+import { Component } from "./Node/Component.js";
+
 export class UIViewer extends UIObject
 {
+    components = [];
+
     constructor(appRef, buffInfo, name, dims, colour)
     {
         // dims = [ (float)left, (float)right, (float)top, (float)bottom ]
@@ -63,5 +67,11 @@ export class UIViewer extends UIObject
     customRect.properties.originalColor = [0, 0.02, 0.04, 1];
 
     return customRect;
+    }
+
+    addComponent(component)
+    {
+        if (!(component instanceof Component)) throw Error("Incorrect Component type!");
+        this.components.push(component);
     }
 }

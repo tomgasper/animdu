@@ -126,8 +126,12 @@ export class App
 
         // Create DOM UI
         const body = document.getElementById("mainWindow");
-        const input = document.createElement("input");
+        const input = document.createElement("textarea");
         const layers = document.createElement("div");
+
+        const startButton = document.createElement("button");
+        startButton.textContent = "Start animation";
+        startButton.onclick = () => this.activeComp.calculateComponents();
 
         input.setAttribute("type", "text");
         input.id = "functionText";
@@ -140,6 +144,8 @@ export class App
 
         body.appendChild(input);
         body.appendChild(layers);
+
+        body.appendChild(startButton);
 
         // Create UI
         this.UI = new UI(this);
@@ -187,6 +193,12 @@ export class App
             new UINodeParam("scale", "TEXT_READ")
         ]);
 
+        const paramListFNC = new UINodeParamList([
+            new UINodeParam("position", "TEXT_READ"),
+            new UINodeParam("scale", "TEXT_READ")
+        ]);
+
+
         // Render Obj Nodes
 
         this.activeComp.objects.forEach( (obj) => {
@@ -203,13 +215,18 @@ export class App
         compNode.addFunctionNode(effectorFunction);
         compNode.addParamNode("OUT", paramList);
         
-
         const fnc2 = () => console.log("Another function!");
         const effectorFunction2 = new Effector("Custom function2", fnc2, 3, 2)
         const compNode2 = new Component(this, componentBuff, [600, 300], [0.1,0.1,0.1,1], "myComponent2");
         compNode2.addParamNode("IN", paramList);
         compNode2.addFunctionNode(effectorFunction2);
         compNode2.addParamNode("OUT", paramList);
+
+        const activeViewer = this.UI.viewer;
+        activeViewer.addComponent(compNode);
+        activeViewer.addComponent(compNode2);
+
+        console.log(activeViewer);
 
         // this.UI.addObj(compNode.getObjsToRender(), ["nodes"]);
         compNode.setPosition([500,500]);
