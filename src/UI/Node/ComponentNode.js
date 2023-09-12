@@ -6,9 +6,9 @@ export class ComponentNode extends UINode
 {
     component = undefined;
 
-    constructor(appRef,component)
+    constructor(appRef,bufferInfo,component)
     {
-        super(appRef);
+        super(appRef, bufferInfo);
 
         this.component = component;
     }
@@ -33,7 +33,7 @@ export class ComponentNode extends UINode
         this.style.handles.R.position = [ this.style.container.width, this.style.container.height/2 ] ;
 
         // Save ref
-        this.container = this.component.container;
+        this.container = this.component;
         this.container.handlers.onMouseMove = () => this.handleMouseMove();
 
 

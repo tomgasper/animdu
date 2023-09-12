@@ -4,19 +4,19 @@ import { CustomBuffer } from "../Primitives/CustomBuffer.js";
 
 export class UIViewer extends UIObject
 {
-    constructor(appRef, name, dims, colour)
+    constructor(appRef, buffInfo, name, dims, colour)
     {
         // dims = [ (float)left, (float)right, (float)top, (float)bottom ]
-        super(appRef);
+        super(appRef, buffInfo);
 
         this.setName(name);
 
-        this.initialize(dims, colour);
+        this.initialize(colour);
     }
 
-    initialize(dims, colour)
+    initialize(colour)
     {
-        this.container = this.createContainer(dims);
+        // this.container = this.createContainer(dims);
 
         this.setStyle(colour);
     }
@@ -29,8 +29,12 @@ export class UIViewer extends UIObject
 
     setStyle(colour = [0.4,0.3,0.2,1])
     {
-        if (!this.container || !(this.container instanceof RenderableObject)) throw new Error("Incorrect/No container object!");
-        this.container.setOriginalColor(colour);
+        if (!(this instanceof RenderableObject)) throw new Error("Incorrect/No container object!");
+        this.setOriginalColor(colour);
+        this.canBeMoved = false;
+        this.properties.highlight = false;
+        this.setColor([0,0.3,0.2,1]);
+        this.properties.originalColor = [0, 0.02, 0.04, 1];
 
         this.style.colour = colour;
     }

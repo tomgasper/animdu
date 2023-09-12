@@ -75,12 +75,15 @@ export class UINodeHandle extends RenderableObject
         const line = new RenderableObject(lineBuffer.getInfo(), getProjectionMat(this.app.gl), lineBuffer);
 
         // Set parent
-        let parent = this.node.container.parent ? this.node.container.parent : this.app.UI.viewer.container;
+        console.log(this.node);
+        let parent = this.node.parent ? this.node.parent : this.node.container.parent;
         line.setParent(parent);
 
         // Add ref the new line
-        if (this.node._ref) this.node._ref.parent.elements.lines.push(line);
-        console.log(this.node._ref.parent);
+        if (parent.elements.lines)
+        { 
+            parent.elements.lines.push(line);
+        }
         
         line.name = "INSTANCED LINE!";
 
@@ -104,7 +107,12 @@ export class UINodeHandle extends RenderableObject
         lineParent.deleteChild(line.obj);
         
         // delete ref
-        this.node._ref.parent.elements.lines = this.node._ref.parent.elements.lines.filter( (lineInComponent) => lineInComponent.id !== line.obj.id );
+        let parent = this.node.parent ? this.node.parent : this.node.container.parent;
+
+        if (parent.elements.lines)
+        {
+            parent.elements.lines = parent.elements.lines.filter( (lineInComponent) => lineInComponent.id !== line.obj.id );
+        }
 
         // clean up ref object
         line.data = [];
@@ -163,8 +171,7 @@ export class UINodeHandle extends RenderableObject
         this.line.connection.connectedObj = outHandle;
         this.line.connection.isConnected = true;
 
-        console.log("connected");
-
+        console.log("connected + line: ");
         console.log(outHandle);
         console.log(this);
 

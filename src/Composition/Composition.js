@@ -33,7 +33,8 @@ export class Composition
             obj.forEach((obj) => {
                 if (obj && obj instanceof RenderableObject) {
                     obj.assignToComp(this);
-                    if (!obj.parent) obj.setParent(this.viewport.container);
+                    this.objects.push(obj);
+                    if (!obj.parent) obj.setParent(this.viewport);
                 }
             });
         } else if (obj instanceof RenderableObject) this.objects.push(obj);

@@ -103,7 +103,7 @@ export class App
             parentDom.appendChild(ul);
         }
 
-        createTxtNode(compViewer.container.children, layersPanel);
+        createTxtNode(compViewer.children, layersPanel);
     }
 
     changeEffectorFunction(appRef, value)
@@ -113,6 +113,7 @@ export class App
 
         if (activeObj.effector)
         {
+            console.log("CHANGING EFFECTOR!");
             activeObj.effector.fnc = value;
         } else console.log("NO EFFECTOR");
 
@@ -131,7 +132,8 @@ export class App
         input.setAttribute("type", "text");
         input.id = "functionText";
         input.addEventListener("change", () => {
-            this.changeEffectorFunction(this, input.textContent);
+            console.log(input.value);
+            this.changeEffectorFunction(this, input.value);
         });
 
         layers.id = "layersPanel";
@@ -185,16 +187,26 @@ export class App
             new UINodeParam("scale", "TEXT_READ")
         ]);
 
+        // Render Obj Nodes
+
+        this.activeComp.objects.forEach( (obj) => {
+            const newObjNode = this.UI.addObjNode(obj);
+            newObjNode.setPosition([300,550]);
+        })
+
+
         const fnc = () => console.log("Hello, this is some function!");
-        const effectorFunction = new Effector("Custom function", fnc, 3, 2)
-        const compNode = new Component(this, [500, 300], [0.1,0.1,0.1,1], "myComponent");
+        const effectorFunction = new Effector("Custom function", fnc, 3, 2);
+        const componentBuff = this.primitiveBuffers.rectangle;
+        const compNode = new Component(this, componentBuff,  [500, 300], [0.1,0.1,0.1,1], "myComponent");
         compNode.addParamNode("IN", paramList);
         compNode.addFunctionNode(effectorFunction);
         compNode.addParamNode("OUT", paramList);
+        
 
         const fnc2 = () => console.log("Another function!");
         const effectorFunction2 = new Effector("Custom function2", fnc2, 3, 2)
-        const compNode2 = new Component(this, [600, 300], [0.1,0.1,0.1,1], "myComponent2");
+        const compNode2 = new Component(this, componentBuff, [600, 300], [0.1,0.1,0.1,1], "myComponent2");
         compNode2.addParamNode("IN", paramList);
         compNode2.addFunctionNode(effectorFunction2);
         compNode2.addParamNode("OUT", paramList);
@@ -234,8 +246,8 @@ export class App
         const activeCompObjs = retrieveRenderObjs(this.activeComp.viewport);
 
         this.objsToDraw = [
-            { mask: [ this.UI.viewer.container ], objs: [ ...viewerObjs ] },
-            { mask: [ this.UI.viewport.container ], objs: [ ...activeCompObjs] },
+            { mask: [ this.UI.viewer ], objs: [ ...viewerObjs ] },
+            { mask: [ this.UI.viewport ], objs: [ ...activeCompObjs] },
         ];
     }
 

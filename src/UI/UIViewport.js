@@ -9,17 +9,18 @@ export class UIViewport extends UIObject
 
     appRef = undefined;
 
-    constructor(appRef, size, colour)
+    constructor(appRef, buffInfo, size, colour)
     {
-        super(appRef);
+        super(appRef, buffInfo);
 
         this.width = size[0];
         this.height = size[1];
         this.style.colour = colour;
 
-        this.initViewport(this.width, this.height, colour);
+    this.initViewport(colour);
     }
 
+    /*
     initViewport(width,height,colour)
     {
         const data = [
@@ -43,5 +44,15 @@ export class UIViewport extends UIObject
         // viewport.setPosition(this.position);
         viewport.setOriginalColor(colour);
         viewport.updateWorldMatrix();
+    }
+    */
+
+    initViewport(colour)
+    {
+        this.setCanBeHighlighted(false);
+        this.setCanBeMoved(false);
+        // viewport.setPosition(this.position);
+        this.setOriginalColor(colour);
+        this.updateWorldMatrix();
     }
 }

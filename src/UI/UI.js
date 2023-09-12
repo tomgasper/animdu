@@ -17,6 +17,8 @@ import { initTopBar, initParamsPanel, setUpMainFont } from "./initializeUI.js";
 import { UIViewport } from "./UIViewport.js";
 import { UIViewer } from "./UIViewer.js";
 
+import { CustomBuffer } from "../Primitives/CustomBuffer.js";
+
 export class UI
 {
     app;
@@ -73,6 +75,53 @@ export class UI
         this.initUI(app, this);
     }
 
+    createViewport(width, height)
+    {
+        const data = [
+            0,0,
+            width,0,
+            width, height,
+
+            width,height,
+            0, height,
+            0, 0
+        ];
+
+        // create new objects that garbage collector will hopefully delete when it's time to go
+        const customBuffer = new CustomBuffer(this.app.gl, this.app.programs[0], data);
+        // const viewport = new RenderableObject(customBuffer.getInfo());
+
+        return customBuffer.getInfo();
+    }
+
+    createContainer(dims)
+    {
+    const [ left, right, top, bottom ] = dims;
+        // Install Container
+    const customVertsPos = [  left, top,
+    right, top,
+    right, bottom,
+    
+    right, bottom,
+    left, bottom,
+    left, top
+    ];
+
+
+    const customRectBuffer = new CustomBuffer(this.app.gl, this.app.programs[0], customVertsPos);
+    const customRectBufferInfo = customRectBuffer.getInfo();
+
+    /*
+    const customRect = new RenderableObject(customRectBufferInfo);
+    customRect.canBeMoved = false;
+    customRect.properties.highlight = false;
+    customRect.setColor([0,0.3,0.2,1]);
+    customRect.properties.originalColor = [0, 0.02, 0.04, 1];
+    */
+
+    return customRectBufferInfo;
+    }
+
     initUI = (app) =>
     {
         this.initializeUIBuffers(app,app.programs[0]);
@@ -80,14 +129,14 @@ export class UI
 
         this.topBar.objects = initTopBar(app, this);
 
-        this.viewport = new UIViewport(this.app, [800,400], [0.6,0.6,0.6,1]);
+        this.viewport = new UIViewport(this.app, this.createViewport(800,400), [800,400], [0.6,0.6,0.6,1]);
 
         // initParamsPanel(app, this);
 
         // Init Viewer
         const viewerDims = [0, this.app.gl.canvas.clientWidth,
                             this.app.gl.canvas.clientHeight/2, this.app.gl.canvas.clientHeight];
-        this.viewer = new UIViewer(this.app, "UIViewer", viewerDims);
+        this.viewer = new UIViewer(this.app, this.createContainer(viewerDims), "UIViewer", viewerDims);
     }
 
     initializeUIBuffers = (app, program) => 
@@ -129,10 +178,13 @@ export class UI
 
     addObjNode(obj, params)
     {
-        const newNode = new ObjNode(obj, this.app, params);
+        const containerBuffer = this.UIBuffers.UINode.container.buffer.getInfo();
+        const newNode = new ObjNode(this.app, containerBuffer, obj, params);
         newNode.initialize();
 
-        this.addObj(newNode.getObjsToRender(), ["nodes"]);
+        newNode.setParent(this.viewer);
+
+        // this.addObj(newNode.getObjsToRender(), ["nodes"]);
         return newNode;
     }
 

@@ -222,7 +222,7 @@ export const addObjToDrawList = (obj, drawList) =>
 export const retrieveRenderObjs = (section) =>
 {
     const objsToDraw = [];
-    addObjToDrawList(section.container, objsToDraw);
+    addObjToDrawList(section, objsToDraw);
     return objsToDraw;
 }
 

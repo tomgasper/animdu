@@ -1,7 +1,7 @@
 import { RenderableObject } from "../RenderableObject.js";
 import { SceneObject } from "../SceneObject.js";
 
-export class UIObject{
+export class UIObject extends RenderableObject{
     _ref = 
     {
         app: undefined,
@@ -21,8 +21,10 @@ export class UIObject{
     }
 
 
-    constructor(appRef)
+    constructor(appRef, buffInfo)
     {
+        super(buffInfo);
+
         this._ref.app = appRef;
         this._ref.UI = appRef.UI;
     }
@@ -56,6 +58,7 @@ export class UIObject{
         })
     }
 
+    /*
     setPosition(pos)
     {
         if (this.container && this.container instanceof SceneObject)
@@ -63,23 +66,29 @@ export class UIObject{
             this.container.setPosition(pos);
         } else throw new Error("No/Incorrect container object of the UIObject!");
     }
+    */
 
+    /*
     setVisible(isVisible)
     {
         this.container.setVisible(isVisible);
     }
+    */
 
+    /*
     setParent(parent)
     {
         if (!(parent instanceof RenderableObject || parent instanceof UIObject)) throw new Error("Incorrect type of parent!");
-        if (!this.container || !(this.container instanceof RenderableObject) ) throw new Error("No container to attach to!");
+        // if (!this.container || !(this.container instanceof RenderableObject) ) throw new Error("No container to attach to!");
 
         // Save ref
         if (parent instanceof UIObject) this._ref.parent = parent;
 
-        let newParent = parent instanceof UIObject ? parent.container : parent;
-        this.container.setParent(newParent);
+        // let newParent = parent instanceof UIObject ? parent.container : parent;
+
+        this.setParent(parent);
     }
+    */
 
     addToUIList(dest)
     {

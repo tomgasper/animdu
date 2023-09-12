@@ -32,16 +32,17 @@ export class Component extends UIObject
 
     isExtended = true;
 
-    constructor(appRef, size, colour, name = "New component")
+    constructor(appRef, buffInfo, size, colour, name = "New component")
     {
-        super(appRef);
+        super(appRef, buffInfo);
 
         this.initialize(size);
         this.setName(name);
     }
 
-    initialize(size = [700, 350], colour = [0.1,0.1,0.1,1])
+    initialize(size = [700, 350], colour = [0.5,0.1,0.3,1])
     {
+        
         [this.style.container.width, this.style.container.height] = size;
 
         // Stylize Node
@@ -49,24 +50,24 @@ export class Component extends UIObject
         this.style.marginX = this.style.container.width/10;
         this.style.marginY = this.style.container.height/10;
 
-        const rect = new RenderableObject(this._ref.app.primitiveBuffers.rectangle);
-        rect.setScale([this.style.container.width/100,this.style.container.height/100]);
-        rect.setOriginalColor(colour);
+        // const rect = new RenderableObject(this._ref.app.primitiveBuffers.rectangle);
+        this.setScale([this.style.container.width/100,this.style.container.height/100]);
+        this.setOriginalColor(colour);
 
         // Save ref and connect to UIViewer
-        this.container = rect;
-        this.container.setParent(this._ref.UI.viewer.container);
+        //this.container = rect;
+        this.setParent(this._ref.UI.viewer);
 
-        this.container.name = "NodeCompViewer";
+        this.name = "NodeCompViewer";
 
         // Add button
-        const newButton = new Button(this._ref.app, () => console.log("Hello!"));
+        const newButton = new Button(this._ref.app,this._ref.app.primitiveBuffers.rectangle, () => console.log("Hello!"));
         newButton.setParent(this);
         newButton.setPosition([this.style.container.width*0.9, this.style.container.height*0.1]);
 
         // Handlers
         newButton.setOnClick(this.transformToNode.bind(this));
-        this.container.handlers.onDblClick = this.transformToInsideComponent.bind(this);
+        this.handlers.onDblClick = this.transformToInsideComponent.bind(this);
 
         // Save ref
         this.elements.buttons.hide = newButton;
@@ -74,7 +75,7 @@ export class Component extends UIObject
 
     initializeNode()
     {
-        const outsideNode = new ComponentNode(this._ref.app, this);
+        const outsideNode = new ComponentNode(this._ref.app,this._ref.app.UI.UIBuffers.UINode.container.buffer.getInfo(), this);
         outsideNode.initialize();
 
         this.elements.outside = outsideNode;
@@ -82,7 +83,7 @@ export class Component extends UIObject
 
     addParamNode(type, params)
     {
-        const newNode = new ParamNode(this._ref.app, type, params);
+        const newNode = new ParamNode(this._ref.app, this._ref.app.UI.UIBuffers.ObjNode.container.buffer.getInfo(), type, params);
         newNode.initialize();
         newNode.setParent(this);
 
@@ -93,7 +94,8 @@ export class Component extends UIObject
 
     addFunctionNode(effectorFnc)
     {
-        const newNode = new FunctionNode(this._ref.app, effectorFnc);
+        const containerBuffer = this._ref.app.UI.UIBuffers.UINode.container.buffer.getInfo();
+        const newNode = new FunctionNode(this._ref.app, containerBuffer, effectorFnc);
         newNode.initialize();
         newNode.setParent(this);
 
@@ -105,13 +107,14 @@ export class Component extends UIObject
     {
         this.changeNodesVisibility(false);
         this.changeSize(false);
-        this.elements.buttons.hide.container.setVisible(false);
+        this.elements.buttons.hide.setVisible(false);
 
         if (!this.elements.outside) this.initializeNode();
         else this.elements.outside.transformToNode(true);
 
         // need to update world matrix property as a new position of components
         // won't be available til redraw
+        
         this.elements.outside.container.updateWorldMatrix(this.elements.outside.container.parent.worldMatrix);
         this.elements.outside.handleMouseMove();
 
@@ -126,12 +129,13 @@ export class Component extends UIObject
 
         this.changeNodesVisibility(true);
         this.changeSize(true);
-        this.elements.buttons.hide.container.setVisible(true);
+        this.elements.buttons.hide.setVisible(true);
 
         this.elements.outside.transformToNode(false);
 
         // need to update world matrix property as a new position of components
         // won't be available til redraw
+        console.log(this.elements.outside);
         this.elements.outside.container.updateWorldMatrix(this.elements.outside.container.parent.worldMatrix);
         this.elements.outside.handleMouseMove();
 
@@ -145,29 +149,29 @@ export class Component extends UIObject
         let newSize;
         if (extend)
         {
-            const currPos = this.container.properties.position;
+            const currPos = this.properties.position;
             newSize = [ this.style.container.width/100, this.style.container.height/100 ];
-            this.container.setPosition( [currPos[0] - this.style.container.width/2 + newNodeSize[0]/2, currPos[1] - this.style.container.height/2 + newNodeSize[1]/2] );
+            this.setPosition( [currPos[0] - this.style.container.width/2 + newNodeSize[0]/2, currPos[1] - this.style.container.height/2 + newNodeSize[1]/2] );
         }
         else {
             newSize = [1.3, 1.3];
-            const currPos = this.container.properties.position;
-            this.container.setPosition( [currPos[0] + this.style.container.width/2 - newNodeSize[0]/2, currPos[1] + this.style.container.height/2 - newNodeSize[1]/2] );
+            const currPos = this.properties.position;
+            this.setPosition( [currPos[0] + this.style.container.width/2 - newNodeSize[0]/2, currPos[1] + this.style.container.height/2 - newNodeSize[1]/2] );
         }
 
-        this.container.setScale(newSize);
+        this.setScale(newSize);
     }
 
     changeNodesVisibility(isVisible)
     {
         // hide lines
-        this.container.children.forEach( (child) => child.setVisible(isVisible));
+        this.children.forEach( (child) => child.setVisible(isVisible));
 
         // hide nodes
         for (const nodeType in this.elements.nodes)
             {
                 this.elements.nodes[nodeType].forEach( (nodeArr) => {
-                    nodeArr.setVisible(isVisible);
+                    nodeArr.setVisibleNode(isVisible);
                 });
             }
     }

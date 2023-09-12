@@ -8,9 +8,9 @@ export class FunctionNode extends UINode
 {
     effector = undefined;
 
-    constructor(appRef, fnc)
+    constructor(appRef, buffInfo, fnc)
     {
-        super(appRef);
+        super(appRef, buffInfo);
 
         this.setFunction(fnc);
     }
@@ -28,21 +28,24 @@ export class FunctionNode extends UINode
         this.style.marginY = this.style.container.height/10;
 
         // Retrieve previously initialized buffer
+        /*
         const UINodeContainerBuffer = this._ref.UIBuffers.container.buffer.getInfo();
         const rect = new RenderableObject(UINodeContainerBuffer);
-        rect.setPosition([0,0]);
-        rect.setOriginalColor(this.style.container.colour);
+        */
 
-        rect.handlers.onMouseMove = () => { this.handleMouseMove() };
-        rect.handlers.onClick = () => {
+        this.setPosition([0,0]);
+        this.setOriginalColor(this.style.container.colour);
+
+        this.handlers.onMouseMove = () => { this.handleMouseMove() };
+        this.handlers.onClick = () => {
             document.getElementById("functionText").value = this.effector.fnc;
         }
 
         // Save ref
-        this.container = rect;
+        // this.container = rect;
 
-        this.addIOHandles("IN", this.effector.argc, this.container, this.style.container.height/4 - this.style.text.size);
-        this.addIOHandles("OUT", this.effector.outc, this.container, this.style.container.height/2 - this.style.text.size);
+        this.addIOHandles("IN", this.effector.argc, this, this.style.container.height/4 - this.style.text.size);
+        this.addIOHandles("OUT", this.effector.outc, this, this.style.container.height/2 - this.style.text.size);
         
         /* this is how txtArr obj looks like:
             const txtArr = [
@@ -64,7 +67,7 @@ export class FunctionNode extends UINode
         const txtBatch = createNewText(this._ref.app.gl, this._ref.app.programs[2], this.txtArr, this.style.text.size, this._ref.UI.font, this.style.text.colour);
         txtBatch.setCanBeMoved(false);
         txtBatch.setPosition([ this.style.marginX, this.style.marginY ]);
-        txtBatch.setParent(this.container);
+        txtBatch.setParent(this);
     }
 
     createIOTxt(type, offset = 0)

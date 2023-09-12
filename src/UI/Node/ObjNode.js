@@ -14,19 +14,17 @@ export class ObjNode extends UINode
 {
     obj = undefined;
 
-    constructor(obj, app, paramsList)
+    constructor(appRef, buffInfo, obj, paramsList)
     {
-        super(app,paramsList);
+        super(appRef, buffInfo, paramsList);
 
         this.obj = obj;
     }
 
     initialize()
     {
-        const projectionMat = getProjectionMat(this.app.gl);
-
         // Set size based on the background container size
-        this.UIBuffers = this.UI.UIBuffers.ObjNode;
+        this.UIBuffers = this._ref.UI.UIBuffers.ObjNode;
         this.width = this.UIBuffers.container.size[0];
         this.height = this.UIBuffers.container.size[1];
 
@@ -38,25 +36,26 @@ export class ObjNode extends UINode
         const anchor = new TransformNode();
 
         // Retrieve previously initialized buffer
-        const UINodeContainerBuffer = this.UIBuffers.container.buffer.getInfo();
-        const rect = new RenderableObject(UINodeContainerBuffer, projectionMat);
-        rect.setPosition([0,0]);
-        rect.setOriginalColor(this.containerColor);
-        rect.handlers.onMouseMove = () => { this.handleMouseMove() };
+        // const UINodeContainerBuffer = this.UIBuffers.container.buffer.getInfo();
+        // const rect = new RenderableObject(UINodeContainerBuffer, projectionMat);
+        this.setPosition([0,0]);
+        this.setOriginalColor(this.containerColor);
+        this.handlers.onMouseMove = () => { this.handleMouseMove() };
 
         // Save ref
-        this.container = rect;
+        // this.container = rect;
 
         // Init graphical handlers
         const cirlceBuffer = this.UIBuffers.handle.buffer.getInfo();
 
         // Render handle for each param to modify
 
+        /*
         const paramsNum = this.parameters.list.length;
 
         for (let i = 0; i < paramsNum; i++)
         {
-            const handleR = new UINodeHandle(this.app, cirlceBuffer, this, this.container);
+            const handleR = new UINodeHandle(this._ref.app, cirlceBuffer, this, this.container);
             handleR.setPosition([this.width, this.marginY + ((i+2)*this.paramTextOffsetY + this.txtSize)]);
             handleR.setOriginalColor([0.2,0.2,0.2,1])
             handleR.setCanBeMoved(false);
@@ -64,17 +63,19 @@ export class ObjNode extends UINode
 
             this.handleR.push(handleR);
         }
+        */
 
-        const handleL = new UINodeHandle(this.app, cirlceBuffer, this, this.container);
-        handleL.setPosition([0, this.height/2]);
+        const handleL = new UINodeHandle(this._ref.app, cirlceBuffer, this, this);
+        handleL.setPosition([this.width, this.height/2]);
         handleL.setOriginalColor([0.2,0.2,0.2,1])
         handleL.setCanBeMoved(false);
-        this.handleL = [ handleL ];
+        handleL.setParent(this);
+        this.elements.handles.L = [ handleL ];
 
-        this.addObjToRender(rect);
-        this.addObjsToRender([...this.handleL, ...this.handleR]);
+        // this.addObjToRender(rect);
+        // this.addObjsToRender([...this.handleL, ...this.handleR]);
 
-        console.log(this.obj);
+        // console.log(this.obj);
         
 
         /* this is how txtArr obj looks like:
@@ -88,16 +89,19 @@ export class ObjNode extends UINode
 
         // Render text
         this.txtArr = this.convertToTxtArr([
+            {name: this.obj.name },
             {name: this.obj.id },
-            {name: "Parameters: " }, 
-            ...this.parameters.list
+            //{name: "Parameters: " }, 
+            // ...this.parameters.list
         ]);
 
+        console.log(this.txtArr);
+
        // creating text batch for this node, to avoid creating a lot of small buffers
-        const txtBatch = createNewText(this.app.gl, this.app.programs[2], this.txtArr, this.txtSize, this.UI.font, this.txtColor);
+        const txtBatch = createNewText(this._ref.app.gl, this._ref.app.programs[2], this.txtArr, this.style.text.size, this._ref.UI.font, this.txtColor);
         txtBatch.setCanBeMoved(false);
         txtBatch.setPosition([ this.marginX, this.marginY ]);
-        txtBatch.setParent(this.container);
+        txtBatch.setParent(this);
 
         // Create slider
         // const sliderContObjs = this.createSlider([1,1], this.container);
@@ -105,7 +109,7 @@ export class ObjNode extends UINode
         // Create text boxes
         // this.txtBuffer = txtBatch;
         // this.txtBgArr = this.createTxtBg(txtBatch, this.parameters.list.length);
-        this.addObjsToRender([txtBatch]);
+        // this.addObjsToRender([txtBatch]);
     }
 
     convertToTxtArr(txtIn)
@@ -117,7 +121,7 @@ export class ObjNode extends UINode
         txtIn.forEach( (txt, indx) => {
                 txtArr.push({
                     data: txt.name.toString(),
-                    pos: [0, indx*this.paramTextOffsetY ]
+                    pos: [0, indx*this.style.text.paramTextOffsetY ]
                 });
     
                 this.numOfParams = this.numOfParams + 1;

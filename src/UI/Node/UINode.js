@@ -69,7 +69,7 @@ export class UINode extends UIObject
     //  value: "0"
     // }
 
-    constructor(appRef, paramsList, buffInfo)
+    constructor(appRef, buffInfo, paramsList)
     {
         super(appRef, buffInfo);
 
@@ -95,19 +95,22 @@ export class UINode extends UIObject
         rect.setOriginalColor(this.containerColor);
         rect.handlers.onMouseMove = () => { this.handleMouseMove() };
 
+        /*
         // Save ref
         this.container = rect;
+
+        */
 
         // Init graphical handlers
         const cirlceBuffer = UIBuffers.handle.buffer.getInfo();
 
-        const handleR = new UINodeHandle(this._ref.app, cirlceBuffer, this, this.container);
+        const handleR = new UINodeHandle(this._ref.app, cirlceBuffer, this, this);
         handleR.setPosition([this.style.container.width, this.style.container.height/2]);
         handleR.setOriginalColor([0.2,0.2,0.2,1])
         handleR.setCanBeMoved(false);
         this.elements.handles.R = [ handleR ];
 
-        const handleL = new UINodeHandle(this._ref.app, cirlceBuffer, this, this.container);
+        const handleL = new UINodeHandle(this._ref.app, cirlceBuffer, this, this);
         handleL.setPosition([0, this.style.container.height/2]);
         handleL.setOriginalColor([0.2,0.2,0.2,1])
         handleL.setCanBeMoved(false);
@@ -134,7 +137,7 @@ export class UINode extends UIObject
         const txtBatch = createNewText(this._ref.app.gl, this._ref.app.programs[2], this.txtArr, this.txtSize, this._ref.UI.font, this.txtColor);
         txtBatch.setCanBeMoved(false);
         txtBatch.setPosition([ this.marginX, this.marginY ]);
-        txtBatch.setParent(this.container);
+        txtBatch.setParent(this);
 
         // Create slider
         // const sliderContObjs = this.createSlider([1,1], this.container);
@@ -163,7 +166,7 @@ export class UINode extends UIObject
         return txtArr;
     }
 
-    addParam(paramNameStr, parent = this.container)
+    addParam(paramNameStr, parent = this)
     {
         // Init UI text input
         // const txtWidth = txt.txtBuffer.str.cpos[0];
@@ -184,7 +187,7 @@ export class UINode extends UIObject
         this.container.updateWorldMatrix();
     }
 
-    createTxtBg(parent = this.container, n)
+    createTxtBg(parent = this, n)
     {
         const buffer = this.UIBuffers.textInput.buffer;
 
@@ -199,7 +202,7 @@ export class UINode extends UIObject
         return arrOfTxtBgs;
     }
 
-    createSlider(size = [1,1], parent = this.container)
+    createSlider(size = [1,1], parent = this)
     {
         // Set up bg for slider
         const sliderBgBuffer = this.UIBuffers.sliderBg.buffer.getInfo();
@@ -281,8 +284,10 @@ export class UINode extends UIObject
             let handlePos = getPosFromMat(handle);
 
             // center the line end
+            const parent = this.parent ? this.parent : this._ref.UI.viewer;
+
             const vecs= [ connectedObjPos, handlePos ];
-            transformToParentSpace(this.container.parent, vecs, true);
+            transformToParentSpace(parent, vecs, true);
             [ connectedObjPos, handlePos ] = vecs;
 
             if (isConnectedIN === true)
@@ -299,16 +304,18 @@ export class UINode extends UIObject
         })
     }
 
+    /*
     setPosition(pos)
     {
         this.container.setPosition(pos);
         // this.container.updateWorldMatrix();
     }
+    */
 
-    setVisible(isVisible)
+    setVisibleNode(isVisible)
     {
-        this.container.setVisible(isVisible);
-        this.container.children.forEach( (child) => child.setVisible(isVisible)) ;
+        this.setVisible(isVisible);
+        this.children.forEach( (child) => child.setVisible(isVisible)) ;
     }
     
     createHandle(pos, parent, parameter)
