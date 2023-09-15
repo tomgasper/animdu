@@ -12,7 +12,7 @@ export class Component extends UIObject
     elements = {
         nodes: {
             IN: [],
-            function: [],
+            FNC: [],
             OUT: [],
         },
         buttons:
@@ -22,6 +22,8 @@ export class Component extends UIObject
         lines: [],
         outside: undefined
     }
+
+    activeObj = undefined;
 
     style = {
         ...this.style,
@@ -100,7 +102,7 @@ export class Component extends UIObject
         newNode.setParent(this);
 
         // Save ref
-        this.elements.nodes.function.push(newNode);
+        this.elements.nodes.FNC.push(newNode);
     }
 
     transformToNode()
@@ -174,5 +176,11 @@ export class Component extends UIObject
                     nodeArr.setVisibleNode(isVisible);
                 });
             }
+    }
+
+    setActiveObj(obj)
+    {
+        if (!(obj instanceof RenderableObject)) throw new Error("Wrong Active Object type!");
+        this.activeObj = obj;
     }
 }

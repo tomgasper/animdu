@@ -75,7 +75,6 @@ export class UINodeHandle extends RenderableObject
         const line = new RenderableObject(lineBuffer.getInfo(), getProjectionMat(this.app.gl), lineBuffer);
 
         // Set parent
-        console.log(this.node);
         let parent = this.node.parent ? this.node.parent : this.node.container.parent;
         line.setParent(parent);
 
@@ -126,6 +125,7 @@ export class UINodeHandle extends RenderableObject
 
         if (objUnderMouse instanceof UINodeHandle && this != objUnderMouse)
         {
+            console.log("im here!");
             this.handleObjConnection(this, objUnderMouse);
             const objUnderMousePos = getPosFromMat(objUnderMouse);
             
@@ -139,7 +139,15 @@ export class UINodeHandle extends RenderableObject
             this.line.update(data);
         } else {
             // no handle under the mouse on release so get rid of preview line
-            this.deleteLine(this.app.gl, this.app, this.line);
+
+            // yeah but we still got reference to old connection?
+
+            // handle disconect here
+            if (this.line.connection.isConnected)
+            {
+                this.handleObjDisconnection(this.line.connection.connectedObj, true);
+                this.handleObjDisconnection(this, true);
+            } else this.deleteLine(this.app.gl, this.app, this.line);
         }
     }
 
@@ -171,10 +179,6 @@ export class UINodeHandle extends RenderableObject
         this.line.connection.connectedObj = outHandle;
         this.line.connection.isConnected = true;
 
-        console.log("connected + line: ");
-        console.log(outHandle);
-        console.log(this);
-
         return true;
     }
 
@@ -189,6 +193,14 @@ export class UINodeHandle extends RenderableObject
             console.log("Deleting: " + handle.line);
             this.deleteLine(this.app.gl, this.app, handle.line);
         }
+    }
+
+    handleObjDisconnection(handle, deleteLine)
+    {
+        this.disconnect(handle,deleteLine);
+
+        // call on disconnect callback
+        handle.node.onDisconnect();
     }
 
     handleObjConnection(startObj, objToConnect)
@@ -224,6 +236,10 @@ export class UINodeHandle extends RenderableObject
             this.line.connection.connectedObj = objToConnect;
             this.line.connection.isConnected = true;
         }
+
+        // handle nodes callbacks
+        startObj.node.onConnection(objToConnect.node);
+        objToConnect.node.onConnection(startObj.node);
     }
 
     setParameter(param)

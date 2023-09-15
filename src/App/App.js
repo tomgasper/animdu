@@ -61,6 +61,8 @@ export class App
 
     eventsToProcess = [];
 
+    animationCounter = 0;
+
     constructor(gl, canvas, programsInfo, framebuffer, depthBuffer, renderTexture)
     {
 
@@ -109,12 +111,11 @@ export class App
     changeEffectorFunction(appRef, value)
     {
         const activeObj = appRef.objsToDraw[this.activeObjArrIndx].objs[this.activeObjID];
-        console.log(activeObj);
 
         if (activeObj.effector)
         {
             console.log("CHANGING EFFECTOR!");
-            activeObj.effector.fnc = value;
+            activeObj.effector.fnc = eval(value);
         } else console.log("NO EFFECTOR");
 
     }
@@ -189,13 +190,18 @@ export class App
         this.activeComp.addObj([solid, obj1,obj2,obj3, obj4]);
 
         const paramList = new UINodeParamList([
-            new UINodeParam("position", "TEXT_READ"),
-            new UINodeParam("scale", "TEXT_READ")
+            new UINodeParam("position", "TEXT_READ", [0,0]),
+            new UINodeParam("scale", "TEXT_READ", [1,1])
+        ]);
+
+        const paramListOUT = new UINodeParamList([
+            new UINodeParam("position", "TEXT_READ", [0,0]),
+            new UINodeParam("scale", "TEXT_READ", [1,1])
         ]);
 
         const paramListFNC = new UINodeParamList([
-            new UINodeParam("position", "TEXT_READ"),
-            new UINodeParam("scale", "TEXT_READ")
+            new UINodeParam("position", "TEXT_READ", [0,0]),
+            new UINodeParam("scale", "TEXT_READ", [1,1])
         ]);
 
 
@@ -213,14 +219,14 @@ export class App
         const compNode = new Component(this, componentBuff,  [500, 300], [0.1,0.1,0.1,1], "myComponent");
         compNode.addParamNode("IN", paramList);
         compNode.addFunctionNode(effectorFunction);
-        compNode.addParamNode("OUT", paramList);
+        compNode.addParamNode("OUT", paramListOUT);
         
         const fnc2 = () => console.log("Another function!");
         const effectorFunction2 = new Effector("Custom function2", fnc2, 3, 2)
         const compNode2 = new Component(this, componentBuff, [600, 300], [0.1,0.1,0.1,1], "myComponent2");
         compNode2.addParamNode("IN", paramList);
         compNode2.addFunctionNode(effectorFunction2);
-        compNode2.addParamNode("OUT", paramList);
+        compNode2.addParamNode("OUT", paramListOUT);
 
         const activeViewer = this.UI.viewer;
         activeViewer.addComponent(compNode);
@@ -249,8 +255,28 @@ export class App
 
         // Gather objs to draw
         this.constructLayersPanel(this.activeComp.viewport);
+        this.handleAnimation();
         this.createDrawList(this.UI, this.activeComp.objects);
         this.drawFrame();
+    }
+
+    handleAnimation()
+    {
+        if (this.activeComp.animations.length > 0)
+        {
+            this.activeComp.animations[0].forEach( (objAnim) => {
+                // do animation ;)
+                objAnim.params.forEach( (param) => {
+                    if (this.animationCounter <= objAnim.steps)
+                    {
+                        objAnim.obj.properties[param.name] = param.values[this.animationCounter];
+                    }
+                });
+                objAnim.obj.updateTransform();
+            })
+
+            this.animationCounter++;
+        }
     }
 
     createDrawList()
