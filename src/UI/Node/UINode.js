@@ -153,12 +153,16 @@ export class UINode extends UIObject
         const txtArr = [];
 
         params.forEach( (txt, indx) => {
+            let paramValue = txt.value;
+            if (Array.isArray(txt.value)) paramValue = txt.value.map( val => val.toFixed(1) );
+
+
                 txtArr.push({
                     data: txt.name.toString(),
                     pos: [0+offX, (indx*this.style.text.paramTextOffsetY) + offY ]
                 },
                 {
-                    data: txt.value.toString(),
+                    data: paramValue.toString(),
                     pos: [this.style.text.paramTextOffsetX + offX, (indx*this.style.text.paramTextOffsetY) + offY]
                 });
     
@@ -363,5 +367,15 @@ export class UINode extends UIObject
         const newHandle = this.createHandle(pos, parent, param);
         arrToPush.push(newHandle);
         }
+    }
+
+    onConnection(anotherNode)
+    {
+
+    }
+
+    onDisconnect()
+    {
+
     }
 }

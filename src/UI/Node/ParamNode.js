@@ -6,6 +6,10 @@ export class ParamNode extends UINode
 {
     type = undefined;
 
+    elements = {...this.elements,
+        text: undefined
+    }
+
     constructor(app, buffInfo, type, paramsList, name = "Node")
     {
         super(app, buffInfo, paramsList);
@@ -53,21 +57,37 @@ export class ParamNode extends UINode
             ]
        */
 
+        
+
         // Render text
-        this.txtArr = [
-            { data: this.type, pos: [0, 0 ] },
-            ...this.convertToTxtArr(this.parameters.list, 0, this.style.text.paramTextOffsetY)
-        ];
+        this.constructText();
+        
 
        // creating text batch for this node, to avoid creating a lot of small buffers
         const txtBatch = createNewText(this._ref.app.gl, this._ref.app.programs[2], this.txtArr, this.style.text.size, this._ref.UI.font, this.style.text.colour);
         txtBatch.setCanBeMoved(false);
         txtBatch.setPosition([ this.style.marginX, this.style.marginY ]);
         txtBatch.setParent(this);
+
+        this.elements.text = txtBatch;
     }
 
     setType(type)
     {
         this.type = type;
+    }
+
+    constructText()
+    {
+        this.txtArr = [
+            { data: this.type, pos: [0, 0 ] },
+            ...this.convertToTxtArr(this.parameters.list, 0, this.style.text.paramTextOffsetY)
+        ];
+    }
+
+    updateText()
+    {
+        this.constructText();
+        this.elements.text.txtBuffer.updateTextBufferData(this.txtArr,10);
     }
 }

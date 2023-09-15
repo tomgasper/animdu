@@ -98,6 +98,6 @@ export class FunctionNode extends UINode
     setFunction(effectorFnc)
     {
         console.log(effectorFnc);
-        this.effector = effectorFnc;
+        this.effector = eval(effectorFnc);
     }
 }

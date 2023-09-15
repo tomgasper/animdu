@@ -80,8 +80,6 @@ export class InstancedLineBuffer
         const { size,type,normalize,stride,offset } = this.attributesInfo.position;
         this.gl.vertexAttribPointer(attribLoc, size,type,normalize,stride,offset);
         this.gl.vertexAttribDivisor(attribLoc, 0);
-
-        console.log(size);
     }
 
     setUpPointsBuffer(ptsBufferData)

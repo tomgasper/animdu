@@ -2,6 +2,8 @@ import { UINode } from "./UINode.js";
 import { RenderableObject } from "../../RenderableObject.js";
 import { createNewText } from "../../Text/textHelper.js";
 
+import { ObjNode } from "./ObjNode.js";
+
 export class ComponentNode extends UINode
 {
     component = undefined;
@@ -122,5 +124,28 @@ export class ComponentNode extends UINode
         
         this.elements.text.setVisible(isNode);
         // this.container.children.forEach( (child) => child.setVisible(isVisible)) ;
+    }
+
+    onConnection(anotherNode)
+    {
+
+        if (anotherNode instanceof ObjNode)
+        {
+            this.component.setActiveObj(anotherNode.obj);
+        } else if (anotherNode instanceof ComponentNode)
+        {   
+            if (anotherNode.component.activeObj)
+            {
+                // copy ref to obj
+                this.component.setActiveObj(anotherNode.component.activeObj);
+            }
+            
+        }
+    }
+
+    onDisconnect()
+    {
+        // to do
+        console.log("disconnecting: " + this.component.name);
     }
 }
