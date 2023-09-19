@@ -27,7 +27,8 @@ export class UINodeHandle extends RenderableObject
         connection : {
             isConnected : false,
             type: undefined,
-            connectedObj : undefined
+            connectedObj : undefined,
+            break: undefined
         },
         update : this.updateLine
     }

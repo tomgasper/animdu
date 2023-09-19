@@ -6,6 +6,9 @@ import { FunctionNode } from "./FunctionNode.js";
 import { Button } from "../Button.js";
 
 import { ComponentNode } from "./ComponentNode.js";
+import { UITextInput } from "../UITextInput.js";
+
+import { createNewText } from "../../Text/textHelper.js";
 
 export class Component extends UIObject
 {
@@ -23,6 +26,7 @@ export class Component extends UIObject
         outside: undefined
     }
 
+    range = undefined;
     activeObj = undefined;
 
     style = {
@@ -57,7 +61,6 @@ export class Component extends UIObject
         this.setOriginalColor(colour);
 
         // Save ref and connect to UIViewer
-        //this.container = rect;
         this.setParent(this._ref.UI.viewer);
 
         this.name = "NodeCompViewer";
@@ -66,6 +69,22 @@ export class Component extends UIObject
         const newButton = new Button(this._ref.app,this._ref.app.primitiveBuffers.rectangle, () => console.log("Hello!"));
         newButton.setParent(this);
         newButton.setPosition([this.style.container.width*0.9, this.style.container.height*0.1]);
+
+        // Create text
+        const durationTextPos = [this.style.container.width / 2, 0];
+        const txtArr = [
+            {
+            data: "Duration: ",
+            pos: durationTextPos   
+            },
+        ]
+
+        const txtBatch = this.createBatchText(txtArr, 10);
+        txtBatch.setParent(this);
+
+        // Add input for duration
+        const durationInput = new UITextInput(this._ref.app, this._ref.app.primitiveBuffers.rectangle, 10, this, "input");
+        durationInput.setPosition([this.style.container.width / 2, this.style.container.height * 0.1]);
 
         // Handlers
         newButton.setOnClick(this.transformToNode.bind(this));
@@ -182,5 +201,15 @@ export class Component extends UIObject
     {
         if (!(obj instanceof RenderableObject)) throw new Error("Wrong Active Object type!");
         this.activeObj = obj;
+    }
+
+    createBatchText(txtArr, txtSize, txtColour = [1,1,1,1])
+    {
+        // creating text batch for this node, to avoid creating a lot of small buffers
+        const txtBatch = createNewText(this._ref.app.gl, this._ref.app.programs[2], txtArr, txtSize, this._ref.UI.font, txtColour);
+        txtBatch.setCanBeMoved(false);
+        txtBatch.setPosition([ 0, 0 ]);
+
+        return txtBatch;
     }
 }

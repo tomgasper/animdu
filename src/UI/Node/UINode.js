@@ -133,11 +133,7 @@ export class UINode extends UIObject
             this.txtArr = this.convertToTxtArr(this.parameters.list);
         }
 
-       // creating text batch for this node, to avoid creating a lot of small buffers
-        const txtBatch = createNewText(this._ref.app.gl, this._ref.app.programs[2], this.txtArr, this.txtSize, this._ref.UI.font, this.txtColor);
-        txtBatch.setCanBeMoved(false);
-        txtBatch.setPosition([ this.marginX, this.marginY ]);
-        txtBatch.setParent(this);
+       const txtBatch = this.createBatchText(this.txtArr, this.textSize);
 
         // Create slider
         // const sliderContObjs = this.createSlider([1,1], this.container);
@@ -146,6 +142,17 @@ export class UINode extends UIObject
         this.txtBuffer = txtBatch;
         this.txtBgArr = this.createTxtBg(txtBatch, this.parameters.list.length);
         this.addObjsToRender([...this.txtBgArr, txtBatch]);
+    }
+
+    createBatchText(txtArr, textSize)
+    {
+        // creating text batch for this node, to avoid creating a lot of small buffers
+        const txtBatch = createNewText(this._ref.app.gl, this._ref.app.programs[2], txtArr, textSize, this._ref.UI.font, this.txtColor);
+        txtBatch.setCanBeMoved(false);
+        txtBatch.setPosition([ this.marginX, this.marginY ]);
+        txtBatch.setParent(this);
+
+        return txtBatch;
     }
 
     convertToTxtArr(params, offX = 0, offY = 0)
@@ -249,22 +256,14 @@ export class UINode extends UIObject
         return rect;
     }
 
+
     handleInput(e,indx)
     {
-        if (this.parameters.list[indx].value == "0" && e.key !== "Backspace")
-        {
-            this.parameters.list[indx].value = e.key;
-        }
-        else if (e.key == "Backspace")
-        {
-                this.parameters.list[indx].value = this.parameters.list[indx].value.slice(0,-1);
-        }
-        else {
-            if (isNumeric(e.key) || e.key === ".")
-            {
-                this.parameters.list[indx].value = this.parameters.list[indx].value + e.key;
-            }
-        }
+        const paramTextToChange = this.parameters.list[indx].value;
+        const incomingKey = e.key;
+
+        const newString = this.changeValueNumeric(paramTextToChange, incomingKey);
+        if (newString) paramTextToChange = newString;
 
         const newTextArr = this.convertToTxtArr(this.parameters.list);            
         this.txtBuffer.txtBuffer.updateTextBufferData(newTextArr, 9);

@@ -48,6 +48,28 @@ function setUniforms(gl, programInfo, properties)
     })
 }
 
+export const findNodesOfType = (container, type) =>
+{
+    const listOfNodes = [];
+
+    function traverseNodes(listOfNodes, parent, type)
+    {
+        parent.children.forEach( (child) => {
+            if (child instanceof type )
+            { 
+                listOfNodes.push(child);
+                return;
+            }
+
+            traverseNodes(listOfNodes, child, type);
+        })
+    }
+
+    traverseNodes(listOfNodes, container, type);
+
+    return listOfNodes;
+}
+
 export function prepareForRender(gl)
     {
         // Conver from clip space to pixels
@@ -346,3 +368,25 @@ export const isNumeric = (str) => {
            !isNaN(parseFloat(str)) // ...and ensure strings of whitespace fail
   };
 
+export const changeValueNumeric = (startVal, target, inputKey) =>
+  {
+      let newString;
+
+      if (target == startVal && inputKey !== "Backspace")
+      {
+          newString = inputKey;
+      }
+      else if (inputKey == "Backspace")
+      {
+              newString = target.slice(0,-1);
+              if (newString.length === 0) newString = " ";
+      }
+      else {
+          if (isNumeric(inputKey) || inputKey === ".")
+          {
+              newString = target + inputKey;
+          }
+      }
+
+      return newString;
+  }
