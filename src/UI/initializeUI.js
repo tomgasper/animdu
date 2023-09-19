@@ -8,6 +8,7 @@ import { RenderableObject } from "../RenderableObject.js";
 
 import { TextFont } from "../Text/TextFont.js";
 import { roboto_bold_font } from "../fonts/roboto-bold.js";
+import { ubuntu_font } from "../fonts/ubuntu.js";
 
 export const initTopBar = (app, UI) =>
 {
@@ -206,7 +207,7 @@ export const setUpMainFont = (app, UI) =>
         textureSrc: "./src/fonts/roboto-bold.png",
         texResolution: [1024,1024],
         color: [1,1,1.3,1],
-        subpixel: 1.0,
+        subpixel: 1,
         decoder: roboto_bold_font
     };
     const robotoBoldFont = new TextFont(app.gl, fontSettings, app.gl.LUMINANCE);

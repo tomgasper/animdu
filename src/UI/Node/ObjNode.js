@@ -65,12 +65,12 @@ export class ObjNode extends UINode
         }
         */
 
-        const handleL = new UINodeHandle(this._ref.app, cirlceBuffer, this, this);
-        handleL.setPosition([this.width, this.height/2]);
-        handleL.setOriginalColor([0.2,0.2,0.2,1])
-        handleL.setCanBeMoved(false);
-        handleL.setParent(this);
-        this.elements.handles.L = [ handleL ];
+        const handleR = new UINodeHandle(this._ref.app, cirlceBuffer, this, this);
+        handleR.setPosition([this.width, this.height/2]);
+        handleR.setOriginalColor([0.2,0.2,0.2,1])
+        handleR.setCanBeMoved(false);
+        handleR.setParent(this);
+        this.elements.handles.R = [ handleR ];
 
         // this.addObjToRender(rect);
         // this.addObjsToRender([...this.handleL, ...this.handleR]);

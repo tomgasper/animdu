@@ -126,6 +126,7 @@ export class App
         initalizeApp(this);
 
         // Create DOM UI
+        // (temporary dirty solution)
         const body = document.getElementById("mainWindow");
         const input = document.createElement("textarea");
         const layers = document.createElement("div");
@@ -255,28 +256,14 @@ export class App
 
         // Gather objs to draw
         this.constructLayersPanel(this.activeComp.viewport);
-        this.handleAnimation();
+        this.processAnimationFrame(elapsedTime);
         this.createDrawList(this.UI, this.activeComp.objects);
         this.drawFrame();
     }
 
-    handleAnimation()
+    processAnimationFrame(elapsedTime)
     {
-        if (this.activeComp.animations.length > 0)
-        {
-            this.activeComp.animations[0].forEach( (objAnim) => {
-                // do animation ;)
-                objAnim.params.forEach( (param) => {
-                    if (this.animationCounter <= objAnim.steps)
-                    {
-                        objAnim.obj.properties[param.name] = param.values[this.animationCounter];
-                    }
-                });
-                objAnim.obj.updateTransform();
-            })
-
-            this.animationCounter++;
-        }
+        // constructAnimationQueue(this.UI.viewer);
     }
 
     createDrawList()
