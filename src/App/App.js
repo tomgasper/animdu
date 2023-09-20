@@ -14,6 +14,8 @@ import { RectangleBuffer } from "../Primitives/RectangleBuffer.js";
 import { Effector } from "../UI/Node/Effector.js";
 import { Component } from "../UI/Node/Component.js";
 
+import { procc } from "../animation/animation_operations.js";
+
 export class App
 {
     gl = {};
@@ -238,10 +240,6 @@ export class App
         // this.UI.addObj(compNode.getObjsToRender(), ["nodes"]);
         compNode.setPosition([500,500]);
         compNode2.setPosition([500,400]);
-
-        // Finally can update UI fully
-        // Might move to DOM UI...
-        // this.UI.initLayersPanel(this);
     }
 
     // render loop function called from RenderLoop class
@@ -263,7 +261,7 @@ export class App
 
     processAnimationFrame(elapsedTime)
     {
-        // constructAnimationQueue(this.UI.viewer);
+        procc(this.UI.viewer);
     }
 
     createDrawList()

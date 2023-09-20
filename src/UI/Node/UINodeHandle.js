@@ -28,7 +28,7 @@ export class UINodeHandle extends RenderableObject
             isConnected : false,
             type: undefined,
             connectedObj : undefined,
-            break: undefined
+            animationBreak: 0.
         },
         update : this.updateLine
     }
@@ -179,6 +179,7 @@ export class UINodeHandle extends RenderableObject
         this.line.connection.type = "IN";
         this.line.connection.connectedObj = outHandle;
         this.line.connection.isConnected = true;
+        this.line.connection.animationBreak = 0.;
 
         return true;
     }
@@ -188,6 +189,7 @@ export class UINodeHandle extends RenderableObject
         handle.line.connection.type = undefined;
         handle.line.connection.connectedObj = undefined;
         handle.line.connection.isConnected = false;
+        handle.line.connection.animationBreak = undefined;
 
         if (handle.line.obj && deleteLine)
         {
