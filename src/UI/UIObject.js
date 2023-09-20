@@ -99,4 +99,10 @@ export class UIObject extends RenderableObject{
     {
         this.name = name;
     }
+
+    setGroupVisible(isVisible)
+    {
+        console.log("WARNING: [METHOD SHOULD BE IMPLEMENTED!]");
+        this.setVisible(isVisible);
+    }
 }

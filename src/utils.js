@@ -372,17 +372,22 @@ export const changeValueNumeric = (startVal, target, inputKey) =>
   {
       let newString;
 
-      if (target == startVal && inputKey !== "Backspace")
+      const isNumber = isNumeric(inputKey);
+
+      if (target == startVal && inputKey !== "Backspace" && isNumber)
       {
           newString = inputKey;
+      }
+      else if (target === " " && isNumber)
+      {
+        newString = inputKey;
       }
       else if (inputKey == "Backspace")
       {
               newString = target.slice(0,-1);
-              if (newString.length === 0) newString = " ";
       }
       else {
-          if (isNumeric(inputKey) || inputKey === ".")
+          if (isNumber || inputKey === ".")
           {
               newString = target + inputKey;
           }
