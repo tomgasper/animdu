@@ -135,11 +135,8 @@ export class Component extends UIObject
 
         // need to update world matrix property as a new position of components
         // won't be available til redraw
-        
         this.elements.outside.container.updateWorldMatrix(this.elements.outside.container.parent.worldMatrix);
         this.elements.outside.handleMouseMove();
-
-        //this.elements.outside.handleMouseMove.call(this.elements.outside);
 
         this.isExtended = false;
     }
@@ -186,7 +183,9 @@ export class Component extends UIObject
     changeNodesVisibility(isVisible)
     {
         // hide lines
-        this.children.forEach( (child) => child.setVisible(isVisible));
+        this.children.forEach( (child) => {
+            child.setVisible(isVisible); }
+        );
 
         // hide nodes
         for (const nodeType in this.elements.nodes)

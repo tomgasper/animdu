@@ -49,8 +49,9 @@ export class TextObject extends RenderableObject
 
     updateText(txt, txtSize = 10)
     {
-        if (txt && typeof txt == "string")
+        if (typeof txt == "string")
         {
+            if (txt.length === 0) txt = " ";
             this.properties.txt_string = txt;
 
             this.txtBuffer.updateTextBufferData(this.properties.txt_string, txtSize);

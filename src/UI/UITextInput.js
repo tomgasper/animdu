@@ -82,15 +82,6 @@ export class UITextInput extends UIObject
 
         const newStr = changeValueNumeric(this.placeholder, currStr, e.key);
 
-        /*
-        if( currStr === this.value) {
-            newStr = e.key;
-        }
-        else {
-            newStr = currStr + e.key;
-        }
-        */
-
         console.log(newStr);
         if ((typeof newStr !== "string")) return;
 
@@ -113,6 +104,15 @@ export class UITextInput extends UIObject
         {
             this.txtObj.updateText(txt);
             this.centerText();
+        }
+    }
+
+    setVisible(isVisible)
+    {
+        this.properties.visible = isVisible;
+        for (let child of this.children)
+        {
+            child.setVisible(isVisible);
         }
     }
 }
