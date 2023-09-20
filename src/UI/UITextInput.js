@@ -20,6 +20,11 @@ export class UITextInput extends UIObject
     active = false;
     value = "Put text here!";
 
+    handlers = {
+        ...this.handlers,
+        onValueChange: undefined,
+    }
+
     scene = {};
     parent = {};
 
@@ -86,6 +91,7 @@ export class UITextInput extends UIObject
         if ((typeof newStr !== "string")) return;
 
         this.txtObj.updateText(newStr);
+        this.handlers.onValueChange(newStr);
 
         // center the text
         this.centerText();
@@ -96,15 +102,6 @@ export class UITextInput extends UIObject
         const txtWidth2 = this.txtObj.txtBuffer.str.cpos[0];
         this.txtObj.setPosition([this.width/2-txtWidth2/2,0]);
         // this.txtObj.updateWorldMatrix(this.txtObj.parent.worldMatrix);
-    }
-
-    changeValue(txt)
-    {
-        if (this.txtObj)
-        {
-            this.txtObj.updateText(txt);
-            this.centerText();
-        }
     }
 
     setVisible(isVisible)

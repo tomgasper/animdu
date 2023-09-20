@@ -5,10 +5,16 @@ import { ObjNode } from "../UI/Node/ObjNode.js";
 import { ObjAnimation } from "./ObjAnimation.js";
 import { ComponentNode } from "../UI/Node/ComponentNode.js";
 
-const findConnectedComponents = (component) => {
-    const componentList = [component];
+const findConnectedComponents = (startOffset, componentNode) => {
+    const componentList = [
+        {
+            componentRef: componentNode,
+            range: [startOffset, startOffset + componentNode.component.animation.duration]
+        }];
 
-    let currentComponent = component;
+    let currentComponent = componentNode;
+
+    let accAnimationDuration = startOffset + componentNode.component.animation.duration + 1/60;
 
     // traverse via right handle of the node
     while (currentComponent)
@@ -17,12 +23,21 @@ const findConnectedComponents = (component) => {
         const nodeHandleR = currentComponent.elements.handles.R[0];
         if (nodeHandleR.line.connection.isConnected === false) break;
 
-        const connectedObj = nodeHandleR.line.connection.connectedObj.node;
+        const lineConnection = nodeHandleR.line.connection;
+        const connectedObj = lineConnection.connectedObj.node;
 
         if (connectedObj instanceof ComponentNode)
         {
             currentComponent = connectedObj;
-            componentList.push(currentComponent);
+            componentList.push(
+                {
+                    componentRef: currentComponent,
+                    range: [accAnimationDuration + lineConnection.animationBreak,
+                            accAnimationDuration + lineConnection.animationBreak + currentComponent.component.animation.duration]
+                }
+                );
+
+                accAnimationDuration = accAnimationDuration + lineConnection.animationBreak + currentComponent.component.animation.duration + 1/60;
         } // only ComponentNode can be connected
         else break;
     }
@@ -51,10 +66,11 @@ const createAnimationList = (compositionNodesViewer) => {
     // create start point to walk through each obj components
     for (let objNode of objNodes)
     {
+        const startOffset = objNode.elements.handles.R[0].line.connection.animationBreak;
         const connectedObj = objNode.elements.handles.R[0].line.connection.connectedObj.node;
 
         if (connectedObj instanceof ComponentNode) {
-            const connectedComponents = findConnectedComponents(connectedObj);
+            const connectedComponents = findConnectedComponents(startOffset, connectedObj);
             const objAnimationList = new ObjAnimation(objNode.obj, connectedComponents);
 
             animationList.push(objAnimationList);
@@ -64,7 +80,7 @@ const createAnimationList = (compositionNodesViewer) => {
     return animationList;
 }
 
-export const constructAnimationQueue = ( nodesContainer ) =>
+export const procc = ( nodesContainer ) =>
 {
     let depTree = undefined;
     const animationList = createAnimationList(nodesContainer);

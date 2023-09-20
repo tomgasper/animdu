@@ -10,6 +10,8 @@ import { UITextInput } from "../UITextInput.js";
 
 import { createNewText } from "../../Text/textHelper.js";
 
+import { isNumeric } from "../../utils.js";
+
 export class Component extends UIObject
 {
     elements = {
@@ -26,7 +28,10 @@ export class Component extends UIObject
         outside: undefined
     }
 
-    range = undefined;
+    animation = {
+        duration: 0.
+    }
+
     activeObj = undefined;
 
     style = {
@@ -85,6 +90,7 @@ export class Component extends UIObject
         // Add input for duration
         const durationInput = new UITextInput(this._ref.app, this._ref.app.primitiveBuffers.rectangle, 10, this, "input");
         durationInput.setPosition([this.style.container.width / 2, this.style.container.height * 0.1]);
+        durationInput.handlers.onValueChange = (newVal) => this.changeDuration(newVal);
 
         // Handlers
         newButton.setOnClick(this.transformToNode.bind(this));
@@ -210,5 +216,11 @@ export class Component extends UIObject
         txtBatch.setPosition([ 0, 0 ]);
 
         return txtBatch;
+    }
+
+    changeDuration(newDuration)
+    {
+        if (isNumeric(newDuration)) this.animation.duration = parseFloat(newDuration);
+        console.log(this.name + " new duration: " + this.duration);
     }
 }
