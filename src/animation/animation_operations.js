@@ -5,6 +5,8 @@ import { ObjNode } from "../UI/Node/ObjNode.js";
 import { ObjAnimation } from "./ObjAnimation.js";
 import { ComponentNode } from "../UI/Node/ComponentNode.js";
 
+import { Digraph } from "../DataStructures/Digraph.js";
+
 const findConnectedComponents = (startOffset, componentNode) => {
     const componentList = [
         {
@@ -80,10 +82,114 @@ const createAnimationList = (compositionNodesViewer) => {
     return animationList;
 }
 
-export const procc = ( nodesContainer ) =>
+const gatherComponentsAtTime = (time, animationList) =>
+{
+    const activeObjsAtTime = [];
+
+    for (let obj of animationList)
+    {
+        // check which components are actie at current animation time
+        for (let component of obj.componentsToProcess)
+        {
+            console.log(component.componentRef.component.name);
+            if ( time >= component.range[0] && time <= component.range[1])
+            {
+                activeObjsAtTime.push(component.componentRef);
+                break;
+            }
+        }
+    }
+
+
+    const V = activeObjsAtTime.length;
+    let depGraph = new Digraph(V);
+
+    // check what's connected to active componentNodes(dependency)
+    for (let i = 0; i < activeObjsAtTime.length; i++)
+    {
+        const inputHandles = activeObjsAtTime[i].elements.handles.L;
+        for (let j = 1; j < inputHandles.length; j++)
+        {
+            // no connection -> leave
+            if ( !(inputHandles[j].line.connection.isConnected)) continue;
+
+            const connectedObj = inputHandles[j].line.connection.connectedObj.node;
+
+            for (let k = 0; k < activeObjsAtTime.length; k++)
+            {
+                // ComponentNodes do change so we have to mark it as a dependency
+                // In the future here will be also added check for VarNode
+                if (connectedObj === activeObjsAtTime[k])
+                {
+                    // need to use depedency graph
+                    // and then do topological sort
+                    // https://en.wikipedia.org/wiki/Topological_sorting
+                    const A = i;
+                    const B = k;
+
+                    depGraph.addEdge(A,B);
+                }
+            }
+        }
+    }
+
+    // Calculate proper processing order
+    const actionsOrder = depGraph.topologicalSort();
+    // Sorted active objects
+    const sortedActiveObjs = [];
+    for (let i = 0; i < actionsOrder.length; i++)
+    {
+        // sortedActiveObjs.push(activeObjsAtTime[i]);
+        sortedActiveObjs.push(activeObjsAtTime[actionsOrder[i]].component.name);
+    }
+
+    console.log(sortedActiveObjs);
+}
+
+/*
+const printTree = (tree) => {
+    function traverse(childrenStr, treeNode)
+    {
+        if (!treeNode) return childrenStr;
+
+        let line = "";
+        if (treeNode.children.length >= 1)
+        {
+            for (let i = 0; i < treeNode.children.length; i++)
+            {
+                line = line + traverse(line, treeNode.children[i]);
+                // childrenStr = childrenStr + '\n' + fullLine;
+            }
+            line = line + '\n';
+        }
+
+        line = line + " " + treeNode.value.component.name;
+        return line;
+    }
+
+    let strTree = "";
+    const returnStr = traverse(strTree, tree);
+
+    console.log(returnStr);
+    console.log(strTree);
+}
+
+const findInTree = (tree, val) =>
+{
+    if (!this) return undefined;
+    if (this.val === val) return this;
+
+    for (let treeNode of tree.children)
+    {
+        return findInTree(treeNode);
+    }
+}
+*/
+
+export const procc = ( animTime, nodesContainer ) =>
 {
     let depTree = undefined;
     const animationList = createAnimationList(nodesContainer);
 
-    console.log(animationList);   
+    gatherComponentsAtTime(animTime, animationList);
 }

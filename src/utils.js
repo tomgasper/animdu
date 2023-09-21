@@ -54,6 +54,7 @@ export const findNodesOfType = (container, type) =>
 
     function traverseNodes(listOfNodes, parent, type)
     {
+        if (!parent) return;
         parent.children.forEach( (child) => {
             if (child instanceof type )
             { 
