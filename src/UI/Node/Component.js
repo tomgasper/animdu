@@ -29,7 +29,7 @@ export class Component extends UIObject
     }
 
     animation = {
-        duration: 0.
+        duration: 5.
     }
 
     activeObj = undefined;

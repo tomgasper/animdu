@@ -189,7 +189,7 @@ export class UINodeHandle extends RenderableObject
         handle.line.connection.type = undefined;
         handle.line.connection.connectedObj = undefined;
         handle.line.connection.isConnected = false;
-        handle.line.connection.animationBreak = undefined;
+        handle.line.connection.animationBreak = 0.;
 
         if (handle.line.obj && deleteLine)
         {

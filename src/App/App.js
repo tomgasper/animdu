@@ -65,6 +65,11 @@ export class App
 
     animationCounter = 0;
 
+    shouldAnimate = false;
+    animationTimer = 0.;
+
+    lastTime = 0.;
+
     constructor(gl, canvas, programsInfo, framebuffer, depthBuffer, renderTexture)
     {
 
@@ -135,7 +140,7 @@ export class App
 
         const startButton = document.createElement("button");
         startButton.textContent = "Start animation";
-        startButton.onclick = () => this.activeComp.calculateComponents();
+        startButton.onclick = () => this.startAnimation();
 
         input.setAttribute("type", "text");
         input.id = "functionText";
@@ -231,21 +236,36 @@ export class App
         compNode2.addFunctionNode(effectorFunction2);
         compNode2.addParamNode("OUT", paramListOUT);
 
+        const compNode3 = new Component(this, componentBuff, [600, 300], [0.1,0.1,0.1,1], "myComponent3");
+        compNode3.addParamNode("IN", paramList);
+        compNode3.addFunctionNode(effectorFunction2);
+        compNode3.addParamNode("OUT", paramListOUT);
+
+        const compNode4 = new Component(this, componentBuff, [600, 300], [0.1,0.1,0.1,1], "myComponent4");
+        compNode4.addParamNode("IN", paramList);
+        compNode4.addFunctionNode(effectorFunction2);
+        compNode4.addParamNode("OUT", paramListOUT);
+
         const activeViewer = this.UI.viewer;
         activeViewer.addComponent(compNode);
         activeViewer.addComponent(compNode2);
+        activeViewer.addComponent(compNode3);
+        activeViewer.addComponent(compNode4);
 
         console.log(activeViewer);
 
         // this.UI.addObj(compNode.getObjsToRender(), ["nodes"]);
         compNode.setPosition([500,500]);
         compNode2.setPosition([500,400]);
+        compNode3.setPosition([300,400]);
+        compNode4.setPosition([100,400]);
     }
 
     // render loop function called from RenderLoop class
     doFrame(elapsedTime, fps)
     {
         // convert elapsed time in ms to s
+        this.lastTime = this.time;
         this.time = elapsedTime * 0.001;
         this.fps = fps;
 
@@ -254,14 +274,25 @@ export class App
 
         // Gather objs to draw
         this.constructLayersPanel(this.activeComp.viewport);
-        this.processAnimationFrame(elapsedTime);
+
+        if (this.shouldAnimate) this.processAnimationFrame(elapsedTime);
         this.createDrawList(this.UI, this.activeComp.objects);
         this.drawFrame();
     }
 
     processAnimationFrame(elapsedTime)
     {
-        procc(this.UI.viewer);
+        // update animation timer
+        const timeBetweenFrames = this.time - this.lastTime;
+        this.animationTimer += timeBetweenFrames;
+
+        procc(this.animationTimer, this.UI.viewer);
+    }
+
+    startAnimation()
+    {
+        this.animationTimer = 0.;
+        this.shouldAnimate = true;
     }
 
     createDrawList()

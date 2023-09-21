@@ -8,6 +8,10 @@ export class ComponentNode extends UINode
 {
     component = undefined;
 
+    // NOTE:
+    // elements.handles.R[0] and elements.handles.L[0] are RESERVED for passing through objects
+    // and are exclusively for ObjNodes
+
     constructor(appRef,bufferInfo,component)
     {
         super(appRef, bufferInfo);
@@ -39,8 +43,8 @@ export class ComponentNode extends UINode
         this.container.handlers.onMouseMove = () => this.handleMouseMove();
 
 
-        this.addIOHandles("IN", inNum , this.container, this.style.handles.L.position[1]);
-        this.addIOHandles("OUT", outNum, this.container, this.style.handles.R.position[1]);
+        this.addIOHandles("IN", inNum + 2 , this.container, this.style.handles.L.position[1]);
+        this.addIOHandles("OUT", outNum + 2, this.container, this.style.handles.R.position[1]);
         
         /* this is how txtArr obj looks like:
             const txtArr = [
