@@ -70,6 +70,8 @@ export class App
 
     lastTime = 0.;
 
+    drawCalls = 0;
+
     constructor(gl, canvas, programsInfo, framebuffer, depthBuffer, renderTexture)
     {
 
@@ -202,7 +204,17 @@ export class App
             new UINodeParam("scale", "TEXT_READ", [1,1])
         ]);
 
+        const paramList2 = new UINodeParamList([
+            new UINodeParam("position", "TEXT_READ", [0,0]),
+            new UINodeParam("scale", "TEXT_READ", [1,1])
+        ]);
+
         const paramListOUT = new UINodeParamList([
+            new UINodeParam("position", "TEXT_READ", [0,0]),
+            new UINodeParam("scale", "TEXT_READ", [1,1])
+        ]);
+
+        const paramListOUT2 = new UINodeParamList([
             new UINodeParam("position", "TEXT_READ", [0,0]),
             new UINodeParam("scale", "TEXT_READ", [1,1])
         ]);
@@ -226,16 +238,21 @@ export class App
         const componentBuff = this.primitiveBuffers.rectangle;
         const compNode = new Component(this, componentBuff,  [500, 300], [0.1,0.1,0.1,1], "myComponent");
         compNode.addParamNode("IN", paramList);
+        compNode.addParamNode("IN", paramList);
         compNode.addFunctionNode(effectorFunction);
+        compNode.addParamNode("OUT", paramListOUT);
         compNode.addParamNode("OUT", paramListOUT);
         
         const fnc2 = () => console.log("Another function!");
         const effectorFunction2 = new Effector("Custom function2", fnc2, 3, 2)
         const compNode2 = new Component(this, componentBuff, [600, 300], [0.1,0.1,0.1,1], "myComponent2");
-        compNode2.addParamNode("IN", paramList);
+        compNode2.addParamNode("IN", paramList2);
+        compNode2.addParamNode("IN", paramList2);
         compNode2.addFunctionNode(effectorFunction2);
-        compNode2.addParamNode("OUT", paramListOUT);
-
+        compNode2.addParamNode("OUT", paramListOUT2);
+        compNode2.addParamNode("OUT", paramListOUT2);
+        
+        /*
         const compNode3 = new Component(this, componentBuff, [600, 300], [0.1,0.1,0.1,1], "myComponent3");
         compNode3.addParamNode("IN", paramList);
         compNode3.addFunctionNode(effectorFunction2);
@@ -245,20 +262,19 @@ export class App
         compNode4.addParamNode("IN", paramList);
         compNode4.addFunctionNode(effectorFunction2);
         compNode4.addParamNode("OUT", paramListOUT);
+        */
 
         const activeViewer = this.UI.viewer;
         activeViewer.addComponent(compNode);
         activeViewer.addComponent(compNode2);
-        activeViewer.addComponent(compNode3);
-        activeViewer.addComponent(compNode4);
-
-        console.log(activeViewer);
+        // activeViewer.addComponent(compNode3);
+        // activeViewer.addComponent(compNode4);
 
         // this.UI.addObj(compNode.getObjsToRender(), ["nodes"]);
         compNode.setPosition([500,500]);
         compNode2.setPosition([500,400]);
-        compNode3.setPosition([300,400]);
-        compNode4.setPosition([100,400]);
+        // compNode3.setPosition([300,400]);
+        // compNode4.setPosition([100,400]);
     }
 
     // render loop function called from RenderLoop class

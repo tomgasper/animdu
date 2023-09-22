@@ -1,10 +1,12 @@
 import { UINode } from "./UINode.js";
-import { RenderableObject } from "../../RenderableObject.js";
 import { createNewText } from "../../Text/textHelper.js";
 
 export class ParamNode extends UINode
 {
-    type = undefined;
+    type = "INParamNode";
+    indx = 0;
+
+    name = "INParamNode";
 
     elements = {...this.elements,
         text: undefined
@@ -45,7 +47,7 @@ export class ParamNode extends UINode
 
         // Init graphical handlers
         // Render handle for each param to modify
-        const handlesType = this.type === "IN" ? "OUT" : "IN";
+        const handlesType = this.type === "INParamNode" ? "OUT" : "IN";
         this.addIOHandles(handlesType, this.parameters.list.length, this, this.style.text.paramTextOffsetY);
 
         /* this is how txtArr obj looks like:
@@ -74,13 +76,25 @@ export class ParamNode extends UINode
 
     setType(type)
     {
-        this.type = type;
+        if (type === "IN") this.type = "INParamNode";
+        else if (type === "OUT") this.type = "OUTParamNode";
+        else throw new Error ("Setting incorrect ParamNode type! Must be IN or OUT type");
+    }
+
+    setIndx(indx)
+    {
+        if (Number.isInteger(indx))
+        {
+            this.indx = indx;
+            this.name = this.type + indx.toString();
+            this.updateText();
+        }
     }
 
     constructText()
     {
         this.txtArr = [
-            { data: this.type, pos: [0, 0 ] },
+            { data: this.name, pos: [0, 0 ] },
             ...this.convertToTxtArr(this.parameters.list, 0, this.style.text.paramTextOffsetY)
         ];
     }

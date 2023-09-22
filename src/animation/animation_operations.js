@@ -6,6 +6,7 @@ import { ObjAnimation } from "./ObjAnimation.js";
 import { ComponentNode } from "../UI/Node/ComponentNode.js";
 
 import { Digraph } from "../DataStructures/Digraph.js";
+import { ParamNode } from "../UI/Node/ParamNode.js";
 
 const findConnectedComponents = (startOffset, componentNode) => {
     const componentList = [
@@ -134,62 +135,150 @@ const gatherComponentsAtTime = (time, animationList) =>
     }
 
     // Calculate proper processing order
-    const actionsOrder = depGraph.topologicalSort();
-    // Sorted active objects
+    const actionsOrder = depGraph.topologicalSort().reverse();
+
+    // Sort active objects
     const sortedActiveObjs = [];
     for (let i = 0; i < actionsOrder.length; i++)
     {
-        // sortedActiveObjs.push(activeObjsAtTime[i]);
-        sortedActiveObjs.push(activeObjsAtTime[actionsOrder[i]].component.name);
+        sortedActiveObjs.push(activeObjsAtTime[actionsOrder[i]]);
     }
 
-    console.log(sortedActiveObjs);
+    return sortedActiveObjs;
 }
 
-/*
-const printTree = (tree) => {
-    function traverse(childrenStr, treeNode)
-    {
-        if (!treeNode) return childrenStr;
+const exeEffectorFnc = (animTime, INList, fncNode) => {
+    const out = fncNode.effector.fnc(animTime, ...INList);
 
-        let line = "";
-        if (treeNode.children.length >= 1)
+    return out;
+}
+
+const processInputParamNode = (activeObj, handle) => {
+    const paramNodeIndx = handle.line.connection.connectedObj.node.indx;
+    const connectedObj = activeObj.elements.handles.L[paramNodeIndx].line.connection.connectedObj.node;
+    const connectedParam = handle.line.connection.connectedObj.parameter;
+
+    let obj;
+
+    if (connectedObj.type === "ObjNode")
+    {
+        obj = activeObj.elements.handles.L[paramNodeIndx].line.connection.connectedObj.node.obj;
+    } else if (connectedObj.type === "ComponentNode")
+    {
+        obj = activeObj.elements.handles.L[paramNodeIndx].line.connection.connectedObj.node.component.activeObj;
+    } else throw new Error("Wrong output!");
+
+    // save inputs for effector function
+    connectedParam.value = obj.properties[connectedParam.name];
+
+    // update node's text
+    handle.line.connection.connectedObj.node.updateText();
+
+    return connectedParam.value;
+}
+
+const processInputVarNode = (handle) => {
+
+}
+
+const setOUTvalues = (activeObj) => {
+    // set values from OUTparamNodes
+    const activeObjOUTNodes = activeObj.component.elements.nodes.OUT;
+
+    for (let i = 0; i < activeObjOUTNodes.length; i++)
+    {
+        const paramsList = activeObjOUTNodes[i].parameters.list;
+        const paramNodeIndx = activeObjOUTNodes[i].indx;
+
+        // get object that is connected Component Node based on index
+        if (!activeObj.elements.handles.L[paramNodeIndx].line.connection.isConnected) continue;
+        const connectedObj = activeObj.elements.handles.L[paramNodeIndx].line.connection.connectedObj.node;
+        let inputObjToSet;
+
+        if (connectedObj.type === "ObjNode")
         {
-            for (let i = 0; i < treeNode.children.length; i++)
-            {
-                line = line + traverse(line, treeNode.children[i]);
-                // childrenStr = childrenStr + '\n' + fullLine;
-            }
-            line = line + '\n';
+            inputObjToSet = connectedObj.obj;
+        } else if (connectedObj.type === "ComponentNode")
+        {
+            inputObjToSet = connectedObj.component.activeObj;
+        } else throw new Error("Wrong output!");
+
+        for (let param of paramsList)
+        {
+            inputObjToSet.properties[param.name] = param.value;
+            inputObjToSet.updateTransform();
         }
-
-        line = line + " " + treeNode.value.component.name;
-        return line;
     }
-
-    let strTree = "";
-    const returnStr = traverse(strTree, tree);
-
-    console.log(returnStr);
-    console.log(strTree);
 }
 
-const findInTree = (tree, val) =>
-{
-    if (!this) return undefined;
-    if (this.val === val) return this;
+const processActiveObject = (animTime, activeObj) => {
+    console.log("Processing: " + activeObj.component.name);
 
-    for (let treeNode of tree.children)
+    const fncNode = activeObj.component.elements.nodes.FNC[0];
+
+    const IN = fncNode.elements.handles.L;
+    const OUT = fncNode.elements.handles.R;
+
+    const INRefList = [];
+    const beforeParams = [];
+
+    IN.forEach( (handle, indx) => {
+        if (handle.line.connection.isConnected)
+        {
+            const connectedObj = handle.line.connection.connectedObj.node;
+            const connectedObjType = connectedObj.type;
+
+            switch(connectedObjType)
+            {
+                case "INParamNode":
+                    INRefList[indx] = processInputParamNode(activeObj, handle);
+                    break;
+                case "VarNode":
+                    INRefList[indx] = processInputVarNode(handle);
+                    break;
+                default:
+                    throw new Error("Wrong input node type!");
+            }
+
+        }
+    });
+
+    // call FNC
+    // main part
+    const functionOutput = exeEffectorFnc(animTime, INRefList, fncNode);
+
+    console.log(functionOutput);
+
+    // move values to nodes connected to out lines
+    for (let i = 0; i < OUT.length; i++)
     {
-        return findInTree(treeNode);
+        const handle = OUT[i];
+
+        if (handle.line.connection.isConnected)
+        {
+            const connectedObj = handle.line.connection.connectedObj;
+
+            connectedObj.parameter.value = functionOutput[i];
+            connectedObj.node.updateText();
+        }
+    }
+
+    setOUTvalues(activeObj);
+}
+
+const processActiveObjects = (animTime, activeObjectsList) => 
+{
+    for (let i = 0; i < activeObjectsList.length; i++)
+    {
+        processActiveObject(animTime, activeObjectsList[i]);
     }
 }
-*/
 
 export const procc = ( animTime, nodesContainer ) =>
 {
-    let depTree = undefined;
+    // check if you're dealing with the same components
+    // use caching if so
     const animationList = createAnimationList(nodesContainer);
-
-    gatherComponentsAtTime(animTime, animationList);
+    const sortedActiveObjects = gatherComponentsAtTime(animTime, animationList);
+    processActiveObjects(animTime, sortedActiveObjects);
 }
