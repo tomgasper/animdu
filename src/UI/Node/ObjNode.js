@@ -12,6 +12,7 @@ import { TransformNode } from "../../Node/TransformNode.js";
 
 export class ObjNode extends UINode
 {
+    type = "ObjNode";
     obj = undefined;
 
     constructor(appRef, buffInfo, obj, paramsList)

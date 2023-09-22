@@ -1,11 +1,11 @@
 import { UINode } from "./UINode.js";
-import { RenderableObject } from "../../RenderableObject.js";
 import { createNewText } from "../../Text/textHelper.js";
 
 import { ObjNode } from "./ObjNode.js";
 
 export class ComponentNode extends UINode
 {
+    type = "ComponentNode";
     component = undefined;
 
     // NOTE:
@@ -35,6 +35,8 @@ export class ComponentNode extends UINode
         this.style.marginX = this.style.container.width/10;
         this.style.marginY = this.style.container.height/10;
 
+        this.style.handles.offsetY = 20.;
+
         this.style.handles.L.position = [ 0, this.style.container.height/4 ];
         this.style.handles.R.position = [ this.style.container.width, this.style.container.height/2 ] ;
 
@@ -43,8 +45,8 @@ export class ComponentNode extends UINode
         this.container.handlers.onMouseMove = () => this.handleMouseMove();
 
 
-        this.addIOHandles("IN", inNum + 2 , this.container, this.style.handles.L.position[1]);
-        this.addIOHandles("OUT", outNum + 2, this.container, this.style.handles.R.position[1]);
+        this.addIOHandles("IN", inNum, this.container, this.style.handles.L.position[1]);
+        this.addIOHandles("OUT", outNum, this.container, this.style.handles.R.position[1]);
         
         /* this is how txtArr obj looks like:
             const txtArr = [
@@ -116,14 +118,14 @@ export class ComponentNode extends UINode
         }
 
         // Note that we are ignoring container here
-        this.elements.handles.L.forEach( handle => {
+        this.elements.handles.L.forEach( (handle,indx) => {
             handle.setVisible(true);
-            handle.setPosition(newHandleLPos);
+            handle.setPosition([newHandleLPos[0] , newHandleLPos[1] + this.style.handles.offsetY * indx]);
         });
 
-        this.elements.handles.R.forEach( handle => {
+        this.elements.handles.R.forEach( (handle, indx) => {
             handle.setVisible(true);
-            handle.setPosition(newHandleRPos);
+            handle.setPosition([newHandleRPos[0] , newHandleRPos[1] + this.style.handles.offsetY * indx]);
         });
         
         this.elements.text.setVisible(isNode);

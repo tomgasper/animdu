@@ -110,13 +110,21 @@ export class Component extends UIObject
 
     addParamNode(type, params)
     {
+        const paramNodeIndx = this.elements.nodes.IN.length;
         const newNode = new ParamNode(this._ref.app, this._ref.app.UI.UIBuffers.ObjNode.container.buffer.getInfo(), type, params);
         newNode.initialize();
         newNode.setParent(this);
 
         // Save ref
-        if (type === "IN") this.elements.nodes.IN.push(newNode);
-        else if (type === "OUT") this.elements.nodes.OUT.push(newNode);
+        if (type === "IN")
+        {
+            this.elements.nodes.IN.push(newNode);
+            newNode.setIndx(this.elements.nodes.IN.length-1);
+        }
+        else if (type === "OUT") {
+            this.elements.nodes.OUT.push(newNode);
+            newNode.setIndx(this.elements.nodes.OUT.length-1);
+        }
     }
 
     addFunctionNode(effectorFnc)
