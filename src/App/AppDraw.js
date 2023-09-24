@@ -111,7 +111,7 @@ const drawInMask = (appRef, objsArrIndx, program) =>
 
 const drawWithoutMask = (appRef,objsArrIndx, program = undefined) =>
 {
-    drawObjects(appRef, appRef.objsToDraw[i].objs, objsArrIndx, program);
+    drawObjects(appRef, appRef.objsToDraw[objsArrIndx].objs, objsArrIndx, program);
 }
 
 export const drawPass = (appRef, objsToDraw, program, indx = 0) =>

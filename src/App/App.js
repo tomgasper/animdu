@@ -322,7 +322,7 @@ export class App
 
         this.objsToDraw = [
             { mask: [ this.UI.viewer ], objs: [ ...viewerObjs ] },
-            { mask: [ this.UI.viewport ], objs: [ ...activeCompObjs] },
+            { mask: [  ], objs: [ ...activeCompObjs] },
         ];
     }
 
@@ -362,7 +362,8 @@ export class App
     drawComp(listToUse, programIndx)
     {
         const [viewportOffsetX, viewportOffsetY] = this.UI.viewport.position;
-        this.gl.viewport(viewportOffsetX, viewportOffsetY, this.gl.canvas.width, this.gl.canvas.height);
+        // this.gl.viewport(viewportOffsetX, viewportOffsetY, this.UI.viewport, this.gl.canvas.height);
+        this.gl.viewport(viewportOffsetX, viewportOffsetY, this.UI.viewport.width, this.UI.viewport.height);
         drawPass(this,[this.objsToDraw[listToUse]], this.programs[programIndx], listToUse);
     }
 }

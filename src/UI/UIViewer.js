@@ -55,7 +55,7 @@ export class UIViewer extends UIObject
         this.style.colour = colour;
     }
 
-    createContainer(dims)
+    createContainerVerts(dims)
     {
     const [ left, right, top, bottom ] = dims;
         // Install Container
@@ -68,17 +68,13 @@ export class UIViewer extends UIObject
     left, top
     ];
 
+    return customVertsPos;
+    }
 
-    const customRectBuffer = new CustomBuffer(this._ref.app.gl, this._ref.app.programs[0], customVertsPos);
-    const customRectBufferInfo = customRectBuffer.getInfo();
-
-    const customRect = new RenderableObject(customRectBufferInfo);
-    customRect.canBeMoved = false;
-    customRect.properties.highlight = false;
-    customRect.setColor([0,0.3,0.2,1]);
-    customRect.properties.originalColor = [0, 0.02, 0.04, 1];
-
-    return customRect;
+    updateContainer(dims)
+    {
+        const newVerts = this.createContainerVerts(dims);
+        this.buffer.updatePositionBuffer(newVerts);
     }
 
     addComponent(component)

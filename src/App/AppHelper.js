@@ -201,6 +201,9 @@ export const resizeCanvas = (app) =>
 {
     if ( resizeCanvasToDisplaySize(window.originalRes, app.gl.canvas, window.devicePixelRatio))
     {
+        console.log("resizing!");
+        app.UI.resize();
+    
         setFramebufferAttachmentSizes(app.gl, app.depthBuffer, app.gl.canvas.width, app.gl.canvas.height, app.renderTexture);
     }
 }

@@ -211,7 +211,7 @@ export class UI
         const customRectBuffer = new CustomBuffer(this.app.gl, this.app.programs[0], customVertsPos);
         const customRectBufferInfo = customRectBuffer.getInfo();
 
-        return customRectBufferInfo;
+        return [customRectBuffer,customRectBufferInfo];
     }
 
     initUI = (app) =>
@@ -228,12 +228,15 @@ export class UI
         this.style.nodes.general.textInput.text.font = mainFont;
 
         // Create scene viewport
-        this.viewport = new UIViewport(this.app, this.createViewport(800,400), [800,400], [0.6,0.6,0.6,1]);
+        this.viewport = new UIViewport(this.app, this.createViewport(this.app.gl.canvas.clientWidth,this.app.gl.canvas.clientHeight), [800,400], [0.6,0.6,0.6,1]);
 
         // Create node space viewport
         const viewerDims = [0, this.app.gl.canvas.clientWidth,
                             this.app.gl.canvas.clientHeight/2, this.app.gl.canvas.clientHeight];
-        this.viewer = new UIViewer(this.app, this, this.createContainer(viewerDims), "UIViewer", viewerDims);
+
+        const [ nodeSpaceContainerBuffer, nodeSpaceContainerVerts ] = this.createContainer(viewerDims);
+        this.viewer = new UIViewer(this.app, this, nodeSpaceContainerVerts, "UIViewer", viewerDims);
+        this.viewer.buffer = nodeSpaceContainerBuffer;
     }
 
     initializeUIBuffers = (app, program) => 
@@ -299,6 +302,20 @@ export class UI
 
         this.addObj(newNode.getObjsToRender(), ["nodes"]);
         return newNode;
+    }
+
+    resize()
+    {
+        const screenSize = [this.app.gl.canvas.clientWidth,this.app.gl.canvas.clientHeight];
+        const viewerDims = [0, screenSize[0],
+            screenSize[1]/2, screenSize[1]];
+        
+        this.viewer.updateContainer(viewerDims);
+
+        this.viewport.width = this.app.gl.canvas.width;
+        this.viewport.height = this.app.gl.canvas.height;
+
+        this.viewport.position = [0, this.app.gl.canvas.height/2];
     }
 
     addObj(obj, dir)
