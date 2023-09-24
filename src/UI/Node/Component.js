@@ -12,6 +12,8 @@ import { createNewText } from "../../Text/textHelper.js";
 
 import { isNumeric } from "../../utils.js";
 
+import { hexToRgb } from "../../utils.js";
+
 export class Component extends UIObject
 {
     elements = {
@@ -53,17 +55,21 @@ export class Component extends UIObject
 
     initialize(size = [700, 350], colour = [0.5,0.1,0.3,1])
     {
+        const fontBody = this._ref.UI.style.nodes.general.text.body;
         
         [this.style.container.width, this.style.container.height] = size;
 
-        // Stylize Node
+        // Stylize Component Inside
         this.style.text.paramTextOffsetX = this.style.container.width/2;
         this.style.marginX = this.style.container.width/10;
         this.style.marginY = this.style.container.height/10;
 
+        this.style.container.colour = hexToRgb(this._ref.UI.style.nodes.component.container.colour, 0.8);
+        this.setBlending(true);
+
         // const rect = new RenderableObject(this._ref.app.primitiveBuffers.rectangle);
         this.setScale([this.style.container.width/100,this.style.container.height/100]);
-        this.setOriginalColor(colour);
+        this.setOriginalColor(this.style.container.colour);
 
         // Save ref and connect to UIViewer
         this.setParent(this._ref.UI.viewer);
@@ -84,7 +90,7 @@ export class Component extends UIObject
             },
         ]
 
-        const txtBatch = this.createBatchText(txtArr, 10);
+        const txtBatch = this.createBatchText(txtArr, fontBody);
         txtBatch.setParent(this);
 
         // Add input for duration
@@ -145,7 +151,8 @@ export class Component extends UIObject
         this.elements.buttons.hide.setVisible(false);
 
         if (!this.elements.outside) this.initializeNode();
-        else this.elements.outside.transformToNode(true);
+        
+        this.elements.outside.transformToNode(true);
 
         // need to update world matrix property as a new position of components
         // won't be available til redraw
@@ -216,10 +223,10 @@ export class Component extends UIObject
         this.activeObj = obj;
     }
 
-    createBatchText(txtArr, txtSize, txtColour = [1,1,1,1])
+    createBatchText(txtArr, font)
     {
         // creating text batch for this node, to avoid creating a lot of small buffers
-        const txtBatch = createNewText(this._ref.app.gl, this._ref.app.programs[2], txtArr, txtSize, this._ref.UI.font, txtColour);
+        const txtBatch = createNewText(this._ref.app.gl, this._ref.app.programs[2], txtArr, font.size, font.font, hexToRgb(font.colour));
         txtBatch.setCanBeMoved(false);
         txtBatch.setPosition([ 0, 0 ]);
 

@@ -4,15 +4,13 @@ import { UINode } from "./Node/UINode.js";
 import { ObjNode } from "./Node/ObjNode.js";
 import { FunctionNode } from "./Node/FunctionNode.js";
 import { ParamNode } from "./Node/ParamNode.js";
-
-import { UINodeParam } from "./Node/UINodeParam.js";
 import { UINodeParamList } from "./Node/UINodeParamList.js";
 
 import { UILayersPanel } from "./Panels/UILayersPanel.js";
 
 import { UIBuffers } from "./UIBuffers.js";
 
-import { initTopBar, initParamsPanel, setUpMainFont } from "./initializeUI.js";
+import { setUpMainFont } from "./initializeUI.js";
 
 import { UIViewport } from "./UIViewport.js";
 import { UIViewer } from "./UIViewer.js";
@@ -54,7 +52,109 @@ export class UI
     topBarHeight;
     viewerStartY;
 
-    font;
+    style = {
+        general:
+        {
+            mainColour: "3E65C8",
+            secondaryColour: "000000",
+            text:
+            {
+                regular:
+                {
+                    font: undefined,
+                    fontSize: 10,
+                },
+                bold:
+                {
+                    font: undefined,
+                    fontSize: 10,
+                }
+            },
+        },
+        nodes:
+        {
+            general:
+            {
+                text: {
+                    heading:
+                    {
+                        font: undefined,
+                        size: 12,
+                        colour: "FFFFFF"
+                    },
+                    body:
+                    {
+                        font: undefined,
+                        size: 10,
+                        colour: "FFFFFF"
+                    }
+                },
+                container:
+                {
+                    size: [150,200],
+                    colour: "3E65C8",
+                },
+                textInput:
+                {
+                    text: {
+                        font: undefined,
+                        size: 9,
+                        colour: "FFFFFF"
+                    },
+                    container:
+                    {
+                        colour: "253E7F"
+                    }
+                }
+            },
+            component:
+            {
+                container:
+                {
+                    colour: "3E65C8",
+                }
+            },
+            params:
+            {
+                container:
+                {
+                    colour: "D7E2FF"
+                },
+                text:
+                {
+                    colour: "000000"
+                }
+            },
+            fnc:
+            {
+                container:
+                {
+                    colour: "D7E2FF"
+                },
+                text:
+                {
+                    colour: "000000"
+                }
+            }
+        },
+        nodeViewer:
+        {
+            general:
+            {
+
+            },
+            size:
+            {
+                // in %
+                height: 30,
+                width: 100
+            },
+            container:
+            {
+                colour: "E2E2E2"
+            }
+        },
+    }
 
     UIBuffers;
     
@@ -96,47 +196,44 @@ export class UI
 
     createContainer(dims)
     {
-    const [ left, right, top, bottom ] = dims;
-        // Install Container
-    const customVertsPos = [  left, top,
-    right, top,
-    right, bottom,
-    
-    right, bottom,
-    left, bottom,
-    left, top
-    ];
+        const [ left, right, top, bottom ] = dims;
+            // Install Container
+        const customVertsPos = [  left, top,
+        right, top,
+        right, bottom,
+
+        right, bottom,
+        left, bottom,
+        left, top
+        ];
 
 
-    const customRectBuffer = new CustomBuffer(this.app.gl, this.app.programs[0], customVertsPos);
-    const customRectBufferInfo = customRectBuffer.getInfo();
+        const customRectBuffer = new CustomBuffer(this.app.gl, this.app.programs[0], customVertsPos);
+        const customRectBufferInfo = customRectBuffer.getInfo();
 
-    /*
-    const customRect = new RenderableObject(customRectBufferInfo);
-    customRect.canBeMoved = false;
-    customRect.properties.highlight = false;
-    customRect.setColor([0,0.3,0.2,1]);
-    customRect.properties.originalColor = [0, 0.02, 0.04, 1];
-    */
-
-    return customRectBufferInfo;
+        return customRectBufferInfo;
     }
 
     initUI = (app) =>
     {
         this.initializeUIBuffers(app,app.programs[0]);
-        setUpMainFont(app,this);
+        const [ mainFont, mainBoldFont ] = setUpMainFont(app,this);
 
-        this.topBar.objects = initTopBar(app, this);
+        this.style.general.text.regular.font = mainFont;
+        this.style.general.text.bold.font = mainBoldFont;
 
+        this.style.nodes.general.text.heading.font = mainBoldFont;
+        this.style.nodes.general.text.body.font = mainFont;
+
+        this.style.nodes.general.textInput.text.font = mainFont;
+
+        // Create scene viewport
         this.viewport = new UIViewport(this.app, this.createViewport(800,400), [800,400], [0.6,0.6,0.6,1]);
 
-        // initParamsPanel(app, this);
-
-        // Init Viewer
+        // Create node space viewport
         const viewerDims = [0, this.app.gl.canvas.clientWidth,
                             this.app.gl.canvas.clientHeight/2, this.app.gl.canvas.clientHeight];
-        this.viewer = new UIViewer(this.app, this.createContainer(viewerDims), "UIViewer", viewerDims);
+        this.viewer = new UIViewer(this.app, this, this.createContainer(viewerDims), "UIViewer", viewerDims);
     }
 
     initializeUIBuffers = (app, program) => 
@@ -181,10 +278,8 @@ export class UI
         const containerBuffer = this.UIBuffers.UINode.container.buffer.getInfo();
         const newNode = new ObjNode(this.app, containerBuffer, obj, params);
         newNode.initialize();
-
         newNode.setParent(this.viewer);
 
-        // this.addObj(newNode.getObjsToRender(), ["nodes"]);
         return newNode;
     }
 

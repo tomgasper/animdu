@@ -396,3 +396,14 @@ export const changeValueNumeric = (startVal, target, inputKey) =>
 
       return newString;
   }
+
+  export const hexToRgb = (hex, alpha = 1, isNormalize = true) => {
+    let norm = isNormalize ? 255 : 1;
+    var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+    return result ? [
+      parseInt(result[1], 16)/norm,
+      parseInt(result[2], 16)/norm,
+      parseInt(result[3], 16)/norm,
+      alpha
+     ] : null;
+  }

@@ -2,6 +2,8 @@ import { UINode } from "./UINode.js";
 import { RenderableObject } from "../../RenderableObject.js";
 import { createNewText } from "../../Text/textHelper.js";
 
+import { hexToRgb } from "../../utils.js";
+
 import { Effector } from "./Effector.js";
 
 export class FunctionNode extends UINode
@@ -17,6 +19,10 @@ export class FunctionNode extends UINode
 
     initialize()
     {
+        // Text
+        this.style.text.body.colour = this._ref.UI.style.nodes.params.text.colour;
+        const fontBody = this.style.text.body;
+
         // Set size based on the background container size
         this._ref.UIBuffers = this._ref.app.UI.UIBuffers.UINode;
 
@@ -27,6 +33,10 @@ export class FunctionNode extends UINode
         this.style.marginX = this.style.container.width/10;
         this.style.marginY = this.style.container.height/10;
 
+        this.style.container.colour = hexToRgb(this._ref.UI.style.nodes.fnc.container.colour);
+        this.setOriginalColor(this.style.container.colour);
+
+
         // Retrieve previously initialized buffer
         /*
         const UINodeContainerBuffer = this._ref.UIBuffers.container.buffer.getInfo();
@@ -34,7 +44,6 @@ export class FunctionNode extends UINode
         */
 
         this.setPosition([0,0]);
-        this.setOriginalColor(this.style.container.colour);
 
         this.handlers.onMouseMove = () => { this.handleMouseMove() };
         this.handlers.onClick = () => {
@@ -44,8 +53,8 @@ export class FunctionNode extends UINode
         // Save ref
         // this.container = rect;
 
-        this.addIOHandles("IN", this.effector.argc, this, this.style.container.height/4 - this.style.text.size);
-        this.addIOHandles("OUT", this.effector.outc, this, this.style.container.height/2 - this.style.text.size);
+        this.addIOHandles("IN", this.effector.argc, this, this.style.container.height/4 - this.style.text.body.size);
+        this.addIOHandles("OUT", this.effector.outc, this, this.style.container.height/2 - this.style.text.body.size);
         
         /* this is how txtArr obj looks like:
             const txtArr = [
@@ -64,10 +73,12 @@ export class FunctionNode extends UINode
         ];
 
        // creating text batch for this node, to avoid creating a lot of small buffers
-        const txtBatch = createNewText(this._ref.app.gl, this._ref.app.programs[2], this.txtArr, this.style.text.size, this._ref.UI.font, this.style.text.colour);
+        const txtBatch = createNewText(this._ref.app.gl, this._ref.app.programs[2], this.txtArr, fontBody.size, fontBody.font, hexToRgb(fontBody.colour));
         txtBatch.setCanBeMoved(false);
         txtBatch.setPosition([ this.style.marginX, this.style.marginY ]);
         txtBatch.setParent(this);
+
+        this.elements.text = txtBatch;
     }
 
     createIOTxt(type, offset = 0)
@@ -79,7 +90,7 @@ export class FunctionNode extends UINode
             for (let i = 0; i < this.effector.argc; i++)
             {
                 txtArr.push(
-                    { data: "IN" + "(" + i + ")", pos: [10, this.style.container.height/4 + this.style.text.paramTextOffsetY * (i + offset) - this.style.text.size] }
+                    { data: "IN" + "(" + i + ")", pos: [10, this.style.container.height/4 + this.style.text.body.paramTextOffsetY * (i + offset) - this.style.text.body.size] }
                 )
             }
         } else if (type === "OUT")
@@ -87,7 +98,7 @@ export class FunctionNode extends UINode
             for (let i = 0; i < this.effector.outc; i++)
             {
                 txtArr.push(
-                    { data: "OUT" + "(" + i + ")", pos: [this.style.container.width-65, this.style.container.height/2 + this.style.text.paramTextOffsetY * (i + offset) - this.style.text.size ] }
+                    { data: "OUT" + "(" + i + ")", pos: [this.style.container.width-65, this.style.container.height/2 + this.style.text.body.paramTextOffsetY * (i + offset) - this.style.text.body.size ] }
                 )
             }
         }

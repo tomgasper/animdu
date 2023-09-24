@@ -33,6 +33,7 @@ export function createNewText(gl, program, text, textSize, font, txtColor)
     };
 
     const txtObj = new TextObject(textBufferInfo, textBuffer, textProperties, getProjectionMat(gl));
+    txtObj.setOriginalColor(txtColor);
 
     // Turn on blending as default
     txtObj.properties.blending = true;

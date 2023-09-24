@@ -247,22 +247,6 @@ export class TextBuffer {
         let primitiveType = this.drawSettings.primitiveType;
         let offset = this.drawSettings.offset;
         let count = this.drawSettings.count;
-
-        if ( this.font.subpixel === 1.0 ) {
-            // Subpixel antialiasing.
-            // Method proposed by Radek Dutkiewicz @oomek
-            // Text color goes to constant blend factor and 
-            // triplet alpha comes from the fragment shader output
-    
-            this.gl.blendColor( this.fontColor[0], this.fontColor[1], this.fontColor[2], 1.0 );
-            // this.gl.blendColor( 0.5, 0.5, 0.5, 1.0 );
-            this.gl.blendEquation( this.gl.FUNC_ADD );
-            this.gl.blendFunc( this.gl.CONSTANT_COLOR, this.gl.ONE_MINUS_SRC_COLOR );
-        } else {
-            // Greyscale antialising
-            this.gl.blendEquation( this.gl.FUNC_ADD );
-            this.gl.blendFunc( this.gl.SRC_ALPHA, this.gl.ONE_MINUS_SRC_ALPHA );
-        }
         
         this.gl.drawArrays(primitiveType, offset, count);
     }
