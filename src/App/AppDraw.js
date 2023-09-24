@@ -1,6 +1,7 @@
 import { m3 } from "../utils.js";
 import { RenderableObject } from "../RenderableObject.js";
 import { renderObject } from "../utils.js";
+import { TextObject } from "../Text/TextObject.js";
 
 // Draw functions
 export const drawObjects = (scene, objsToDraw, objsArrIndx, programInfo = undefined) =>
@@ -54,6 +55,30 @@ export const drawObjects = (scene, objsToDraw, objsArrIndx, programInfo = undefi
                 if (obj.properties.blending === true && !scene.gl.isEnabled(scene.gl.BLEND) )
                 {
                     scene.gl.enable(scene.gl.BLEND);
+
+                    if (obj instanceof TextObject)
+                    {
+                        const font = obj.txtBuffer.font;
+                        const fontColour = obj.properties.font_color;
+
+                        if ( font.subpixel === 1.0 ) {
+                            // Subpixel antialiasing.
+                            // Method proposed by Radek Dutkiewicz @oomek
+                            // Text color goes to constant blend factor and 
+                            // triplet alpha comes from the fragment shader output
+                    
+                            scene.gl.blendColor( fontColour[0], fontColour[1], fontColour[2], 1 );
+                            scene.gl.blendEquation( scene.gl.FUNC_ADD );
+                            scene.gl.blendFuncSeparate( scene.gl.CONSTANT_COLOR, scene.gl.ONE_MINUS_SRC_COLOR, scene.gl.ZERO, scene.gl.ONE );
+                            // scene.gl.blendFunc( scene.gl.CONSTANT_COLOR, scene.gl.ONE_MINUS_SRC_COLOR );
+                        } else {
+                            // Greyscale antialising
+                            scene.gl.blendEquation( scene.gl.FUNC_ADD );
+                            scene.gl.blendFunc( scene.gl.SRC_ALPHA, scene.gl.ONE_MINUS_SRC_ALPHA );
+                        }
+                    } else {
+                        scene.gl.blendFunc(scene.gl.SRC_ALPHA, scene.gl.ONE_MINUS_SRC_ALPHA);
+                    }
                 }
 
                 //obj.setProjection(projection);

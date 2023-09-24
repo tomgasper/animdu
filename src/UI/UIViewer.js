@@ -4,25 +4,38 @@ import { CustomBuffer } from "../Primitives/CustomBuffer.js";
 
 import { Component } from "./Node/Component.js";
 
+import { hexToRgb } from "../utils.js";
+
 export class UIViewer extends UIObject
 {
     components = [];
 
-    constructor(appRef, buffInfo, name, dims, colour)
+    style = {
+        ...this.style,
+        container: {
+            colour: undefined
+        },
+    }
+
+    constructor(appRef, UIRef, buffInfo, name)
     {
         // dims = [ (float)left, (float)right, (float)top, (float)bottom ]
+
         super(appRef, buffInfo);
+
+        // need to save ref to UI manually as UI instance isn't attached to App instance yet
+        this._ref.UI = UIRef;
 
         this.setName(name);
 
-        this.initialize(colour);
+        this.initialize();
     }
 
-    initialize(colour)
+    initialize()
     {
-        // this.container = this.createContainer(dims);
+        this.style.container.colour = hexToRgb(this._ref.UI.style.nodeViewer.container.colour);
 
-        this.setStyle(colour);
+        this.setStyle(this.style.container.colour);
     }
 
     setName(name)
@@ -31,14 +44,13 @@ export class UIViewer extends UIObject
         this.name = name;
     }
 
-    setStyle(colour = [0.4,0.3,0.2,1])
+    setStyle(colour)
     {
         if (!(this instanceof RenderableObject)) throw new Error("Incorrect/No container object!");
         this.setOriginalColor(colour);
         this.canBeMoved = false;
         this.properties.highlight = false;
-        this.setColor([0,0.3,0.2,1]);
-        this.properties.originalColor = [0, 0.02, 0.04, 1];
+        // this.setColor([0,0.3,0.2,1]);
 
         this.style.colour = colour;
     }

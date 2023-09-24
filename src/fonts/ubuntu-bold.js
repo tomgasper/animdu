@@ -1,4 +1,4 @@
-var ubuntu_bold_font = {
+export var ubuntu_bold_font = {
 ix: 0.009766 ,
 iy: 0.009766 ,
 aspect: 1.000000 ,

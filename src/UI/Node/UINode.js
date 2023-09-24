@@ -1,4 +1,4 @@
-import { getProjectionMat } from "../../utils.js";
+import { getProjectionMat, hexToRgb } from "../../utils.js";
 import { createNewText } from "../../Text/textHelper.js";
 
 import { UIObject } from "../UIObject.js";
@@ -9,8 +9,6 @@ import { UINodeHandle } from "./UINodeHandle.js";
 import { getPosFromMat } from "../../App/AppHelper.js";
 
 import { UINodeParam } from "./UINodeParam.js";
-
-import { isNumeric } from "../../utils.js";
 
 import { transformToParentSpace } from "../../utils.js";
 
@@ -30,15 +28,24 @@ export class UINode extends UIObject
         {
             width: undefined,
             height: undefined,
-            colour: [0.05,0.5,0.95,1]
+            colour: hexToRgb("464646")
         },
         marginX: undefined,
         marginY: undefined,
         text: {
-            size: 9,
-            colour: [1,1,1,1],
-            paramTextOffsetY: 20,
-            paramTextOffsetX: undefined,
+            heading: {
+                font: undefined,
+                size: 9,
+                colour: [1,1,1,1],
+            },
+            body:
+            {
+                font: undefined,
+                size: 9,
+                colour: [1,1,1,1],
+                paramTextOffsetY: 20,
+                paramTextOffsetX: undefined,
+            }
         },
 
         handles:
@@ -73,6 +80,15 @@ export class UINode extends UIObject
     {
         super(appRef, buffInfo);
 
+        // Assign default fonts for UINode
+        this.style.text.heading.font = appRef.UI.style.nodes.general.text.heading.font;
+        this.style.text.heading.size = appRef.UI.style.nodes.general.text.heading.size;
+        this.style.text.heading.colour = appRef.UI.style.nodes.general.text.heading.colour;
+
+        this.style.text.body.font = appRef.UI.style.nodes.general.text.body.font;
+        this.style.text.body.size = appRef.UI.style.nodes.general.text.body.size;
+        this.style.text.body.colour = appRef.UI.style.nodes.general.text.body.colour;
+
         this.parameters = paramsList;
     }
 
@@ -94,12 +110,6 @@ export class UINode extends UIObject
         rect.setPosition([0,0]);
         rect.setOriginalColor(this.containerColor);
         rect.handlers.onMouseMove = () => { this.handleMouseMove() };
-
-        /*
-        // Save ref
-        this.container = rect;
-
-        */
 
         // Init graphical handlers
         const cirlceBuffer = UIBuffers.handle.buffer.getInfo();
@@ -166,11 +176,11 @@ export class UINode extends UIObject
 
                 txtArr.push({
                     data: txt.name.toString(),
-                    pos: [0+offX, (indx*this.style.text.paramTextOffsetY) + offY ]
+                    pos: [0+offX, (indx*this.style.text.body.paramTextOffsetY) + offY ]
                 },
                 {
                     data: paramValue.toString(),
-                    pos: [this.style.text.paramTextOffsetX + offX, (indx*this.style.text.paramTextOffsetY) + offY]
+                    pos: [this.style.text.body.paramTextOffsetX + offX, (indx*this.style.text.body.paramTextOffsetY) + offY]
                 });
     
         })
@@ -355,7 +365,7 @@ export class UINode extends UIObject
 
         for (let i = 0; i < paramsNum; i++)
         {
-        const pos = [offsetX, this.style.marginY + ((i)*this.style.text.paramTextOffsetY + this.style.text.size + offsetY)];
+        const pos = [offsetX, this.style.marginY + ((i)*this.style.text.body.paramTextOffsetY + this.style.text.body.size + offsetY)];
         let param = undefined;
 
         if (this.parameters)

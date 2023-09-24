@@ -3,13 +3,9 @@ import { createNewText } from "../Text/textHelper.js";
 
 import { UIObject } from "./UIObject.js";
 
-import { createNewRect } from "../App/AppHelper.js";
-
-import { RenderableObject } from "../RenderableObject.js";
-
-import { isNumeric } from "../utils.js";
-
 import { changeValueNumeric } from "../utils.js";
+
+import { hexToRgb } from "../utils.js";
 
 export class UITextInput extends UIObject
 {
@@ -25,18 +21,15 @@ export class UITextInput extends UIObject
         onValueChange: undefined,
     }
 
-    scene = {};
     parent = {};
 
     txtObj = {};
 
     container = {};
 
-    constructor(scene, rect, txtSize, parent, value = "Input text")
+    constructor(appRef, rect, txtSize, parent, value = "Input text")
     {
-        super(scene, rect);
-
-        this.scene = scene;
+        super(appRef, rect);
 
         // style
         this.height = txtSize * 2;
@@ -52,14 +45,15 @@ export class UITextInput extends UIObject
 
     initialize()
     {
+        const fontBody = this._ref.UI.style.nodes.general.textInput.text;
+        this.style.container.colour = this._ref.UI.style.nodes.general.textInput.container.colour;
+
         this.setScale([this.width/100,this.height/100]);
-        this.setOriginalColor([1,1,1,1]);
+        this.setOriginalColor(hexToRgb(this.style.container.colour));
         this.setCanBeMoved(false);
 
-        const txtColor = [0.1,0.1,0.1,1];
-
         // add children
-        const txt = createNewText(this.scene.gl, this.scene.programs[2], this.placeholder, this.txtSize, this.scene.UI.font ,txtColor);
+        const txt = createNewText(this._ref.app.gl, this._ref.app.programs[2], this.placeholder, fontBody.size, fontBody.font ,hexToRgb(fontBody.colour));
         txt.setCanBeMoved(false);
         txt.setBlending(true);
         txt.setCanBeHighlighted(true);

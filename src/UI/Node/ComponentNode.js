@@ -3,6 +3,8 @@ import { createNewText } from "../../Text/textHelper.js";
 
 import { ObjNode } from "./ObjNode.js";
 
+import { hexToRgb } from "../../utils.js";
+
 export class ComponentNode extends UINode
 {
     type = "ComponentNode";
@@ -21,6 +23,9 @@ export class ComponentNode extends UINode
 
     initialize()
     {
+        const fontBody = this.style.text.body;
+        const fontHeading = this.style.text.heading;
+
         // Set size based on the background container size
         this._ref.UIBuffers = this._ref.app.UI.UIBuffers.UINode;
 
@@ -31,10 +36,16 @@ export class ComponentNode extends UINode
         const outNum = this.component.elements.nodes.OUT.length;
 
         // Stylize Node
+
+        //Text
         this.style.text.paramTextOffsetX = this.style.container.width/2;
+
+        // Container
         this.style.marginX = this.style.container.width/10;
         this.style.marginY = this.style.container.height/10;
+        this.style.container.colour = hexToRgb(this._ref.UI.style.nodes.component.container.colour, 1);
 
+        // Handles
         this.style.handles.offsetY = 20.;
 
         this.style.handles.L.position = [ 0, this.style.container.height/4 ];
@@ -43,6 +54,8 @@ export class ComponentNode extends UINode
         // Save ref
         this.container = this.component;
         this.container.handlers.onMouseMove = () => this.handleMouseMove();
+
+        this.container.setOnClick( () => console.log("hello!") );
 
 
         this.addIOHandles("IN", inNum, this.container, this.style.handles.L.position[1]);
@@ -65,7 +78,7 @@ export class ComponentNode extends UINode
         ];
 
        // creating text batch for this node, to avoid creating a lot of small buffers
-        const txtBatch = createNewText(this._ref.app.gl, this._ref.app.programs[2], this.txtArr, this.style.text.size, this._ref.UI.font, this.style.text.colour);
+        const txtBatch = createNewText(this._ref.app.gl, this._ref.app.programs[2], this.txtArr, fontBody.size, fontBody.font, hexToRgb(fontBody.colour));
         txtBatch.setCanBeMoved(false);
         txtBatch.setPosition([ this.style.marginX, this.style.marginY ]);
         txtBatch.setParent(this.container);
@@ -106,15 +119,20 @@ export class ComponentNode extends UINode
         // Change position of outgoing nodes
 
         let newHandleLPos, newHandleRPos;
+        let newColour;
 
         if (isNode)
         {
             newHandleLPos = this.style.handles.L.position;
             newHandleRPos = this.style.handles.R.position;
+
+            newColour = this.style.container.colour;
         } else 
         {
-            newHandleLPos = [0, this.component.style.container.height/2 - this.style.text.size];
-            newHandleRPos = [this.component.style.container.width, this.component.style.container.height/2 - this.style.text.size ];
+            newHandleLPos = [0, this.component.style.container.height/2 - this.style.text.body.size];
+            newHandleRPos = [this.component.style.container.width, this.component.style.container.height/2 - this.style.text.body.size ];
+
+            newColour = this.component.style.container.colour;
         }
 
         // Note that we are ignoring container here
@@ -129,6 +147,9 @@ export class ComponentNode extends UINode
         });
         
         this.elements.text.setVisible(isNode);
+
+        this.container.setOriginalColor(newColour);
+
         // this.container.children.forEach( (child) => child.setVisible(isVisible)) ;
     }
 

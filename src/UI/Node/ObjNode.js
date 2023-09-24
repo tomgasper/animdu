@@ -1,14 +1,10 @@
-import { getProjectionMat } from "../../utils.js";
 import { UINode } from "./UINode.js";
 
-import { RenderableObject } from "../../RenderableObject.js";
 import { UINodeHandle } from "./UINodeHandle.js";
 
 import { createNewText } from "../../Text/textHelper.js";
-import { UINodeParamList } from "./UINodeParamList.js";
-import { UINodeParam } from "./UINodeParam.js";
 
-import { TransformNode } from "../../Node/TransformNode.js";
+import { hexToRgb } from "../../utils.js";
 
 export class ObjNode extends UINode
 {
@@ -24,6 +20,9 @@ export class ObjNode extends UINode
 
     initialize()
     {
+        const fontBody = this.style.text.body;
+        const fontHeading = this.style.text.heading;
+
         // Set size based on the background container size
         this.UIBuffers = this._ref.UI.UIBuffers.ObjNode;
         this.width = this.UIBuffers.container.size[0];
@@ -34,13 +33,9 @@ export class ObjNode extends UINode
         this.marginX = this.width/10;
         this.marginY = this.height/10;
 
-        const anchor = new TransformNode();
+        this.setOriginalColor(this.style.container.colour);
 
-        // Retrieve previously initialized buffer
-        // const UINodeContainerBuffer = this.UIBuffers.container.buffer.getInfo();
-        // const rect = new RenderableObject(UINodeContainerBuffer, projectionMat);
         this.setPosition([0,0]);
-        this.setOriginalColor(this.containerColor);
         this.handlers.onMouseMove = () => { this.handleMouseMove() };
 
         // Save ref
@@ -99,7 +94,7 @@ export class ObjNode extends UINode
         console.log(this.txtArr);
 
        // creating text batch for this node, to avoid creating a lot of small buffers
-        const txtBatch = createNewText(this._ref.app.gl, this._ref.app.programs[2], this.txtArr, this.style.text.size, this._ref.UI.font, this.txtColor);
+        const txtBatch = createNewText(this._ref.app.gl, this._ref.app.programs[2], this.txtArr, fontBody.size, fontBody.font, hexToRgb(fontBody.colour));
         txtBatch.setCanBeMoved(false);
         txtBatch.setPosition([ this.marginX, this.marginY ]);
         txtBatch.setParent(this);
@@ -122,7 +117,7 @@ export class ObjNode extends UINode
         txtIn.forEach( (txt, indx) => {
                 txtArr.push({
                     data: txt.name.toString(),
-                    pos: [0, indx*this.style.text.paramTextOffsetY ]
+                    pos: [0, indx*this.style.text.body.paramTextOffsetY ]
                 });
     
                 this.numOfParams = this.numOfParams + 1;
