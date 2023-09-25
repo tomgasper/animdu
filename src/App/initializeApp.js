@@ -11,14 +11,27 @@ export const initalizeApp = (app) =>
     setUpPrimitveBuffers(app, app.programs[0]);
 }
 
-let timer = 0;
-const delay = 150;
+let timer;
+const delay = 10;
 let prevent = false;
+
+const onMouseStop = (app) => {
+    app.prevMouseX = app.mouseX;
+    app.prevMouseY = app.mouseY;
+}
 
 export const initInputListeners = (app) => 
 {
     // LISTENERS FOR USER INPUT
     app.gl.canvas.addEventListener("mousemove", (e) => {
+        // Need to know when the mouse stops
+        // handler for mouse stop event - onMouseStop
+        clearTimeout(timer);
+        timer = setTimeout( () => onMouseStop(app), delay);
+
+        app.prevMouseX = app.mouseX;
+        app.prevMouseY = app.mouseY;
+
         const rect = app.canvas.getBoundingClientRect();
         app.mouseX = e.clientX - rect.left;
         app.mouseY = e.clientY - rect.top;
@@ -34,26 +47,17 @@ export const initInputListeners = (app) =>
                 app.activeObjID = -1;
                 app.activeObjArrIndx = 1;
             }
+
+            app.inputState.keyPressed = app.inputState.keyPressed.filter( (obj) => { return obj !== e.key } );
     });
 
     app.document.addEventListener("keydown", (e) => {
-        // No scene object selected
-        if (app.activeObjID < 0 || app.activeObjArrIndx < 0)
-        {
-            if (e.keyCode === 32)
-            {
-                // To do later
-                // Set camera
-                
-                // First set spacedown state
-                // Second go to mousedown handler
-                // Handle movement when space down
-                const compCamera = app.activeComp.camera;
-                compCamera.setPosition( [0, 0]);
-            }
+        if (app.inputState.keyPressed.indexOf(e.key) === -1) app.inputState.keyPressed.push(e.key);
 
-            return;
-        }
+        console.log(app.inputState.keyPressed);
+
+        // No scene object selected
+        if (app.activeObjID < 0 || app.activeObjArrIndx < 0) return;
 
         // Some scene object selected
         if ( app.objsToDraw[app.activeObjArrIndx].objs[app.activeObjID].handlers.onInputKey)
@@ -106,8 +110,14 @@ export const initInputListeners = (app) =>
         };
 
         const [clipX, clipY] = getClipSpaceMousePosition(app,e, viewportOffset);
+    
+        console.log(clipY);
 
-        const compCamera = app.activeComp.camera;
+        let compCamera;
+        if (clipY > 0) compCamera = app.activeComp.camera;
+        else compCamera = app.UI.viewer.camera;
+
+        // const compCamera = app.activeComp.camera;
         const projectionMat = getProjectionMat(app.gl);
         let viewMat = m3.inverse(compCamera.matrix);
         let viewProjectionMat = m3.multiply(projectionMat, viewMat);
@@ -117,7 +127,8 @@ export const initInputListeners = (app) =>
             m3.inverse(viewProjectionMat), 
             [clipX, clipY]);
 
-        const newZoom = compCamera.zoom * Math.pow(2, e.deltaY * -0.01);
+        console.log(e.deltaY);
+        const newZoom = compCamera.zoom * Math.pow(1.85, e.deltaY * -0.01);
         compCamera.setZoom(Math.max(0.02, Math.min(100,newZoom) ));
 
         viewMat = m3.inverse(compCamera.matrix);

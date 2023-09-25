@@ -8,7 +8,7 @@ export class ParamNode extends UINode
     type = "INParamNode";
     indx = 0;
 
-    name = "INParamNode";
+    name = "ParamNode";
 
     elements = {...this.elements,
         text: undefined
@@ -94,9 +94,22 @@ export class ParamNode extends UINode
         if (Number.isInteger(indx))
         {
             this.indx = indx;
-            this.name = this.type + indx.toString();
-            this.updateText();
         }
+    }
+
+    setHeadingText()
+    {
+        let typeStr = "";
+        if (this.type === "INParamNode")
+        {
+            typeStr = "IN";
+        } else if (this.type === "OUTParamNode") 
+        {
+            typeStr = "OUT";
+        }
+
+        this.name = typeStr + "(" + this.indx + ")";
+        this.updateText();
     }
 
     constructText()

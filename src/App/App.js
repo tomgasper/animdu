@@ -41,6 +41,14 @@ export class App
     mouseX = 0;
     mouseY = 0;
 
+    prevMouseX = 0;
+    prevMouseY = 0;
+
+    inputState =
+    {
+        keyPressed: [],
+    }
+
     pickingData = new Uint8Array(4);
 
     comps = [];
@@ -71,6 +79,13 @@ export class App
     lastTime = 0.;
 
     drawCalls = 0;
+
+    settings = {
+        render:
+        {
+            blendingEnabled: false
+        }
+    }
 
     constructor(gl, canvas, programsInfo, framebuffer, depthBuffer, renderTexture)
     {
@@ -289,7 +304,7 @@ export class App
         // this.UI.viewer.container.children.forEach( (obj) => obj.updateWorldMatrix() );
 
         // Gather objs to draw
-        this.constructLayersPanel(this.activeComp.viewport);
+        // this.constructLayersPanel(this.activeComp.viewport);
 
         if (this.shouldAnimate) this.processAnimationFrame(elapsedTime);
         this.createDrawList(this.UI, this.activeComp.objects);
@@ -322,7 +337,7 @@ export class App
 
         this.objsToDraw = [
             { mask: [ this.UI.viewer ], objs: [ ...viewerObjs ] },
-            { mask: [  ], objs: [ ...activeCompObjs] },
+            { mask: [ this.UI.viewport ], objs: [ ...activeCompObjs] },
         ];
     }
 
@@ -339,31 +354,63 @@ export class App
         const pickingShader = 1;
 
         // Draw to texture - PASS 1
-        prepareForFirstPass(this.gl, this.framebuffer, [this.mouseX, this.mouseY]);
-        this.drawUI(UIList, pickingShader);
-        this.drawComp(activeCompList, pickingShader);
+        prepareForFirstPass(this, this.framebuffer, [this.mouseX, this.mouseY]);
+        this.drawUI(UIList, pickingShader, this.UI.viewer.camera );
+        this.drawComp(activeCompList, pickingShader, this.activeComp.camera);
 
         handleEvents(this);
 
         // 2nd Pass - Draw "normally"
         prepareForScndPass(this.gl);
         // passing undefined program so each object uses its own shader
-        this.drawUI(UIList, objShader);
-        this.drawComp(activeCompList, objShader);
+        this.drawUI(UIList, objShader, this.UI.viewer.camera);
+        this.drawComp(activeCompList, objShader, this.activeComp.camera);
 
         resetMouseClick(this);
     }
 
-    drawUI(listToUse, programIndx)
+    drawUI(listToUse, programIndx, camera)
     {
-        drawPass(this, [this.objsToDraw[listToUse]], this.programs[programIndx], listToUse);
+        const renderSettings = {
+            appRef: this,
+            objsToDraw: [ this.objsToDraw[listToUse] ],
+            program: this.programs[programIndx],
+            listIndx: listToUse,
+            camera: camera
+        }
+
+        drawPass(renderSettings);
     }
 
-    drawComp(listToUse, programIndx)
+    drawComp(listToUse, programIndx, camera = this.activeComp.camera)
     {
-        const [viewportOffsetX, viewportOffsetY] = this.UI.viewport.position;
-        // this.gl.viewport(viewportOffsetX, viewportOffsetY, this.UI.viewport, this.gl.canvas.height);
-        this.gl.viewport(viewportOffsetX, viewportOffsetY, this.UI.viewport.width, this.UI.viewport.height);
-        drawPass(this,[this.objsToDraw[listToUse]], this.programs[programIndx], listToUse);
+        this.gl.viewport(0,0, this.gl.canvas.width, this.gl.canvas.height);
+
+        const renderSettings = {
+            appRef: this,
+            objsToDraw: [ this.objsToDraw[listToUse] ],
+            program: this.programs[programIndx],
+            listIndx: listToUse,
+            camera: camera
+        }
+
+        drawPass(renderSettings);
+    }
+
+    setBlendingEnabled(isEnable)
+    {
+        if (typeof isEnable !== "boolean") throw new Error("Incorrect type!");
+
+        if (isEnable)
+        {
+            this.gl.enable(this.gl.BLEND);
+        } else {
+
+            this.gl.disable(this.gl.BLEND);
+        }
+
+        this.settings.render.blendingEnabled = isEnable;
+
+        return this.settings.render.blendingEnabled;
     }
 }

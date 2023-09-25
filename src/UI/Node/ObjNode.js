@@ -30,8 +30,8 @@ export class ObjNode extends UINode
 
         // Stylize Node
         this.paramTextOffsetX = this.width/2;
-        this.marginX = this.width/10;
-        this.marginY = this.height/10;
+        this.marginX = this.width*0.15;
+        this.marginY = this.height*0.15;
 
         this.setOriginalColor(this.style.container.colour);
 
@@ -43,23 +43,6 @@ export class ObjNode extends UINode
 
         // Init graphical handlers
         const cirlceBuffer = this.UIBuffers.handle.buffer.getInfo();
-
-        // Render handle for each param to modify
-
-        /*
-        const paramsNum = this.parameters.list.length;
-
-        for (let i = 0; i < paramsNum; i++)
-        {
-            const handleR = new UINodeHandle(this._ref.app, cirlceBuffer, this, this.container);
-            handleR.setPosition([this.width, this.marginY + ((i+2)*this.paramTextOffsetY + this.txtSize)]);
-            handleR.setOriginalColor([0.2,0.2,0.2,1])
-            handleR.setCanBeMoved(false);
-            handleR.setParameter(this.parameters.list[i]);
-
-            this.handleR.push(handleR);
-        }
-        */
 
         const handleR = new UINodeHandle(this._ref.app, cirlceBuffer, this, this);
         handleR.setPosition([this.width, this.height/2]);
@@ -86,7 +69,6 @@ export class ObjNode extends UINode
         // Render text
         this.txtArr = this.convertToTxtArr([
             {name: this.obj.name },
-            {name: this.obj.id },
             //{name: "Parameters: " }, 
             // ...this.parameters.list
         ]);
@@ -94,9 +76,10 @@ export class ObjNode extends UINode
         console.log(this.txtArr);
 
        // creating text batch for this node, to avoid creating a lot of small buffers
-        const txtBatch = createNewText(this._ref.app.gl, this._ref.app.programs[2], this.txtArr, fontBody.size, fontBody.font, hexToRgb(fontBody.colour));
+        const txtBatch = createNewText(this._ref.app.gl, this._ref.app.programs[2], this.txtArr, 22, fontHeading.font, hexToRgb(fontHeading.colour));
         txtBatch.setCanBeMoved(false);
         txtBatch.setPosition([ this.marginX, this.marginY ]);
+        txtBatch.setScale([0.5,0.5]);
         txtBatch.setParent(this);
 
         // Create slider

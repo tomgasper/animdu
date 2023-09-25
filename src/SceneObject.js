@@ -120,13 +120,12 @@ export class SceneObject extends TransformNode
     }
     
 
-    setProjectionAndCalcFinalTransform(projectionMat)
+    setProjectionAndCalcFinalTransform(viewProjectionMat)
     {
-        if (projectionMat && projectionMat.length == 9)
+        if (viewProjectionMat && viewProjectionMat.length == 9)
         {
-            this.properties.projection = projectionMat;
+            this.properties.projection = viewProjectionMat;
             this.calcFinalTransform();
-
         } else {
             throw new Error("Invalid input - projection matrix");
         }
@@ -151,14 +150,7 @@ export class SceneObject extends TransformNode
     {
         let viewProjectionMat = this.properties.projection;
 
-        if (this.comp && this.comp.camera)
-        {
-            const viewMat = m3.inverse(this.comp.camera.matrix);
-            viewProjectionMat = m3.multiply(this.properties.projection, viewMat);
-        }
-
         this.properties.transform =  m3.multiply(viewProjectionMat, this.worldMatrix);
-        
     }
 
     setVisible(isVisible)

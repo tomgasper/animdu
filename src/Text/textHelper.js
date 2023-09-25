@@ -36,7 +36,8 @@ export function createNewText(gl, program, text, textSize, font, txtColor)
     txtObj.setOriginalColor(txtColor);
 
     // Turn on blending as default
-    txtObj.properties.blending = true;
+    txtObj.setBlending(true);
+    txtObj.setCanBeHighlighted(false);
 
     return txtObj;
 }
