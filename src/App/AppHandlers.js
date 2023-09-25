@@ -4,6 +4,33 @@ import { canMoveObj, moveObjectWithCoursor } from "./AppHelper.js";
 
 export const handleEvents = (app) =>
 {
+        // moving view camera for viewport
+        if (app.inputState.keyPressed.indexOf(" ") !== -1)
+        {
+            app.document.style.cursor = "pointer";
+            console.log("spacing :D!");
+
+            if (app.isMouseDown)
+            {
+                const dist_x = app.mouseX - app.prevMouseX;
+                const dist_y = app.mouseY - app.prevMouseY;
+
+                console.log(app.mouseY);
+                console.log(app.prevMouseY);
+                
+                // if (Math.abs(dist_x) <= 1 && Math.abs(dist_y <= 1)) return;
+
+                let cam;
+                if (app.mouseY < app.gl.canvas.clientHeight/2) cam = app.activeComp.camera;
+                else cam = app.UI.viewer.camera;
+
+                cam.setPosition([cam.position[0] - ( dist_x * 1/cam.zoom ), cam.position[1] - ( dist_y * 1/cam.zoom) ]);
+            }
+
+            return;
+        }
+
+
         // Look up id of the object under mouse cursor
         const underMouseObjId = getIdFromCurrentPixel(app, app.mouseX, app.mouseY);
         
@@ -73,7 +100,6 @@ export const handleUnderMouseCursor = (app, id) =>
                 // on double click
                 if (app.isMouseClickedTwice === true)
                 {
-                    console.log("dbl click!");
                     if (activeObj && activeObj.handlers.onDblClick)
                     {
                         activeObj.handlers.onDblClick.call(activeObj);

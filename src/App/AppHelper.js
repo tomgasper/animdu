@@ -64,14 +64,14 @@ export const moveObjectWithCoursor = (app) =>
     {
         const objToDrag = app.objsToDraw[app.objectToDragArrIndx].objs[app.objectIDtoDrag];
 
+        // checking if obj is a scene object or UI object so correct view matrix is applied
+        let camera = objToDrag.comp ? app.activeComp.camera.matrix : app.UI.viewer.camera.matrix;
+
         if (!app.clickOffset)
         {
             let curr_pos = [ objToDrag.worldMatrix[6], objToDrag.worldMatrix[7] ];
 
-            if (objToDrag.comp)
-            {
-                curr_pos = getPosFromMat(m3.multiply(m3.inverse(app.activeComp.camera.matrix), objToDrag.worldMatrix));
-            }
+            curr_pos = getPosFromMat(m3.multiply(m3.inverse(camera), objToDrag.worldMatrix));
             
             app.clickOffset = [app.mouseX - curr_pos[0], app.mouseY - curr_pos[1]];
             // app.clickOffset = [0,0];
@@ -80,12 +80,15 @@ export const moveObjectWithCoursor = (app) =>
                 let parentWorldMat;
                 let mouseTranslation = m3.translation(app.mouseX - app.clickOffset[0],app.mouseY - app.clickOffset[1]);
                 
-                
+                /*
                 if (objToDrag.comp)
                 {
                     const invViewMat = app.activeComp.camera.matrix;
-                    mouseTranslation = m3.multiply(invViewMat, mouseTranslation);
-                }
+                    
+                } else mous
+                */
+
+                mouseTranslation = m3.multiply(camera, mouseTranslation);
 
                 let newPos;
 
@@ -147,7 +150,7 @@ export const highlightObjUnderCursor = (document, object) =>
     if (object.properties.highlight)
         {
             // change color of the object you're hovering over
-            object.setColor([1,1,0.3,1]);
+            // object.setColor([1,1,0.3,1]);
 
             // change the mouse pointer style
             document.style.cursor = "pointer";
@@ -155,25 +158,25 @@ export const highlightObjUnderCursor = (document, object) =>
         } else resetMousePointer(document);
 }
 
-export const prepareForFirstPass = (gl, framebuffer, mousePos) =>
+export const prepareForFirstPass = (app, framebuffer, mousePos) =>
 {
     // Draw the objects to the texture
-    gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer);
+    app.gl.bindFramebuffer(app.gl.FRAMEBUFFER, framebuffer);
 
-    gl.viewport(0,0, gl.canvas.width, gl.canvas.height);
-    gl.disable(gl.STENCIL_TEST);
+    app.gl.viewport(0,0, app.gl.canvas.width, app.gl.canvas.height);
+    app.gl.disable(app.gl.STENCIL_TEST);
 
-    const pixelX = mousePos[0] * gl.canvas.width / gl.canvas.clientWidth;
-    const pixelY = gl.canvas.height - mousePos[1] * gl.canvas.height / gl.canvas.clientHeight - 1;
+    const pixelX = mousePos[0] * app.gl.canvas.width / app.gl.canvas.clientWidth;
+    const pixelY = app.gl.canvas.height - mousePos[1] * app.gl.canvas.height / app.gl.canvas.clientHeight - 1;
 
-    gl.enable(gl.SCISSOR_TEST);
-    gl.scissor(pixelX, pixelY, 1,1);
+    app.gl.enable(app.gl.SCISSOR_TEST);
+    app.gl.scissor(pixelX, pixelY, 1,1);
 
-    gl.clearColor(0,0,0,0);
-    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT );
-    // gl.enable(gl.DEPTH_TEST);
+    app.gl.clearColor(0,0,0,0);
+    app.gl.clear(app.gl.COLOR_BUFFER_BIT | app.gl.DEPTH_BUFFER_BIT );
+    // app.gl.enable(app.gl.DEPTH_TEST);
 
-    gl.disable(gl.BLEND);
+    app.setBlendingEnabled(false);
 };
 
 export const prepareForScndPass = (gl) => 
@@ -208,13 +211,16 @@ export const resizeCanvas = (app) =>
     }
 }
 
-export const addObjToDrawList = (obj, drawList) =>
+export const addObjToDrawList = (obj, drawList, camera) =>
 {
     if (!obj || !(obj.children)) return;
     if (!(obj instanceof RenderableObject)) throw new Error("Incorrect object pushed to draw list!");
 
     // avoid non-visible objects in draw list
-    if (obj.properties.visible) drawList.push(obj);
+    if (obj.properties.visible)
+    {
+        drawList.push(obj);
+    }
 
     for (let i = 0; i < obj.children.length; i++)
     {
@@ -222,10 +228,10 @@ export const addObjToDrawList = (obj, drawList) =>
     }
 }
 
-export const retrieveRenderObjs = (section) =>
+export const retrieveRenderObjs = (section, camera = undefined) =>
 {
     const objsToDraw = [];
-    addObjToDrawList(section, objsToDraw);
+    addObjToDrawList(section, objsToDraw, camera = undefined);
     return objsToDraw;
 }
 

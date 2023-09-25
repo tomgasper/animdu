@@ -89,6 +89,9 @@ export class UINode extends UIObject
         this.style.text.body.size = appRef.UI.style.nodes.general.text.body.size;
         this.style.text.body.colour = appRef.UI.style.nodes.general.text.body.colour;
 
+        this.style.handles.L.colour =  hexToRgb(this._ref.UI.style.nodes.params.container.colour);
+        this.style.handles.R.colour =  hexToRgb(this._ref.UI.style.nodes.params.container.colour);
+
         this.parameters = paramsList;
     }
 
@@ -349,7 +352,7 @@ export class UINode extends UIObject
         return handle;
     }
 
-    addIOHandles(type, paramsNum, parent, offsetY = 0)
+    addIOHandles(type, paramsNum, parent, offsetY = 0, upscale = 1)
     {
         let offsetX, arrToPush;
 
@@ -365,7 +368,7 @@ export class UINode extends UIObject
 
         for (let i = 0; i < paramsNum; i++)
         {
-        const pos = [offsetX, this.style.marginY + ((i)*this.style.text.body.paramTextOffsetY + this.style.text.body.size + offsetY)];
+        const pos = [offsetX, this.style.marginY + (i)*this.style.text.body.paramTextOffsetY/upscale + this.style.text.body.size + offsetY];
         let param = undefined;
 
         if (this.parameters)

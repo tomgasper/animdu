@@ -1,19 +1,23 @@
-import { m3 } from "../utils.js";
+import { getProjectionMat, m3 } from "../utils.js";
 import { RenderableObject } from "../RenderableObject.js";
 import { renderObject } from "../utils.js";
 import { TextObject } from "../Text/TextObject.js";
 
+import { calcViewProjMat } from "../utils.js";
+import { UIViewer } from "../UI/UIViewer.js";
+import { UIViewport } from "../UI/UIViewport.js";
+
 // Draw functions
-export const drawObjects = (scene, objsToDraw, objsArrIndx, programInfo = undefined) =>
+export const drawObjects = (app, objsToDraw, objsArrIndx, programInfo = undefined, camera) =>
     {
         // to do
         let program;
-        const projection = m3.projection(scene.gl.canvas.clientWidth, scene.gl.canvas.clientHeight);
+        const viewProjection = calcViewProjMat(app.gl.canvas.clientWidth, app.gl.canvas.clientHeight, camera);
 
         if (typeof programInfo !== "undefined" ) // this is drawing for picking pass, with specified shader
         {
             program = programInfo;
-            scene.gl.useProgram(program.program);
+            app.gl.useProgram(program.program);
 
             // set projection based on canvas dimensions
             objsToDraw.forEach((obj, i) => {
@@ -29,15 +33,17 @@ export const drawObjects = (scene, objsToDraw, objsArrIndx, programInfo = undefi
                         ((ii >> 16) & 0xFF) / 0xFF
                     ];
 
-                // obj.updateTransform();
-
                 
                 if (!obj.parent) obj.updateWorldMatrix();
                 
                 obj.setID(u_id);
-                obj.setProjectionAndCalcFinalTransform(projection);
 
-                renderObject(scene.gl, obj, program);
+                // set correct projection
+                // we don't want the camera to affect viewport bg or node space bg so we ignore view transform and just set projection
+                if (obj instanceof UIViewer || obj instanceof UIViewport ) obj.setProjectionAndCalcFinalTransform(getProjectionMat(app.gl));
+                else obj.setProjectionAndCalcFinalTransform(viewProjection);
+
+                renderObject(app.gl, obj, program);
 
                 // Reset color
                 obj.setColor(obj.properties.originalColor);
@@ -48,13 +54,14 @@ export const drawObjects = (scene, objsToDraw, objsArrIndx, programInfo = undefi
                 // Switch shader if the cached one doesn't work
                 if (objProgram !== program)
                 {
-                    scene.gl.useProgram(objProgram.program);
+                    app.gl.useProgram(objProgram.program);
                     program = objProgram;
                 }
 
-                if (obj.properties.blending === true && !scene.gl.isEnabled(scene.gl.BLEND) )
+                let isBlendingEnabled = app.settings.render.blendingEnabled; 
+                if (obj.properties.blending === true )
                 {
-                    scene.gl.enable(scene.gl.BLEND);
+                    if (!isBlendingEnabled) isBlendingEnabled = app.setBlendingEnabled(true);
 
                     if (obj instanceof TextObject)
                     {
@@ -67,44 +74,42 @@ export const drawObjects = (scene, objsToDraw, objsArrIndx, programInfo = undefi
                             // Text color goes to constant blend factor and 
                             // triplet alpha comes from the fragment shader output
                     
-                            scene.gl.blendColor( fontColour[0], fontColour[1], fontColour[2], 1 );
-                            scene.gl.blendEquation( scene.gl.FUNC_ADD );
-                            scene.gl.blendFuncSeparate( scene.gl.CONSTANT_COLOR, scene.gl.ONE_MINUS_SRC_COLOR, scene.gl.ZERO, scene.gl.ONE );
-                            // scene.gl.blendFunc( scene.gl.CONSTANT_COLOR, scene.gl.ONE_MINUS_SRC_COLOR );
+                            app.gl.blendColor( fontColour[0], fontColour[1], fontColour[2], 1 );
+                            app.gl.blendEquation( app.gl.FUNC_ADD );
+                            app.gl.blendFuncSeparate( app.gl.CONSTANT_COLOR, app.gl.ONE_MINUS_SRC_COLOR, app.gl.ZERO, app.gl.ONE );
+                            // app.gl.blendFunc( app.gl.CONSTANT_COLOR, app.gl.ONE_MINUS_SRC_COLOR );
                         } else {
                             // Greyscale antialising
-                            scene.gl.blendEquation( scene.gl.FUNC_ADD );
-                            scene.gl.blendFunc( scene.gl.SRC_ALPHA, scene.gl.ONE_MINUS_SRC_ALPHA );
+                            app.gl.blendEquation( app.gl.FUNC_ADD );
+                            app.gl.blendFunc( app.gl.SRC_ALPHA, app.gl.ONE_MINUS_SRC_ALPHA );
                         }
                     } else {
-                        scene.gl.blendFunc(scene.gl.SRC_ALPHA, scene.gl.ONE_MINUS_SRC_ALPHA);
+                        app.gl.blendFunc(app.gl.SRC_ALPHA, app.gl.ONE_MINUS_SRC_ALPHA);
                     }
                 }
 
-                //obj.setProjection(projection);
-
-                renderObject(scene.gl, obj, program);
+                renderObject(app.gl, obj, program);
 
                 // Disable blending
-                if (scene.gl.isEnabled(scene.gl.BLEND) )
+                if ( isBlendingEnabled )
                 {
-                    scene.gl.disable(scene.gl.BLEND);
+                    app.setBlendingEnabled(false);
                 }
         })}
     }
 
-const drawInMask = (appRef, objsArrIndx, program) =>
+const drawInMask = (appRef, objsArrIndx, program,camera) =>
 {
     appRef.gl.enable(appRef.gl.STENCIL_TEST);
     appRef.gl.clear(appRef.gl.STENCIL_BUFFER_BIT);
     appRef.gl.stencilFunc(appRef.gl.ALWAYS,1,0xFF);
     appRef.gl.stencilOp(appRef.gl.KEEP, appRef.gl.KEEP, appRef.gl.REPLACE);
 
-    drawObjects(appRef, appRef.objsToDraw[objsArrIndx].mask, objsArrIndx, program);
+    drawObjects(appRef, appRef.objsToDraw[objsArrIndx].mask, objsArrIndx, program, camera);
 
     appRef.gl.stencilFunc(appRef.gl.EQUAL, 1, 0xFF);
     appRef.gl.stencilOp(appRef.gl.KEEP, appRef.gl.KEEP, appRef.gl.KEEP);
-    drawObjects(appRef, appRef.objsToDraw[objsArrIndx].objs, objsArrIndx, program);
+    drawObjects(appRef, appRef.objsToDraw[objsArrIndx].objs, objsArrIndx, program, camera);
 
     appRef.gl.disable(appRef.gl.STENCIL_TEST);
 }
@@ -114,19 +119,21 @@ const drawWithoutMask = (appRef,objsArrIndx, program = undefined) =>
     drawObjects(appRef, appRef.objsToDraw[objsArrIndx].objs, objsArrIndx, program);
 }
 
-export const drawPass = (appRef, objsToDraw, program, indx = 0) =>
+export const drawPass = (renderSettings) =>
 {
+    let { appRef, objsToDraw, program, listIndx, camera } = renderSettings;
+
     // indx complication is needed for correct retrieval of object under mouse coursor
     for (let i = 0; i < objsToDraw.length; i++)
     {
         if (objsToDraw[i].mask.length > 0)
         {
-            drawInMask(appRef,indx, program);
+            drawInMask(appRef,listIndx, program, camera);
         }
         else
         {
-            drawWithoutMask(appRef, indx, program);
+            drawWithoutMask(appRef, listIndx, program, camera);
         }
-        indx++;
+        listIndx++;
     }
 }

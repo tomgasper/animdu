@@ -31,7 +31,8 @@ export class Component extends UIObject
     }
 
     animation = {
-        duration: 5.
+        duration: 5.,
+        timer: 0.
     }
 
     activeObj = undefined;
@@ -64,7 +65,7 @@ export class Component extends UIObject
         this.style.marginX = this.style.container.width/10;
         this.style.marginY = this.style.container.height/10;
 
-        this.style.container.colour = hexToRgb(this._ref.UI.style.nodes.component.container.colour, 0.8);
+        this.style.container.colour = hexToRgb(this._ref.UI.style.nodes.component.container.colour, 0.85);
         this.setBlending(true);
 
         // const rect = new RenderableObject(this._ref.app.primitiveBuffers.rectangle);
@@ -80,6 +81,7 @@ export class Component extends UIObject
         const newButton = new Button(this._ref.app,this._ref.app.primitiveBuffers.rectangle, () => console.log("Hello!"));
         newButton.setParent(this);
         newButton.setPosition([this.style.container.width*0.9, this.style.container.height*0.1]);
+        newButton.setOriginalColor(hexToRgb(this._ref.UI.style.nodes.component.hideButton.colour));
 
         // Create text
         const durationTextPos = [this.style.container.width / 2, 0];
@@ -131,6 +133,8 @@ export class Component extends UIObject
             this.elements.nodes.OUT.push(newNode);
             newNode.setIndx(this.elements.nodes.OUT.length-1);
         }
+
+        newNode.setHeadingText();
     }
 
     addFunctionNode(effectorFnc)

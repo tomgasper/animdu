@@ -1,7 +1,7 @@
 import { RenderableObject } from "../../RenderableObject.js";
 import { InstancedLineBuffer } from "../../Primitives/InstancedLineBuffer.js";
 
-import { getProjectionMat } from "../../utils.js";
+import { getProjectionMat, getViewCoords } from "../../utils.js";
 
 import {  getPosFromMat } from "../../App/AppHelper.js";
 
@@ -126,14 +126,22 @@ export class UINodeHandle extends RenderableObject
 
         if (objUnderMouse instanceof UINodeHandle && this != objUnderMouse)
         {
-            console.log("im here!");
+            const camera = this.app.UI.viewer.camera;
+            const camInv = m3.inverse(camera.matrix);
+
             this.handleObjConnection(this, objUnderMouse);
-            const objUnderMousePos = getPosFromMat(objUnderMouse);
+
+            const newCoords = m3.transformPoint(camInv, getPosFromMat(objUnderMouse.worldMatrix));
+            const viewCoords = m3.multiply(camInv, objUnderMouse.worldMatrix);
+            const objUnderMousePos = getPosFromMat(viewCoords);
+
+
+            console.log(newCoords);
             
             // center the line end
             const componentViewer = this.parent.parent;
-            const vecs= [ objUnderMousePos ];
-            transformToParentSpace(componentViewer, vecs);
+            const vecs = [ newCoords ];
+            transformToParentSpace(componentViewer, vecs, true);
 
             let data = this.line.data;
             data = [data[0],data[1],vecs[0][0], vecs[0][1]];
@@ -162,12 +170,17 @@ export class UINodeHandle extends RenderableObject
         if (!this.line.obj) this.createNewLine(mousePos);
 
         const componentViewer = this.parent.parent;
-        const vecs= [ [this.worldMatrix[6], this.worldMatrix[7]],
-                        mousePos ];
+
+        const camera = this.app.UI.viewer.camera;
+        const camInv = m3.inverse(camera.matrix);
+        const viewCoords = m3.multiply(camInv, this.worldMatrix);
+
+        const vecs= [ [viewCoords[6], viewCoords[7]], mousePos ];
         
-        transformToParentSpace(componentViewer, vecs);
+        transformToParentSpace(componentViewer, vecs, true , camInv );
 
         const data = [vecs[0][0], vecs[0][1], vecs[1][0], vecs[1][1]];
+        // const data = [this.worldMatrix[6], this.worldMatrix[7], vecs[0][0], vecs[0][1]];
         this.line.update(data);
     }
 

@@ -5,7 +5,7 @@ import { UIObject } from "./UIObject.js";
 
 export class UIViewport extends UIObject
 {
-    position = [650,0];
+    position = [0,0];
 
     appRef = undefined;
 
@@ -54,5 +54,27 @@ export class UIViewport extends UIObject
         // viewport.setPosition(this.position);
         this.setOriginalColor(colour);
         this.updateWorldMatrix();
+    }
+
+    createContainerVerts(dims)
+    {
+    const [ left, right, top, bottom ] = dims;
+        // Install Container
+    const customVertsPos = [  left, top,
+    right, top,
+    right, bottom,
+    
+    right, bottom,
+    left, bottom,
+    left, top
+    ];
+
+    return customVertsPos;
+    }
+
+    updateContainer(dims)
+    {
+        const newVerts = this.createContainerVerts(dims);
+        this.buffer.updatePositionBuffer(newVerts);
     }
 }

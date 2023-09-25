@@ -17,6 +17,10 @@ import { UIViewer } from "./UIViewer.js";
 
 import { CustomBuffer } from "../Primitives/CustomBuffer.js";
 
+import { percToFraction } from "../utils.js";
+
+import { Camera } from "../Composition/Camera.js";
+
 export class UI
 {
     app;
@@ -112,6 +116,10 @@ export class UI
                 container:
                 {
                     colour: "3E65C8",
+                },
+                hideButton:
+                {
+                    colour: "253E7F"
                 }
             },
             params:
@@ -146,14 +154,22 @@ export class UI
             size:
             {
                 // in %
-                height: 30,
-                width: 100
+                height: "50%",
+                width: "100%"
             },
             container:
             {
                 colour: "E2E2E2"
             }
         },
+        viewport:
+        {
+            size:
+            {
+                height: "50%",
+                width: "50%"
+            }
+        }
     }
 
     UIBuffers;
@@ -187,11 +203,9 @@ export class UI
             0, 0
         ];
 
-        // create new objects that garbage collector will hopefully delete when it's time to go
         const customBuffer = new CustomBuffer(this.app.gl, this.app.programs[0], data);
-        // const viewport = new RenderableObject(customBuffer.getInfo());
 
-        return customBuffer.getInfo();
+        return [customBuffer, customBuffer.getInfo()];
     }
 
     createContainer(dims)
@@ -228,7 +242,9 @@ export class UI
         this.style.nodes.general.textInput.text.font = mainFont;
 
         // Create scene viewport
-        this.viewport = new UIViewport(this.app, this.createViewport(this.app.gl.canvas.clientWidth,this.app.gl.canvas.clientHeight), [800,400], [0.6,0.6,0.6,1]);
+        const [ viewportBuffer, viewportVerts ] = this.createViewport(this.app.gl.canvas.clientWidth,this.app.gl.canvas.clientHeight); 
+        this.viewport = new UIViewport(this.app, viewportVerts, [800,400], [0.6,0.6,0.6,1]);
+        this.viewport.buffer = viewportBuffer;
 
         // Create node space viewport
         const viewerDims = [0, this.app.gl.canvas.clientWidth,
@@ -237,6 +253,9 @@ export class UI
         const [ nodeSpaceContainerBuffer, nodeSpaceContainerVerts ] = this.createContainer(viewerDims);
         this.viewer = new UIViewer(this.app, this, nodeSpaceContainerVerts, "UIViewer", viewerDims);
         this.viewer.buffer = nodeSpaceContainerBuffer;
+
+        // add camera to the viewer
+        this.viewer.camera = new Camera();
     }
 
     initializeUIBuffers = (app, program) => 
@@ -307,15 +326,26 @@ export class UI
     resize()
     {
         const screenSize = [this.app.gl.canvas.clientWidth,this.app.gl.canvas.clientHeight];
-        const viewerDims = [0, screenSize[0],
-            screenSize[1]/2, screenSize[1]];
+        const nodeSpaceSize = [ percToFraction(this.style.nodeViewer.size.width)*screenSize[0],
+                                percToFraction(this.style.nodeViewer.size.height)*screenSize[1]];
+
+        const viewerDims = [0, nodeSpaceSize[0],
+            nodeSpaceSize[1], screenSize[1]];
         
         this.viewer.updateContainer(viewerDims);
 
-        this.viewport.width = this.app.gl.canvas.width;
-        this.viewport.height = this.app.gl.canvas.height;
+        const viewportSize = [percToFraction(this.style.viewport.size.width)*screenSize[0],
+                                percToFraction(this.style.viewport.size.height)*screenSize[1]];
+        
+        const viewportOffsetX = (screenSize[0] - viewportSize[0])/2;
+        const viewportDims = [viewportOffsetX, screenSize[0] - viewportSize[0]/2,
+        0, viewportSize[1]];
+        this.viewport.updateContainer(viewportDims);
 
-        this.viewport.position = [0, this.app.gl.canvas.height/2];
+        
+        const cameraZoom = this.app.activeComp.camera.zoom;
+        // const centre = [-(viewportOffsetX + viewportSize[0]/2)*(1/cameraZoom),(-viewportSize[1]/2)*(1/cameraZoom)];
+        // this.app.activeComp.camera.setPosition([ ,  ] );
     }
 
     addObj(obj, dir)

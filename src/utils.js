@@ -347,9 +347,17 @@ export const m3 = {
     }
 };
 
-export const transformToParentSpace = (parent, vecArr, unscale = true) =>
+const checkIfMatrix = (mat) => {
+    if ( mat.length !== 9 || !Array.isArray(mat) ) return false;
+    
+    return true;
+}
+
+export const transformToParentSpace = (parent, vecArr, unscale = true, cameraMat) =>
     {
         let invMat = parent.worldMatrix;
+
+        if (cameraMat) m3.multiplyInPlace(invMat, cameraMat, invMat);
 
         if (unscale)
         {
@@ -406,4 +414,35 @@ export const changeValueNumeric = (startVal, target, inputKey) =>
       parseInt(result[3], 16)/norm,
       alpha
      ] : null;
+  }
+
+  export const percToFraction = (perc) => {
+    if (typeof perc !== "string") throw new Error("Input must be a string!");
+    if (perc[perc.length-1] !== '%') throw new Error("Incorrect percentage input!");
+
+    let newString = perc.slice(0,perc.length-1);
+
+    return parseFloat(newString)*0.01;
+  }
+
+
+  export const calcViewProjMat = (w,h,camera) =>
+  {
+    if (!camera) throw new Error("No camera matrix provided!");
+
+    let projMat = m3.projection(w,h);
+    let viewProjectionMat;
+
+    const viewMat = m3.inverse(camera.matrix);
+    viewProjectionMat = m3.multiply(projMat, viewMat);
+
+    return viewProjectionMat;
+  }
+
+
+
+  export const getViewCoords = (worldMat, cameraMatInv) => {
+    const newCoords = m3.multiply(cameraMatInv, worldMat);
+
+    return [newCoords[6], newCoords[7]];
   }

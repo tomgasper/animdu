@@ -20,13 +20,20 @@ export class FunctionNode extends UINode
     initialize()
     {
         // Text
-        this.style.text.body.colour = this._ref.UI.style.nodes.params.text.colour;
-        const fontBody = this.style.text.body;
+        
 
         // Set size based on the background container size
         this._ref.UIBuffers = this._ref.app.UI.UIBuffers.UINode;
 
         [this.style.container.width, this.style.container.height ] = this._ref.UIBuffers.container.size;
+
+        // Text
+        const upscale = 2;
+        this.style.text.body.colour = this._ref.UI.style.nodes.params.text.colour;
+        this.style.text.body.size = 10 * upscale;
+        this.style.text.body.paramTextOffsetY = this.style.text.body.size * 1.5;
+        
+        const fontBody = this.style.text.body;
 
         // Stylize Node
         this.style.text.paramTextOffsetX = this.style.container.width/2;
@@ -53,9 +60,25 @@ export class FunctionNode extends UINode
         // Save ref
         // this.container = rect;
 
-        this.addIOHandles("IN", this.effector.argc, this, this.style.container.height/4 - this.style.text.body.size);
-        this.addIOHandles("OUT", this.effector.outc, this, this.style.container.height/2 - this.style.text.body.size);
+        this.addIOHandles("IN", this.effector.argc, this, this.style.container.height/4 - this.style.text.body.size, upscale);
+        this.addIOHandles("OUT", this.effector.outc, this, this.style.container.height/2 - this.style.text.body.size, upscale);
+
+        // Stylize handles
+        /*
+        for ( let handle of this.elements.handles.L)
+        {
+            handle.setOriginalColor(this.style.handles.L.colour);
+            handle.setScale([1.3,1.3]);
+        }
+
+        for ( let handle of this.elements.handles.R)
+        {
+            handle.setOriginalColor(this.style.handles.R.colour);
+            handle.setScale([1.3,1.3]);
+        }
         
+        */
+       
         /* this is how txtArr obj looks like:
             const txtArr = [
                 {
@@ -73,7 +96,8 @@ export class FunctionNode extends UINode
         ];
 
        // creating text batch for this node, to avoid creating a lot of small buffers
-        const txtBatch = createNewText(this._ref.app.gl, this._ref.app.programs[2], this.txtArr, fontBody.size, fontBody.font, hexToRgb(fontBody.colour));
+        const txtBatch = createNewText(this._ref.app.gl, this._ref.app.programs[2], this.txtArr, this.style.text.body.size, fontBody.font, hexToRgb(fontBody.colour));
+        txtBatch.setScale([0.5,0.5]);
         txtBatch.setCanBeMoved(false);
         txtBatch.setPosition([ this.style.marginX, this.style.marginY ]);
         txtBatch.setParent(this);
@@ -90,7 +114,7 @@ export class FunctionNode extends UINode
             for (let i = 0; i < this.effector.argc; i++)
             {
                 txtArr.push(
-                    { data: "IN" + "(" + i + ")", pos: [10, this.style.container.height/4 + this.style.text.body.paramTextOffsetY * (i + offset) - this.style.text.body.size] }
+                    { data: "IN" + "(" + i + ")", pos: [0, this.style.container.height/4 + this.style.text.body.paramTextOffsetY * (i + offset) + this.style.text.body.size] }
                 )
             }
         } else if (type === "OUT")
