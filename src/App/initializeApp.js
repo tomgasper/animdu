@@ -54,8 +54,6 @@ export const initInputListeners = (app) =>
     app.document.addEventListener("keydown", (e) => {
         if (app.inputState.keyPressed.indexOf(e.key) === -1) app.inputState.keyPressed.push(e.key);
 
-        console.log(app.inputState.keyPressed);
-
         // No scene object selected
         if (app.activeObjID < 0 || app.activeObjArrIndx < 0) return;
 

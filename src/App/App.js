@@ -16,6 +16,8 @@ import { Component } from "../UI/Node/Component.js";
 
 import { procc } from "../animation/animation_operations.js";
 
+import { RoundedRectangleBuffer } from "../Primitives/RoundedRectangleBuffer.js";
+
 export class App
 {
     gl = {};
@@ -44,9 +46,58 @@ export class App
     prevMouseX = 0;
     prevMouseY = 0;
 
-    inputState =
-    {
+    // to do
+    state = {
+        activeObj:
+        {
+            id: 0,
+            arrIndx: 0
+        },
+        prevActiveObj:
+        {
+            id:0,
+            arrIndx: 0
+        },
+        objIDToDrag:
+        {
+            id: 0,
+            arrIndx: 0
+        },
+        input:
+        {
+            keyboard:
+            {
+                keyPressed: [],
+            },
+            mouse:
+            {
+                position:
+                {
+                    x: 0,
+                    y: 0
+                },
+                prevPosition:
+                {
+                    x: 0,
+                    y: 0
+                },
+                isMouseDown: false,
+                isMouseClicked: false,
+                isMouseClickedTwice: false,
+                clickOffset: 0
+            }
+        }
+    }
+
+    inputState = {
         keyPressed: [],
+    }
+
+    settings = {
+        render:
+        {
+            blendingEnabled: false
+        }
     }
 
     pickingData = new Uint8Array(4);
@@ -69,7 +120,7 @@ export class App
     objUnderMouseID = -1;
     objUnderMouseArrIndx = -1;
 
-    eventsToProcess = [];
+    // eventsToProcess = [];
 
     animationCounter = 0;
 
@@ -79,13 +130,6 @@ export class App
     lastTime = 0.;
 
     drawCalls = 0;
-
-    settings = {
-        render:
-        {
-            blendingEnabled: false
-        }
-    }
 
     constructor(gl, canvas, programsInfo, framebuffer, depthBuffer, renderTexture)
     {
@@ -106,30 +150,6 @@ export class App
 
         // Start the app
         this.start();
-    }
-
-    constructLayersPanel(compViewer)
-    {
-        const layersPanel = document.getElementById("layersPanel");
-        layersPanel.innerHTML = "";
-
-        function createTxtNode(obj, parentDom)
-        {
-            const ul = document.createElement("ul");
-
-            obj.forEach( (child) => {
-                const li = document.createElement('li');
-                li.textContent = child.name;
-                createTxtNode(child.children, ul);
-
-                ul.appendChild(li);
-            });
-
-
-            parentDom.appendChild(ul);
-        }
-
-        createTxtNode(compViewer.children, layersPanel);
     }
 
     changeEffectorFunction(appRef, value)
@@ -212,7 +232,15 @@ export class App
         obj3.setParent(obj2);
         obj2.setParent(obj1);
 
-        this.activeComp.addObj([solid, obj1,obj2,obj3, obj4]);
+        console.log(this.programs);
+        const roundedRectBuff = new RoundedRectangleBuffer(this.gl, this.programs[5]);
+        const roundedRect = new RenderableObject(roundedRectBuff.getInfo());
+        roundedRect.properties.resolution = [this.gl.canvas.width,this.gl.canvas.height];
+
+        roundedRect.setPosition([500,500]);
+        roundedRect.setScale([4,3.5]);
+
+        this.activeComp.addObj([solid, obj1,obj2,obj3, obj4, roundedRect ]);
 
         const paramList = new UINodeParamList([
             new UINodeParam("position", "TEXT_READ", [0,0]),
@@ -242,10 +270,19 @@ export class App
 
         // Render Obj Nodes
 
+        /*
         this.activeComp.objects.forEach( (obj) => {
             const newObjNode = this.UI.addObjNode(obj);
             newObjNode.setPosition([300,550]);
         })
+        */
+
+        for (let i = 0; i < this.activeComp.objects-1; i++)
+        {
+            const obj = this.activeComp.objects[i];
+            const newObjNode = this.UI.addObjNode(obj);
+            newObjNode.setPosition([300,550]);
+        }
 
 
         const fnc = () => console.log("Hello, this is some function!");
@@ -337,7 +374,7 @@ export class App
 
         this.objsToDraw = [
             { mask: [ this.UI.viewer ], objs: [ ...viewerObjs ] },
-            { mask: [ this.UI.viewport ], objs: [ ...activeCompObjs] },
+            { mask: [ this.activeComp.viewport ], objs: [ ...activeCompObjs] },
         ];
     }
 
