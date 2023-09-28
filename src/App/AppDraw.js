@@ -34,6 +34,8 @@ export const drawObjects = (app, objsToDraw, objsArrIndx, programInfo = undefine
                     ];
 
                 
+                if (obj.properties.resolution) obj.properties.resolution = [app.gl.canvas.width, app.gl.canvas.height];
+
                 if (!obj.parent) obj.updateWorldMatrix();
                 
                 obj.setID(u_id);
@@ -114,9 +116,9 @@ const drawInMask = (appRef, objsArrIndx, program,camera) =>
     appRef.gl.disable(appRef.gl.STENCIL_TEST);
 }
 
-const drawWithoutMask = (appRef,objsArrIndx, program = undefined) =>
+const drawWithoutMask = (appRef,objsArrIndx, program = undefined, camera) =>
 {
-    drawObjects(appRef, appRef.objsToDraw[objsArrIndx].objs, objsArrIndx, program);
+    drawObjects(appRef, appRef.objsToDraw[objsArrIndx].objs, objsArrIndx, program, camera);
 }
 
 export const drawPass = (renderSettings) =>

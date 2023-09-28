@@ -5,9 +5,10 @@ import { textSDFVertexShaderSource, textSDFFragmentShaderSource } from "./Shader
 import { instancedLineFragmentShaderSource, instancedLineVertexShaderSource } from "./Shaders/InstancedLineShader.js";
 import { instancedLineCapFragmentShaderSource, instancedLineCapVertexShaderSource } from "./Shaders/InstancedLineCapShader.js";
 import { initShaderProgram } from "./Shaders/ShaderUtils.js";
+import { roundedRectShaderSource, roundedRectFragmentShaderSource } from "./Shaders/RoundedRectangleShader.js";
+import { App } from "./App/App.js";
 
 import { RenderLoop } from "./RenderLoop.js";
-import { App } from "./App/App.js";
 
 import { setUpPickingFramebuffer, createDepthBuffer, createPickingTargetTexture } from "./pickingFramebuffer.js";
 
@@ -37,6 +38,7 @@ function main()
     const textSDFProgram = initShaderProgram(gl, textSDFVertexShaderSource, textSDFFragmentShaderSource);
     const instancedLineProgram = initShaderProgram(gl, instancedLineVertexShaderSource, instancedLineFragmentShaderSource);
     const instancedLineCapProgram = initShaderProgram(gl, instancedLineCapVertexShaderSource, instancedLineCapFragmentShaderSource);
+    const roundedRectProgram = initShaderProgram(gl, roundedRectShaderSource, roundedRectFragmentShaderSource);
 
     // Shader properties
     const pickingProgramInfo = {
@@ -175,11 +177,40 @@ function main()
       }
     };
 
+
+    const roundedRectProgramInfo = {
+      program: roundedRectProgram,
+      attribLocations: {
+          vertexPosition: 0,
+          upperLeft: 1,
+          widthHeight: 2,
+          cornerRadius: 3,
+      },
+      uniforms: {
+        transform:
+        {
+          location: gl.getUniformLocation(roundedRectProgram, "u_transform"),
+          type: "m3fv"
+        },
+        color:
+        {
+          location: gl.getUniformLocation(roundedRectProgram, "u_color"),
+          type: "4fv"
+        },
+        resolution:
+        {
+          location: gl.getUniformLocation(roundedRectProgram, "u_res"),
+          type: "2fv"
+        }
+      }
+    };
+
     const programsInfo = [ programInfo,
                           pickingProgramInfo, 
                           textSDFProgramInfo,
                           instancedLineProgramInfo,
-                          instancedLineCapProgramInfo
+                          instancedLineCapProgramInfo,
+                          roundedRectProgramInfo
     ];
 
     // Framebuffer for retriving object under mouse
