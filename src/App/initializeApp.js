@@ -154,8 +154,8 @@ const setUpPrimitveBuffers = (app, program) =>
     const rectangleBuffer = new RectangleBuffer(app.gl,program);    
 
     app.primitiveBuffers = {
-        rectangle: rectangleBuffer.getInfo(),
-        circle: circleBuffer.getInfo(),
-        triangle: triangleBuffer.getInfo()
+        rectangle: rectangleBuffer,
+        circle: circleBuffer,
+        triangle: triangleBuffer
     };
 }

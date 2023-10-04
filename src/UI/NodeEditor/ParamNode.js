@@ -18,6 +18,8 @@ export class ParamNode extends UINode
     {
         super(app, buffInfo, paramsList);
 
+        this.addExtraParam({resolution: [this._ref.app.gl.canvas.width, this._ref.app.gl.canvas.height]});
+
         this.setType(type);
         this.setName(name);
     }

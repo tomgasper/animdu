@@ -95,21 +95,6 @@ export class RoundedRectangleBuffer {
 
     setUpMainBuffer(gl)
     {
-        /*
-        gl.bindBuffer(gl.ARRAY_BUFFER, this.positionBuffer);
-        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(this.bufferData), gl.STATIC_DRAW);
-
-        const attribLoc = this.programInfo.attribLocations.vertexPosition;
-        gl.enableVertexAttribArray(attribLoc);
-        const { size,type,normalize,stride,offset } = this.attributesInfo.position;
-        gl.vertexAttribPointer(attribLoc, size,type,normalize,stride,offset);
-
-        */
-
-        // And you have an array of these rectangles
-        // let rectangles = [/* ... */];
-        
-
         // Create a buffer and upload the rectangle data
         gl.bindBuffer(gl.ARRAY_BUFFER, this.buffer);
 

@@ -7,12 +7,12 @@ import { drawPass } from "./AppDraw.js";
 import { handleEvents } from "./AppHandlers.js";
 
 import { UI } from "../UI/UI.js";
-import { UINodeParamList } from "../UI/Node/UINodeParamList.js";
-import { UINodeParam } from "../UI/Node/UINodeParam.js";
+import { UINodeParamList } from "../UI/NodeEditor/UINodeParamList.js";
+import { UINodeParam } from "../UI/NodeEditor/UINodeParam.js";
 import { RectangleBuffer } from "../Primitives/RectangleBuffer.js";
 
-import { Effector } from "../UI/Node/Effector.js";
-import { Component } from "../UI/Node/Component.js";
+import { Effector } from "../UI/NodeEditor/Effector.js";
+import { Component } from "../UI/NodeEditor/Component.js";
 
 import { procc } from "../animation/animation_operations.js";
 
@@ -201,7 +201,7 @@ export class App
 
         // Background
         const solidBuffer = new RectangleBuffer(this.gl, this.programs[0], [this.activeComp.viewport.width, this.activeComp.viewport.height]);
-        const solid = new RenderableObject(solidBuffer.getInfo());
+        const solid = new RenderableObject(solidBuffer);
         solid.name = "solid";
 
         solid.setPosition([0,0]);
@@ -234,8 +234,10 @@ export class App
 
         console.log(this.programs);
         const roundedRectBuff = new RoundedRectangleBuffer(this.gl, this.programs[5]);
-        const roundedRect = new RenderableObject(roundedRectBuff.getInfo());
+        const roundedRect = new RenderableObject(roundedRectBuff);
         roundedRect.properties.resolution = [this.gl.canvas.width,this.gl.canvas.height];
+
+        console.log(roundedRect);
 
         roundedRect.setPosition([500,500]);
         roundedRect.setScale([4,3.5]);
@@ -303,6 +305,9 @@ export class App
         compNode2.addFunctionNode(effectorFunction2);
         compNode2.addParamNode("OUT", paramListOUT2);
         compNode2.addParamNode("OUT", paramListOUT2);
+
+        console.log(compNode2);
+
         
         /*
         const compNode3 = new Component(this, componentBuff, [600, 300], [0.1,0.1,0.1,1], "myComponent3");

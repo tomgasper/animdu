@@ -14,14 +14,13 @@ export class FunctionNode extends UINode
     {
         super(appRef, buffInfo);
 
+        this.addExtraParam({resolution: [this._ref.app.gl.canvas.width, this._ref.app.gl.canvas.height]});
+
         this.setFunction(fnc);
     }
 
     initialize()
     {
-        // Text
-        
-
         // Set size based on the background container size
         this._ref.UIBuffers = this._ref.app.UI.UIBuffers.UINode;
 

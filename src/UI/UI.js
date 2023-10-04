@@ -1,21 +1,17 @@
 import { RenderableObject } from "../RenderableObject.js";
 
-import { UINode } from "./Node/UINode.js";
-import { ObjNode } from "./Node/ObjNode.js";
-import { FunctionNode } from "./Node/FunctionNode.js";
-import { ParamNode } from "./Node/ParamNode.js";
-import { UINodeParamList } from "./Node/UINodeParamList.js";
-
-import { UILayersPanel } from "./Panels/UILayersPanel.js";
+import { UINode } from "./NodeEditor/UINode.js";
+import { ObjNode } from "./NodeEditor/ObjNode.js";
+import { FunctionNode } from "./NodeEditor/FunctionNode.js";
+import { ParamNode } from "./NodeEditor/ParamNode.js";
+import { UINodeParamList } from "./NodeEditor/UINodeParamList.js";
 
 import { UIBuffers } from "./UIBuffers.js";
 
 import { setUpMainFont } from "./initializeUI.js";
 
-import { UIViewport } from "./UIViewport.js";
-import { UIViewer } from "./UIViewer.js";
-
-import { CustomBuffer } from "../Primitives/CustomBuffer.js";
+import { UISceneViewport } from "./UISceneViewport.js";
+import { UINodeEditor } from "./UINodeEditor.js";
 
 import { percToFraction } from "../utils.js";
 
@@ -179,10 +175,6 @@ export class UI
         // Save ref to the app
         this.app = app;
 
-        // set dimensions of different panels
-        this.topBarHeight = this.app.gl.canvas.clientHeight * 0.03;
-        // this.viewerStartY = this.app.gl.canvas.clientHeight/2;
-
         this.start(app);
     }
 
@@ -191,46 +183,9 @@ export class UI
         this.initUI(app, this);
     }
 
-    createViewport(width, height)
-    {
-        const data = [
-            0,0,
-            width,0,
-            width, height,
-
-            width,height,
-            0, height,
-            0, 0
-        ];
-
-        const customBuffer = new CustomBuffer(this.app.gl, this.app.programs[0], data);
-
-        return [customBuffer, customBuffer.getInfo()];
-    }
-
-    createContainer(dims)
-    {
-        const [ left, right, top, bottom ] = dims;
-            // Install Container
-        const customVertsPos = [  left, top,
-        right, top,
-        right, bottom,
-
-        right, bottom,
-        left, bottom,
-        left, top
-        ];
-
-
-        const customRectBuffer = new CustomBuffer(this.app.gl, this.app.programs[0], customVertsPos);
-        const customRectBufferInfo = customRectBuffer.getInfo();
-
-        return [customRectBuffer,customRectBufferInfo];
-    }
-
     initUI = (app) =>
     {
-        this.initializeUIBuffers(app,app.programs[0]);
+        this.initializeUIBuffers(app,app.programs);
         const [ mainFont, mainBoldFont ] = setUpMainFont(app,this);
 
         this.style.general.text.regular.font = mainFont;
@@ -242,32 +197,30 @@ export class UI
         this.style.nodes.general.textInput.text.font = mainFont;
 
         // Create scene viewport
-        const [ viewportBuffer, viewportVerts ] = this.createViewport(this.app.gl.canvas.clientWidth,this.app.gl.canvas.clientHeight); 
-        this.viewport = new UIViewport(this.app, viewportVerts, [800,400], [0.6,0.6,0.6,1]);
-        this.viewport.buffer = viewportBuffer;
+        const sceneViewportSize = [this.app.gl.canvas.clientWidth, this.app.gl.canvas.clientHeight];
+        this.viewport = new UISceneViewport(this.app, sceneViewportSize, [0.6,0.6,0.6,1]);
 
         // Create node space viewport
-        const viewerDims = [0, this.app.gl.canvas.clientWidth,
+        const editorSpaceDims = [0, this.app.gl.canvas.clientWidth,
                             this.app.gl.canvas.clientHeight/2, this.app.gl.canvas.clientHeight];
 
-        const [ nodeSpaceContainerBuffer, nodeSpaceContainerVerts ] = this.createContainer(viewerDims);
-        this.viewer = new UIViewer(this.app, this, nodeSpaceContainerVerts, "UIViewer", viewerDims);
-        this.viewer.buffer = nodeSpaceContainerBuffer;
+        // const [ nodeSpaceContainerBuffer, nodeSpaceContainerVerts ] = this.createContainer(viewerDims);
+        this.viewer = new UINodeEditor(this.app, this, editorSpaceDims);
 
         // add camera to the viewer
         this.viewer.camera = new Camera();
     }
 
-    initializeUIBuffers = (app, program) => 
+    initializeUIBuffers = (app, programs) => 
     {
         // Set up UI
         const UIBuffersStore = new UIBuffers();
 
         const UINodeSize = [130,120];
-        UIBuffersStore.createUINodeBuffers(app.gl, program, UINodeSize, 0.05);
+        UIBuffersStore.createUINodeBuffers(app.gl, programs, UINodeSize, 0.05);
 
         const ObjNodeSize = [130,100];
-        UIBuffersStore.createObjNodeBuffers(app.gl, program, ObjNodeSize, 0.2);
+        UIBuffersStore.createObjNodeBuffers(app.gl, programs, ObjNodeSize, 0.2);
 
         // save ref
         this.UIBuffers = UIBuffersStore;
@@ -402,11 +355,5 @@ export class UI
     updateObjectsPanel(comp)
     {
 
-    }
-
-    initLayersPanel(app)
-    {
-        this.panels.layers = new UILayersPanel(app, this, this.UIBuffers);
-        this.panels.layers.pushObjsToRenderer();
     }
 }
