@@ -14,14 +14,14 @@ export class TextObject extends RenderableObject
                         "font_color", "subpixel_amount"];
 
 
-    constructor(renderInfo, txtBuffer, textProperties, projectionMat)
+    constructor(buffer, textProperties)
     {
-        super(renderInfo, projectionMat);
+        super(buffer);
         
         // set necessary text properties on init
         this.setTextProperties(textProperties);
 
-        this.txtBuffer = txtBuffer;
+        this.txtBuffer = buffer;
     }
 
     setTextProperties(inputTextProperties)

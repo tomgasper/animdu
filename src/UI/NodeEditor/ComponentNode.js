@@ -18,6 +18,8 @@ export class ComponentNode extends UINode
     {
         super(appRef, bufferInfo);
 
+        this.addExtraParam({resolution: undefined});
+
         this.component = component;
     }
 

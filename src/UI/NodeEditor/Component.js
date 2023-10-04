@@ -110,7 +110,7 @@ export class Component extends UIObject
 
     initializeNode()
     {
-        const outsideNode = new ComponentNode(this._ref.app,this._ref.app.UI.UIBuffers.UINode.container.buffer.getInfo(), this);
+        const outsideNode = new ComponentNode(this._ref.app,this._ref.app.UI.UIBuffers.UINode.container.buffer, this);
         outsideNode.initialize();
 
         this.elements.outside = outsideNode;
@@ -119,7 +119,8 @@ export class Component extends UIObject
     addParamNode(type, params)
     {
         const paramNodeIndx = this.elements.nodes.IN.length;
-        const newNode = new ParamNode(this._ref.app, this._ref.app.UI.UIBuffers.ObjNode.container.buffer.getInfo(), type, params);
+        const buffer = this._ref.app.UI.UIBuffers.ObjNode.container.buffer;
+        const newNode = new ParamNode(this._ref.app, buffer, type, params);
         newNode.initialize();
         newNode.setParent(this);
 
@@ -139,7 +140,7 @@ export class Component extends UIObject
 
     addFunctionNode(effectorFnc)
     {
-        const containerBuffer = this._ref.app.UI.UIBuffers.UINode.container.buffer.getInfo();
+        const containerBuffer = this._ref.app.UI.UIBuffers.UINode.container.buffer;
         const newNode = new FunctionNode(this._ref.app, containerBuffer, effectorFnc);
         newNode.initialize();
         newNode.setParent(this);

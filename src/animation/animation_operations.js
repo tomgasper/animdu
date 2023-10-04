@@ -1,12 +1,12 @@
 import { findNodesOfType } from "../utils.js";
 
-import { ObjNode } from "../UI/Node/ObjNode.js";
+import { ObjNode } from "../UI/NodeEditor/ObjNode.js";
 
 import { ObjAnimation } from "./ObjAnimation.js";
-import { ComponentNode } from "../UI/Node/ComponentNode.js";
+import { ComponentNode } from "../UI/NodeEditor/ComponentNode.js";
 
 import { Digraph } from "../DataStructures/Digraph.js";
-import { ParamNode } from "../UI/Node/ParamNode.js";
+import { ParamNode } from "../UI/NodeEditor/ParamNode.js";
 
 const findConnectedComponents = (startOffset, componentNode) => {
     const componentList = [

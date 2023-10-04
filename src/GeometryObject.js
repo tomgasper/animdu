@@ -1,17 +1,26 @@
 import { m3, computeTransform } from "./utils.js";
 
-import { TransformNode } from "./Node/TransformNode.js";
-
-export class SceneObject extends TransformNode
+export class GeometryObject
 {
     // If set to true can be detected by mouse move and picked up
-    canBeMoved = true;
     comp;
+
+    id = Math.floor(Math.random() * Date.now());
+
+    localMatrix = [1,0,0,
+                    0,1,0,
+                    0,0,1];
+
+    worldMatrix = [1,0,0,
+                    0,1,0,
+                    0,0,1];
+
+    
+    parent = undefined;
+    children = [];
 
     constructor()
     {
-        super();
-
         this.properties = {
             id: [0,0,0,1],
             color: [0.5, 0.7, 0.2, 1],
@@ -26,7 +35,8 @@ export class SceneObject extends TransformNode
             projection : undefined,
             blending: false,
             highlight: true,
-            visible: true
+            visible: true,
+            movable: true,
             // add height,width
         }
 
@@ -45,6 +55,55 @@ export class SceneObject extends TransformNode
     {
         this.properties.id = id;
     }
+
+    setParent(parent)
+    {
+        // remove this node from parent
+        if (this.parent)
+        {
+            const indx = this.parent.children.indexOf(this);
+            if (indx >= 0)
+            {
+                this.parent.children.splice(indx,1);
+            }
+        }
+
+        // Add this node to a new parent
+        if (parent)
+        {
+            parent.children.push(this);
+        }
+        this.parent = parent;
+    }
+
+    deleteChild(child)
+    {
+        this.children = this.children.filter( (children) => children !== child );
+    }
+
+    updateWorldMatrix(parentWorldMatrix)
+    {
+        if (parentWorldMatrix)
+        {
+            m3.multiplyInPlace(this.worldMatrix, parentWorldMatrix, this.localMatrix);
+        } else {
+            m3.copy(this.worldMatrix, this.localMatrix);
+        }
+
+        // cancel out scaling for children
+        let worldMatrix = this.worldMatrix;
+        if (this.properties.scale[0] !== 1 || this.properties.scale[1] !== 1 )
+        {
+            worldMatrix = this.cancelScaling(worldMatrix);
+        }
+
+        // process all the children
+        this.children.forEach((child) => {
+            child.updateWorldMatrix(worldMatrix);
+        });
+    }
+    
+    // -------- Properties methods ------------
 
     setPosition(pos)
     {
@@ -109,7 +168,7 @@ export class SceneObject extends TransformNode
     {
         if (typeof canBe !== "boolean") throw Error("Wrong input!");
 
-        this.canBeMoved = canBe;
+        this.properties.movable = canBe;
     }
 
     setBlending(isBlending)
@@ -118,7 +177,6 @@ export class SceneObject extends TransformNode
 
         this.properties.blending = isBlending;
     }
-    
 
     setProjectionAndCalcFinalTransform(viewProjectionMat)
     {
@@ -159,11 +217,20 @@ export class SceneObject extends TransformNode
         this.properties.visible = isVisible;
     }
 
-    // handlers
-
+    // -------- Handlers -----------
     setOnClick(fnc)
     {
         if (!(typeof fnc === "function")) throw new Error("Incorrect input, must be a function!");
         this.handlers.onClick = fnc;
+    }
+
+    // -------- Utils --------------
+
+    cancelScaling(worldMatrix)
+    {
+        const unScaleMatrix = m3.scaling(1/this.properties.scale[0], 1/this.properties.scale[1]);
+        const newParentMatrix = m3.multiply(worldMatrix, unScaleMatrix);
+
+        return newParentMatrix;
     }
 }

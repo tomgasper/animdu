@@ -15,6 +15,8 @@ export class ObjNode extends UINode
     {
         super(appRef, buffInfo, paramsList);
 
+        this.addExtraParam({resolution: [this._ref.app.gl.canvas.width, this._ref.app.gl.canvas.height]});
+
         this.obj = obj;
     }
 

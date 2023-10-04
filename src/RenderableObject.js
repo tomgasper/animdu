@@ -1,34 +1,49 @@
-import { SceneObject } from "./SceneObject.js";
+import { GeometryObject } from "./GeometryObject.js";
 
-export class RenderableObject extends SceneObject
+export class RenderableObject extends GeometryObject
 {
-    // This class will actually allow to create "backend" for each object
-    // We will be changing parameters of this object and then sending this new changed object
-    // to the render pipeline
+    /*
     renderInfo = {
         bufferInfo: undefined,
         vertexArrInfo: undefined,
         drawInfo: undefined,
         programInfo: undefined
-    }
+    };
+    */
 
     buffer = {};
     
-    constructor(renderInfo, projection, buffer = undefined)
+    constructor(objBuffer, extraParams)
     {
         super();
 
-        this.buffer = buffer;
+        if (objBuffer === undefined)
+        {
+            this.buffer = undefined;
+        } else {
+            this.setBuffer(objBuffer);
+        }
 
-        // if (typeof projection === undefined || projection.length != 9) throw new Error("[SceneObject]: Wrong input projection matrix!");
-        // this.setProjectionAndCalcFinalTransform(projection);
+        if (extraParams)
+        {
+            this.properties = {
+                ...this.properties, ...extraParams
+            }
+        }
+    }
 
-        // ok this will be some object which points to proper buffer
-        this.renderInfo = {
-            bufferInfo: renderInfo.bufferInfo,
-            vertexArrInfo: renderInfo.vertexArrInfo,
-            drawInfo: renderInfo.drawInfo,
-            programInfo: renderInfo.programInfo
+    setBuffer(objBuffer)
+    {
+        if (!objBuffer || !objBuffer.getInfo() ) throw new Error("Setting incorrect buffer!");
+
+        this.buffer = objBuffer;
+        this.buffer.renderInfo = objBuffer.getInfo();
+    }
+
+    addExtraParam(extraParam)
+    {
+        this.properties = {
+            ...this.properties, ...extraParam
         }
     }
 }

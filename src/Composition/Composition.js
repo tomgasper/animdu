@@ -1,7 +1,7 @@
 import { RenderableObject } from "../RenderableObject.js";
 import { Camera } from "./Camera.js";
 
-import { ObjNode } from "../UI/Node/ObjNode.js";
+import { ObjNode } from "../UI/NodeEditor/ObjNode.js";
 
 export class Composition
 {

@@ -1,13 +1,13 @@
-import { RenderableObject } from "../RenderableObject.js";
 import { UIObject } from "./UIObject.js";
 import { CustomBuffer } from "../Primitives/CustomBuffer.js";
 
-import { Component } from "./Node/Component.js";
+import { Component } from "./NodeEditor/Component.js";
 
 import { hexToRgb } from "../utils.js";
 
-export class UIViewer extends UIObject
+export class UINodeEditor extends UIObject
 {
+    name = "Node Editor";
     components = [];
 
     style = {
@@ -17,42 +17,29 @@ export class UIViewer extends UIObject
         },
     }
 
-    constructor(appRef, UIRef, buffInfo, name)
+    constructor(appRef, UIRef, dims)
     {
         // dims = [ (float)left, (float)right, (float)top, (float)bottom ]
 
-        super(appRef, buffInfo);
+        super(appRef, undefined);
 
         // need to save ref to UI manually as UI instance isn't attached to App instance yet
         this._ref.UI = UIRef;
 
-        this.setName(name);
-
-        this.initialize();
+        this.initialize(dims);
     }
 
-    initialize()
+    initialize(dims)
     {
         this.style.container.colour = hexToRgb(this._ref.UI.style.nodeViewer.container.colour);
 
-        this.setStyle(this.style.container.colour);
-    }
+        const editorDims = this.createContainer(dims);
+        const nodeEditorBuffer = new CustomBuffer(this._ref.app.gl, this._ref.app.programs[0], editorDims);
+        this.setBuffer(nodeEditorBuffer);
 
-    setName(name)
-    {
-        if (typeof name !== "string") throw new Error("Incorrect name type!");
-        this.name = name;
-    }
-
-    setStyle(colour)
-    {
-        if (!(this instanceof RenderableObject)) throw new Error("Incorrect/No container object!");
-        this.setOriginalColor(colour);
+        this.setOriginalColor(this.style.container.colour);
         this.canBeMoved = false;
         this.properties.highlight = false;
-        // this.setColor([0,0.3,0.2,1]);
-
-        this.style.colour = colour;
     }
 
     createContainerVerts(dims)
@@ -69,6 +56,22 @@ export class UIViewer extends UIObject
     ];
 
     return customVertsPos;
+    }
+
+    createContainer(dims)
+    {
+        const [ left, right, top, bottom ] = dims;
+            // Install Container
+        const customVertsPos = [  left, top,
+        right, top,
+        right, bottom,
+
+        right, bottom,
+        left, bottom,
+        left, top
+        ];
+
+        return customVertsPos;
     }
 
     updateContainer(dims)

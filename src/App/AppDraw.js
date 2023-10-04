@@ -4,8 +4,9 @@ import { renderObject } from "../utils.js";
 import { TextObject } from "../Text/TextObject.js";
 
 import { calcViewProjMat } from "../utils.js";
-import { UIViewer } from "../UI/UIViewer.js";
-import { UIViewport } from "../UI/UIViewport.js";
+import { UISceneViewport } from "../UI/UISceneViewport.js";
+
+import { UINodeEditor } from "../UI/UINodeEditor.js";
 
 // Draw functions
 export const drawObjects = (app, objsToDraw, objsArrIndx, programInfo = undefined, camera) =>
@@ -42,7 +43,7 @@ export const drawObjects = (app, objsToDraw, objsArrIndx, programInfo = undefine
 
                 // set correct projection
                 // we don't want the camera to affect viewport bg or node space bg so we ignore view transform and just set projection
-                if (obj instanceof UIViewer || obj instanceof UIViewport ) obj.setProjectionAndCalcFinalTransform(getProjectionMat(app.gl));
+                if (obj instanceof UINodeEditor || obj instanceof UISceneViewport ) obj.setProjectionAndCalcFinalTransform(getProjectionMat(app.gl));
                 else obj.setProjectionAndCalcFinalTransform(viewProjection);
 
                 renderObject(app.gl, obj, program);
@@ -51,7 +52,7 @@ export const drawObjects = (app, objsToDraw, objsArrIndx, programInfo = undefine
                 obj.setColor(obj.properties.originalColor);
         })} else {  // Use object's shader when shader hasn't been specified
             objsToDraw.forEach((obj, ii) => {
-                let objProgram = obj.renderInfo.programInfo;
+                let objProgram = obj.buffer.renderInfo.programInfo;
 
                 // Switch shader if the cached one doesn't work
                 if (objProgram !== program)

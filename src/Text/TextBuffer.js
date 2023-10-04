@@ -237,6 +237,18 @@ export class TextBuffer {
     return drawInfo;
     }
 
+    getInfo()
+    {
+        const bufferInfo = {
+            bufferInfo: this.getBufferInfo(),
+            vertexArrInfo: this.getVertexArrInfo(),
+            drawInfo: this.getDrawInfo(),
+            programInfo: this.programInfo
+        };
+
+        return bufferInfo;
+    }
+
     draw()
     {
         if (typeof this.font.color === undefined || typeof this.font.subpixel === undefined )

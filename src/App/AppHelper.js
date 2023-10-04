@@ -3,11 +3,10 @@ import { RenderableObject } from "../RenderableObject.js";
 import { getProjectionMat } from "../utils.js";
 import { m3, resizeCanvasToDisplaySize } from "../utils.js";
 
-import { TransformNode } from "../Node/TransformNode.js";
-
 import { setFramebufferAttachmentSizes } from "../pickingFramebuffer.js";
 
 import { Composition } from "../Composition/Composition.js";
+import { GeometryObject } from "../GeometryObject.js";
 
 export const resetMousePointer = (body) =>
 {
@@ -24,7 +23,7 @@ export const createNewRect = (scene, width, height, roundness = 0.05) =>
     const rectangleBuffer = new RectangleBuffer(scene.gl,scene.programs[0], [width,height], roundness);    
     const rect = new RenderableObject(rectangleBuffer.getInfo(), projectionMat);
 
-    rect.canBeMoved = true;
+    rect.properties.movable = true;
     rect.setPosition([0,0]);
     rect.setOriginalColor([0.5,0.5,0.5,1]);
 
@@ -49,7 +48,7 @@ export const modifyParameter = (obj, paramCode, value) =>
 export const getPosFromMat = (obj) =>
 {
     // accept node instance or matrix
-    if ( obj instanceof TransformNode || obj.length == 9 )
+    if ( obj instanceof GeometryObject || obj.length == 9 )
     {
         let pos;
 
@@ -141,7 +140,7 @@ export const moveObjectWithCoursor = (app) =>
         if (app.objectIDtoDrag < 0 || app.objectToDragArrIndx < 0) return false;
 
         const objToMove = app.objsToDraw[app.objectToDragArrIndx].objs[app.objectIDtoDrag];
-        if (app.isMouseDown && objToMove.canBeMoved === true) return true;
+        if (app.isMouseDown && objToMove.properties.movable === true) return true;
         else return false;
 }
 

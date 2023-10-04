@@ -336,7 +336,7 @@ export class UINode extends UIObject
     
     createHandle(pos, parent, parameter)
     {
-        const cirlceBuffer = this._ref.UIBuffers.handle.buffer.getInfo();
+        const cirlceBuffer = this._ref.UIBuffers.handle.buffer;
 
         const handle = new UINodeHandle(this._ref.app, cirlceBuffer, this, this.container);
         handle.setParent(parent);
