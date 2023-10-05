@@ -12,6 +12,7 @@ export class RoundedRectangleBuffer {
      
          this.programInfo = programInfo;
 
+        /*
          this.basicQuadVerts = [
             -50, -50,
             50, -50,
@@ -20,6 +21,17 @@ export class RoundedRectangleBuffer {
             -50, 50,
             50,-50,
             50,50
+        ];
+        */
+
+        this.basicQuadVerts = [
+            0, 0,
+            100, 0,
+            0, 100,
+
+            0, 100,
+            100,100,
+            100,0
         ];
 
          this.textureData = undefined;
@@ -109,7 +121,7 @@ export class RoundedRectangleBuffer {
         for (let i = 0; i < 6; i++)
         {
             rectangleData.push(this.basicQuadVerts[2*i], this.basicQuadVerts[2*i+1],
-                              0,0,
+                              50,50,
                               1,1,
                               cornRadius
                               );

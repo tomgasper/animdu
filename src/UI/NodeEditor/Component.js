@@ -14,6 +14,8 @@ import { isNumeric } from "../../utils.js";
 
 import { hexToRgb } from "../../utils.js";
 
+import { UINode } from "./UINode.js";
+
 export class Component extends UIObject
 {
     elements = {
@@ -42,6 +44,21 @@ export class Component extends UIObject
         text: {
             paramTextOffsetX: undefined
         },
+        margin:
+        {
+            x: undefined,
+            y: undefined
+        },
+        body:
+        {
+
+        },
+        heading:
+        {
+            text: {
+                upscale: undefined,
+            }
+        }
     }
 
     isExtended = true;
@@ -50,20 +67,27 @@ export class Component extends UIObject
     {
         super(appRef, buffInfo);
 
-        this.initialize(size);
+        this.addExtraParam({resolution: [this._ref.app.canvas.width,this._ref.app.canvas.height ]});
+
         this.setName(name);
+        this.initialize(size);
     }
 
     initialize(size = [700, 350], colour = [0.5,0.1,0.3,1])
     {
-        const fontBody = this._ref.UI.style.nodes.general.text.body;
+        const fontBody = this._ref.UI.style.nodes.general.body.text;
+        const fontHeading = this._ref.UI.style.nodes.general.heading.text;
+
+        this.style.heading.text.upscale = 2.0;
+
+        const upscale = this.style.heading.text.upscale;
         
         [this.style.container.width, this.style.container.height] = size;
 
         // Stylize Component Inside
         this.style.text.paramTextOffsetX = this.style.container.width/2;
-        this.style.marginX = this.style.container.width/10;
-        this.style.marginY = this.style.container.height/10;
+        this.style.margin.x = 10;
+        this.style.margin.y = 8;
 
         this.style.container.colour = hexToRgb(this._ref.UI.style.nodes.component.container.colour, 0.85);
         this.setBlending(true);
@@ -75,29 +99,43 @@ export class Component extends UIObject
         // Save ref and connect to UIViewer
         this.setParent(this._ref.UI.viewer);
 
-        this.name = "NodeCompViewer";
-
         // Add button
         const newButton = new Button(this._ref.app,this._ref.app.primitiveBuffers.rectangle, () => console.log("Hello!"));
         newButton.setParent(this);
-        newButton.setPosition([this.style.container.width*0.9, this.style.container.height*0.1]);
+        newButton.setPosition([this.style.container.width*0.9, this.style.margin.y+(newButton.properties.scale[1]*100)/2]);
         newButton.setOriginalColor(hexToRgb(this._ref.UI.style.nodes.component.hideButton.colour));
 
         // Create text
-        const durationTextPos = [this.style.container.width / 2, 0];
+        /*
         const txtArr = [
             {
-            data: "Duration: ",
-            pos: durationTextPos   
-            },
-        ]
+                data: this.name,
+                pos: [this.style.margin.x*upscale, this.style.margin.y*upscale]
+            }
+        ];
+        */
 
-        const txtBatch = this.createBatchText(txtArr, fontBody);
-        txtBatch.setParent(this);
+        this.txtArr = undefined;
+
+        // Title font differ from body font
+        const headingTxt = this.name;
+        const titleTxt = createNewText(this._ref.app.gl, this._ref.app.programs[2], headingTxt, fontHeading.size*this.style.heading.text.upscale, fontHeading.font,hexToRgb(fontBody.colour) );
+        titleTxt.setScale([ 1/upscale,1/upscale ]);
+        titleTxt.setParent(this);
+        titleTxt.setPosition([this.style.margin.x*upscale, this.style.margin.y*upscale]);
+
+        this.elements.heading = titleTxt;
+
+        // const txtBatch = this.createBatchText(txtArr.slice(1,txtArr.length), fontBody);
+        // txtBatch.setParent(this);
 
         // Add input for duration
-        const durationInput = new UITextInput(this._ref.app, this._ref.app.primitiveBuffers.rectangle, 10, this, "input");
-        durationInput.setPosition([this.style.container.width / 2, this.style.container.height * 0.1]);
+        console.log( titleTxt.buffer.str);
+        const txtWidth = titleTxt.buffer.str.cpos[0]/2;
+        const durInputPos = [txtWidth+this.style.margin.x * upscale + 10, this.style.margin.y*upscale + 3];
+        const durationInput = new UITextInput(this._ref.app, this._ref.app.primitiveBuffers.rectangle, 10, this, "5.0s", [40,20]);
+        durationInput.setPosition(durInputPos);
+        // durationInput.setScale([0.3,0.2]);
         durationInput.handlers.onValueChange = (newVal) => this.changeDuration(newVal);
 
         // Handlers
@@ -110,8 +148,8 @@ export class Component extends UIObject
 
     initializeNode()
     {
-        const outsideNode = new ComponentNode(this._ref.app,this._ref.app.UI.UIBuffers.UINode.container.buffer, this);
-        outsideNode.initialize();
+        const buffer = this._ref.app.UI.UIBuffers.UINode.container.buffer;
+        const outsideNode = new ComponentNode(this._ref.app, buffer, this);
 
         this.elements.outside = outsideNode;
     }
@@ -119,9 +157,8 @@ export class Component extends UIObject
     addParamNode(type, params)
     {
         const paramNodeIndx = this.elements.nodes.IN.length;
-        const buffer = this._ref.app.UI.UIBuffers.ObjNode.container.buffer;
+        const buffer = this._ref.app.UI.UIBuffers.UINode.container.buffer;
         const newNode = new ParamNode(this._ref.app, buffer, type, params);
-        newNode.initialize();
         newNode.setParent(this);
 
         // Save ref
@@ -129,13 +166,16 @@ export class Component extends UIObject
         {
             this.elements.nodes.IN.push(newNode);
             newNode.setIndx(this.elements.nodes.IN.length-1);
+            newNode.setPosition([0 + 10, this.style.container.height/2-130/2]);
         }
         else if (type === "OUT") {
             this.elements.nodes.OUT.push(newNode);
             newNode.setIndx(this.elements.nodes.OUT.length-1);
+            newNode.setPosition([this.style.container.width - 130 - 10, this.style.container.height/2-130/2]);
         }
 
         newNode.setHeadingText();
+
     }
 
     addFunctionNode(effectorFnc)
@@ -151,12 +191,15 @@ export class Component extends UIObject
 
     transformToNode()
     {
-        this.changeNodesVisibility(false);
+        // Turn off inside elements
+        this.changeElementsVisibility(false);
+        // but keep heading text always visible
+        this.elements.heading.setVisible(true);
+
         this.changeSize(false);
         this.elements.buttons.hide.setVisible(false);
 
         if (!this.elements.outside) this.initializeNode();
-        
         this.elements.outside.transformToNode(true);
 
         // need to update world matrix property as a new position of components
@@ -171,7 +214,7 @@ export class Component extends UIObject
     {
         if (this.isExtended) return;
 
-        this.changeNodesVisibility(true);
+        this.changeElementsVisibility(true);
         this.changeSize(true);
         this.elements.buttons.hide.setVisible(true);
 
@@ -206,20 +249,26 @@ export class Component extends UIObject
         this.setScale(newSize);
     }
 
-    changeNodesVisibility(isVisible)
+    changeElementsVisibility(isVisible)
     {
-        // hide lines
-        this.children.forEach( (child) => {
-            child.setVisible(isVisible); }
-        );
+        // hide children
+        for (let i = 0; i < this.children.length; i++)
+        {
+            const obj = this.children[i];
+            if (obj instanceof UINode) {
+                obj.setVisibleNode(isVisible);
+            } else obj.setVisible(isVisible);
+        }
 
+        /*
         // hide nodes
         for (const nodeType in this.elements.nodes)
-            {
-                this.elements.nodes[nodeType].forEach( (nodeArr) => {
-                    nodeArr.setVisibleNode(isVisible);
-                });
-            }
+        {
+            this.elements.nodes[nodeType].forEach( (nodeArr) => {
+                nodeArr.setVisibleNode(isVisible);
+            });
+        }
+        */
     }
 
     setActiveObj(obj)

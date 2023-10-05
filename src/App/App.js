@@ -219,34 +219,21 @@ export class App
         obj2.setScale([0.5,1]);
         obj2.name = "circle2";
 
-        const obj3 = new RenderableObject(this.primitiveBuffers.rectangle);
-        obj3.setPosition([200, 0]);
-        obj3.setScale([1,1]);
-        obj3.name = "rect";
-
-        const obj4 = new RenderableObject(this.primitiveBuffers.circle);
-        obj4.setPosition([300, 0]);
-        obj4.name = "circle4";
-
-        obj4.setParent(obj3);
-        obj3.setParent(obj2);
         obj2.setParent(obj1);
 
-        console.log(this.programs);
         const roundedRectBuff = new RoundedRectangleBuffer(this.gl, this.programs[5]);
         const roundedRect = new RenderableObject(roundedRectBuff);
         roundedRect.properties.resolution = [this.gl.canvas.width,this.gl.canvas.height];
 
-        console.log(roundedRect);
-
         roundedRect.setPosition([500,500]);
-        roundedRect.setScale([4,3.5]);
+        roundedRect.setScale([7,3.5]);
 
-        this.activeComp.addObj([solid, obj1,obj2,obj3, obj4, roundedRect ]);
+        this.activeComp.addObj([solid,obj1,obj2,roundedRect]);
 
         const paramList = new UINodeParamList([
             new UINodeParam("position", "TEXT_READ", [0,0]),
-            new UINodeParam("scale", "TEXT_READ", [1,1])
+            new UINodeParam("scale", "TEXT_READ", [1,1]),
+            new UINodeParam("rotation", "TEXT_READ", [1])
         ]);
 
         const paramList2 = new UINodeParamList([
@@ -271,7 +258,6 @@ export class App
 
 
         // Render Obj Nodes
-
         /*
         this.activeComp.objects.forEach( (obj) => {
             const newObjNode = this.UI.addObjNode(obj);
@@ -289,49 +275,27 @@ export class App
 
         const fnc = () => console.log("Hello, this is some function!");
         const effectorFunction = new Effector("Custom function", fnc, 3, 2);
-        const componentBuff = this.primitiveBuffers.rectangle;
-        const compNode = new Component(this, componentBuff,  [500, 300], [0.1,0.1,0.1,1], "myComponent");
+        const componentBuff = this.primitiveBuffers.roundedRectangle;
+        const compNode = new Component(this, componentBuff,  [700, 450], [0.1,0.1,0.1,1], "Somesa");
         compNode.addParamNode("IN", paramList);
         compNode.addParamNode("IN", paramList);
-        compNode.addFunctionNode(effectorFunction);
-        compNode.addParamNode("OUT", paramListOUT);
+        compNode.addParamNode("IN", paramList);
+        // compNode.addFunctionNode(effectorFunction);
         compNode.addParamNode("OUT", paramListOUT);
         
+        /*
         const fnc2 = () => console.log("Another function!");
         const effectorFunction2 = new Effector("Custom function2", fnc2, 3, 2)
         const compNode2 = new Component(this, componentBuff, [600, 300], [0.1,0.1,0.1,1], "myComponent2");
         compNode2.addParamNode("IN", paramList2);
-        compNode2.addParamNode("IN", paramList2);
         compNode2.addFunctionNode(effectorFunction2);
         compNode2.addParamNode("OUT", paramListOUT2);
-        compNode2.addParamNode("OUT", paramListOUT2);
-
-        console.log(compNode2);
-
-        
-        /*
-        const compNode3 = new Component(this, componentBuff, [600, 300], [0.1,0.1,0.1,1], "myComponent3");
-        compNode3.addParamNode("IN", paramList);
-        compNode3.addFunctionNode(effectorFunction2);
-        compNode3.addParamNode("OUT", paramListOUT);
-
-        const compNode4 = new Component(this, componentBuff, [600, 300], [0.1,0.1,0.1,1], "myComponent4");
-        compNode4.addParamNode("IN", paramList);
-        compNode4.addFunctionNode(effectorFunction2);
-        compNode4.addParamNode("OUT", paramListOUT);
         */
 
         const activeViewer = this.UI.viewer;
         activeViewer.addComponent(compNode);
-        activeViewer.addComponent(compNode2);
-        // activeViewer.addComponent(compNode3);
-        // activeViewer.addComponent(compNode4);
 
-        // this.UI.addObj(compNode.getObjsToRender(), ["nodes"]);
         compNode.setPosition([500,500]);
-        compNode2.setPosition([500,400]);
-        // compNode3.setPosition([300,400]);
-        // compNode4.setPosition([100,400]);
     }
 
     // render loop function called from RenderLoop class

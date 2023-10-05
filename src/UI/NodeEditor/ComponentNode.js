@@ -7,7 +7,7 @@ import { hexToRgb } from "../../utils.js";
 
 export class ComponentNode extends UINode
 {
-    type = "ComponentNode";
+    type = "_NODE_COMPONENT";
     component = undefined;
 
     // NOTE:
@@ -21,30 +21,36 @@ export class ComponentNode extends UINode
         this.addExtraParam({resolution: undefined});
 
         this.component = component;
+
+        this.initialize();
     }
 
     initialize()
     {
-        const fontBody = this.style.text.body;
-        const fontHeading = this.style.text.heading;
+        this.style.body.text.upscale = 2.0;
+        this.style.heading.text.upscale = 2.0;
+
+        this.style.heading.text.size = 10;
+        this.style.body.text.size = 9;
+
+        const fontBody = this.style.body.text;
+        const fontHeading = this.style.heading.text;
 
         // Set size based on the background container size
         this._ref.UIBuffers = this._ref.app.UI.UIBuffers.UINode;
 
         this._ref.parent = this.component;
 
-        [this.style.container.width, this.style.container.height ] = this._ref.UIBuffers.container.size;
-        const inNum = this.component.elements.nodes.IN.length;
-        const outNum = this.component.elements.nodes.OUT.length;
+        [this.style.container.width, this.style.container.height ] = [130,130];
 
         // Stylize Node
 
         //Text
-        this.style.text.paramTextOffsetX = this.style.container.width/2;
+        this.style.body.text.paramTextOffsetX = this.style.container.width/2;
 
         // Container
-        this.style.marginX = this.style.container.width/10;
-        this.style.marginY = this.style.container.height/10;
+        this.style.margin.x = 10;
+        this.style.margin.y = 5;
         this.style.container.colour = hexToRgb(this._ref.UI.style.nodes.component.container.colour, 1);
 
         // Handles
@@ -59,58 +65,75 @@ export class ComponentNode extends UINode
 
         this.container.setOnClick( () => console.log("hello!") );
 
-
-        this.addIOHandles("IN", inNum, this.container, this.style.handles.L.position[1]);
-        this.addIOHandles("OUT", outNum, this.container, this.style.handles.R.position[1]);
-        
-        /* this is how txtArr obj looks like:
-            const txtArr = [
-                {
-                data: "Param 1",
-                pos: [0,0]   
-                }, ...
-            ]
-       */
+        this.constructNodeBody();
 
         // Render text
-        this.txtArr = [
-            { data: this.component.name, pos: [0,0] },
-            ...this.createIOTxt("IN"),
-            ...this.createIOTxt("OUT")
-        ];
 
        // creating text batch for this node, to avoid creating a lot of small buffers
-        const txtBatch = createNewText(this._ref.app.gl, this._ref.app.programs[2], this.txtArr, fontBody.size, fontBody.font, hexToRgb(fontBody.colour));
+        const bodyTxt = this.txtArr;
+        const txtBatch = createNewText(this._ref.app.gl, this._ref.app.programs[2], bodyTxt, fontBody.size * this.style.body.text.upscale, fontBody.font, hexToRgb(fontBody.colour));
         txtBatch.setCanBeMoved(false);
-        txtBatch.setPosition([ this.style.marginX, this.style.marginY ]);
+        txtBatch.setScale([ 1/this.style.body.text.upscale,1/this.style.body.text.upscale ]);
+        txtBatch.setPosition([ 0,0 ]);
         txtBatch.setParent(this.container);
 
         this.elements.text = txtBatch;
     }
 
-    createIOTxt(type, offset = 0)
+    constructNodeBody()
     {
+        const fontSize = this.style.body.text.size;
+
+        const scale = this.style.body.text.upscale;
+        let txtStartX = this.style.margin.x;
+        let txtStartY = ( this.style.margin.y + fontSize + this.style.body.margin.y);
+        let lineOffset = (fontSize + this.style.body.text.margin.y);
+        let horizontalOffset = this.style.body.text.paramTextOffsetX + 5;
+
+        const txtWidth = 5 * fontSize;
+        let startOUTtxtX = ( this.style.container.width - this.style.margin.x - txtWidth );
+        let startOUTtxtY = this.style.container.height/2;
+
+        this.style.handles.L.position = [0, txtStartY + fontSize];
+        this.style.handles.R.position = [this.style.container.width, startOUTtxtY + fontSize];
+
+        this.style.lineOffset = lineOffset;
+
+        txtStartX *= scale;
+        txtStartY *= scale;
+        lineOffset *= scale;
+        startOUTtxtX *= scale;
+        startOUTtxtY *= scale;
+
+        const nodesINTxt = this.createIOTxt("IN", txtStartX, txtStartY, lineOffset);
+        const nodesOUTxt = this.createIOTxt("OUT", startOUTtxtX, startOUTtxtY, lineOffset);
+
+        this.txtArr = [
+            ...nodesINTxt,
+            ...nodesOUTxt
+        ];
+
+        // add handles
         const inNum = this.component.elements.nodes.IN.length;
         const outNum = this.component.elements.nodes.OUT.length;
 
+        this.addIOHandles("IN", inNum, this.container, this.style.handles.L.position[1], lineOffset);
+        this.addIOHandles("OUT", outNum, this.container, this.style.handles.R.position[1], lineOffset);
+    }
+
+    createIOTxt(type, startX, startY, lineOffset)
+    {
+        if (type !== "IN" && type !== "OUT") throw new Error("Incorrect type of handle");
+
+        const handles = this.component.elements.nodes[type];
+
         const txtArr = [];
 
-        if (type === "IN")
+        for (let i = 0; i < handles.length; i++)
         {
-            for (let i = 0; i < inNum; i++)
-            {
-                txtArr.push(
-                    { data: "IN" + "(" + i + ")", pos: [10, this.style.container.height/4 + this.style.text.paramTextOffsetY * (i + offset) - this.style.text.size] }
-                )
-            }
-        } else if (type === "OUT")
-        {
-            for (let i = 0; i < outNum; i++)
-            {
-                txtArr.push(
-                    { data: "OUT" + "(" + i + ")", pos: [this.style.container.width-65, this.style.container.height/2 + this.style.text.paramTextOffsetY * (i + offset) - this.style.text.size ] }
-                )
-            }
+            txtArr.push(
+                { data: type + "(" + i + ")", pos: [startX, startY + (i * lineOffset)] }
+            )
         }
 
         return txtArr;
@@ -123,35 +146,45 @@ export class ComponentNode extends UINode
         let newHandleLPos, newHandleRPos;
         let newColour;
 
+        const upscale = this.container.style.heading.text.upscale ? this.container.style.heading.text.upscale : 1.0; 
+
+        const headingTxt = this.container.elements.heading;
+
         if (isNode)
         {
             newHandleLPos = this.style.handles.L.position;
             newHandleRPos = this.style.handles.R.position;
 
             newColour = this.style.container.colour;
+
+            headingTxt.setScale([0.8/upscale,0.8/upscale]);
+            headingTxt.setPosition([this.style.margin.x, this.style.margin.y]);
         } else 
         {
-            newHandleLPos = [0, this.component.style.container.height/2 - this.style.text.body.size];
-            newHandleRPos = [this.component.style.container.width, this.component.style.container.height/2 - this.style.text.body.size ];
+            newHandleLPos = [0, this.component.style.container.height/2 - this.style.body.text.size];
+            newHandleRPos = [this.component.style.container.width, this.component.style.container.height/2 - this.style.body.text.size ];
 
             newColour = this.component.style.container.colour;
+
+            headingTxt.setScale([1/upscale,1/upscale]);
+            headingTxt.setPosition([this.container.style.margin.x*upscale, this.container.style.margin.y*upscale]);
         }
 
         // Note that we are ignoring container here
         this.elements.handles.L.forEach( (handle,indx) => {
             handle.setVisible(true);
-            handle.setPosition([newHandleLPos[0] , newHandleLPos[1] + this.style.handles.offsetY * indx]);
+            handle.setPosition([newHandleLPos[0] , newHandleLPos[1] + this.style.lineOffset * indx]);
         });
 
         this.elements.handles.R.forEach( (handle, indx) => {
             handle.setVisible(true);
-            handle.setPosition([newHandleRPos[0] , newHandleRPos[1] + this.style.handles.offsetY * indx]);
+            handle.setPosition([newHandleRPos[0] , newHandleRPos[1] + this.style.lineOffset* indx]);
         });
         
         this.elements.text.setVisible(isNode);
+        // this.elements.heading.setVisible(true);
 
         this.container.setOriginalColor(newColour);
-
         // this.container.children.forEach( (child) => child.setVisible(isVisible)) ;
     }
 

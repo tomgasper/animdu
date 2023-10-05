@@ -26,16 +26,18 @@ export class FunctionNode extends UINode
 
         [this.style.container.width, this.style.container.height ] = this._ref.UIBuffers.container.size;
 
+        this.setScale([1.5,2]);
+
         // Text
         const upscale = 2;
-        this.style.text.body.colour = this._ref.UI.style.nodes.params.text.colour;
-        this.style.text.body.size = 10 * upscale;
-        this.style.text.body.paramTextOffsetY = this.style.text.body.size * 1.5;
+        this.style.body.text.colour = this._ref.UI.style.nodes.params.text.colour;
+        this.style.body.text.size = 10 * upscale;
+        this.style.body.text.paramTextOffsetY = this.style.body.text.size * 1.5;
         
-        const fontBody = this.style.text.body;
+        const fontBody = this.style.body.text;
 
         // Stylize Node
-        this.style.text.paramTextOffsetX = this.style.container.width/2;
+        // this.style.body.text.lineOffset = this.style.container.width/2;
         this.style.marginX = this.style.container.width/10;
         this.style.marginY = this.style.container.height/10;
 
@@ -59,8 +61,8 @@ export class FunctionNode extends UINode
         // Save ref
         // this.container = rect;
 
-        this.addIOHandles("IN", this.effector.argc, this, this.style.container.height/4 - this.style.text.body.size, upscale);
-        this.addIOHandles("OUT", this.effector.outc, this, this.style.container.height/2 - this.style.text.body.size, upscale);
+        this.addIOHandles("IN", this.effector.argc, this, this.style.container.height/4 - this.style.body.text.size, upscale);
+        this.addIOHandles("OUT", this.effector.outc, this, this.style.container.height/2 - this.style.body.text.size, upscale);
 
         // Stylize handles
         /*

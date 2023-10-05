@@ -2,6 +2,8 @@ import { UINode } from "./UINode.js";
 import { createNewText } from "../../Text/textHelper.js";
 
 import { hexToRgb } from "../../utils.js";
+import { CustomBuffer } from "../../Primitives/CustomBuffer.js";
+import { RenderableObject } from "../../RenderableObject.js";
 
 export class ParamNode extends UINode
 {
@@ -18,69 +20,81 @@ export class ParamNode extends UINode
     {
         super(app, buffInfo, paramsList);
 
-        this.addExtraParam({resolution: [this._ref.app.gl.canvas.width, this._ref.app.gl.canvas.height]});
+        this.addExtraParam({
+            resolution: [this._ref.app.gl.canvas.width, this._ref.app.gl.canvas.height]
+        });
 
         this.setType(type);
         this.setName(name);
+
+        this.initialize();
     }
 
     initialize()
     {
         // Text
-        this.style.text.body.colour = this._ref.UI.style.nodes.params.text.colour;
-        const fontBody = this.style.text.body;
+        this.style.body.text.colour = this._ref.UI.style.nodes.params.text.colour;
+        this.style.body.text.size = 8;
+        this.style.heading.text.size = 9;
+        const fontBody = this.style.body.text;
+        const fontHeading  = this.style.heading.text;
 
         // Set size based on the background container size
         this._ref.UIBuffers = this._ref.app.UI.UIBuffers.ObjNode;
 
-        [this.style.container.width, this.style.container.height ] = this._ref.UIBuffers.container.size;
+        [this.style.container.width, this.style.container.height ] = [130, 100];
+
+        this.setScale([this.style.container.width/100, this.style.container.height/100]);
 
         // Stylize Node
-        this.style.text.body.paramTextOffsetX = this.style.container.width/2;
-        this.style.marginX = this.style.container.width/10;
-        this.style.marginY = this.style.container.height/10;
+        this.style.heading.text.upscale = 2.0;
+        this.style.body.text.upscale = 2.0;
+
+        this.style.body.text.paramTextOffsetX = 50;
+        this.style.margin.x = 10;
+        this.style.margin.y = 10;
 
         this.style.container.colour = hexToRgb(this._ref.UI.style.nodes.params.container.colour);
         this.setOriginalColor(this.style.container.colour);
 
-        // Retrieve previously initialized buffer
-        /*
-        const UINodeContainerBuffer = this._ref.UIBuffers.container.buffer.getInfo();
-        const rect = new RenderableObject(UINodeContainerBuffer);
-        */
-
         this.setPosition([0,0]);
         this.handlers.onMouseMove = () => { this.handleMouseMove()};
-
-        // Save ref
-        // this.container = rect;
 
         // Init graphical handlers
         // Render handle for each param to modify
         const handlesType = this.type === "INParamNode" ? "OUT" : "IN";
-        this.addIOHandles(handlesType, this.parameters.list.length, this, this.style.text.body.paramTextOffsetY);
 
-        /* this is how txtArr obj looks like:
-            const txtArr = [
-                {
-                data: "Param 1",
-                pos: [0,0]   
-                }, ...
-            ]
-       */
+        const handleStartY = this.style.margin.y + ( fontBody.size * 2 ) + this.style.body.margin.y;
+        const offsetLine = this.style.body.text.size  + this.style.body.text.margin.y;
+        this.addIOHandles(handlesType, this.parameters.list.length, this, handleStartY, offsetLine);
 
-        
+        // Create boxes that will sit behind text
+        const bgBoxesBuffer = new CustomBuffer(this._ref.app.gl, this._ref.app.programs[0], new Array(60).fill(0));
+        this.bgTxtBoxes = new RenderableObject(bgBoxesBuffer);
+        this.bgTxtBoxes.setCanBeMoved(false);
+        this.bgTxtBoxes.setOriginalColor(hexToRgb("C1D2FB"));
 
         // Render text
-        this.constructText();
-        
+        this.constructNodeBody();
 
-       // creating text batch for this node, to avoid creating a lot of small buffers
-        const txtBatch = createNewText(this._ref.app.gl, this._ref.app.programs[2], this.txtArr, fontBody.size, fontBody.font, hexToRgb(fontBody.colour));
+        this.bgTxtBoxes.setPosition([0,0]);
+        this.bgTxtBoxes.setParent(this);
+
+        // Title font differ from body font
+        const titleTxt = createNewText(this._ref.app.gl, this._ref.app.programs[2], this.name, fontHeading.size*this.style.heading.text.upscale, fontHeading.font,hexToRgb(fontBody.colour) );
+        titleTxt.setParent(this);
+
+        // Creating text batch for this node, to avoid creating a lot of small buffers
+        const txtBatch = createNewText(this._ref.app.gl, this._ref.app.programs[2], this.txtArr, fontBody.size*this.style.body.text.upscale, fontBody.font, hexToRgb(fontBody.colour));
         txtBatch.setCanBeMoved(false);
-        txtBatch.setPosition([ this.style.marginX, this.style.marginY ]);
         txtBatch.setParent(this);
 
+        // Created bigger font then scaled down to have a crispr image wheen zoomed in
+        titleTxt.setScale([1/this.style.heading.text.upscale,1/this.style.heading.text.upscale ]);
+        txtBatch.setScale([1/this.style.body.text.upscale, 1/this.style.body.text.upscale]);
+
+        // Save refs
+        this.elements.heading = titleTxt;
         this.elements.text = txtBatch;
     }
 
@@ -114,17 +128,55 @@ export class ParamNode extends UINode
         this.updateText();
     }
 
-    constructText()
+    constructNodeBody()
     {
+        const fontSize = this.style.body.text.size;
+
+        const scale = this.style.body.text.upscale;
+        const paramStartX = this.style.margin.x;
+        const paramStartY = ( this.style.margin.y + fontSize + this.style.body.margin.y);
+        const lineOffset = (fontSize + this.style.body.text.margin.y);
+        const horizontalOffset = this.style.body.text.paramTextOffsetX + 5;
+
         this.txtArr = [
-            { data: this.name, pos: [0, 0 ] },
-            ...this.convertToTxtArr(this.parameters.list, 0, this.style.text.body.paramTextOffsetY)
+            { data: this.name, pos: [this.style.margin.x * scale, this.style.margin.y * scale ] },
+            ...this.convertToTxtArr(this.parameters.list, lineOffset * scale, paramStartX * scale, horizontalOffset * scale, paramStartY * scale)
         ];
+
+        const boxesArr = [];
+        for (let i = 0; i < this.parameters.list.length; i++)
+        {
+            const l = this.style.body.text.paramTextOffsetX + this.style.margin.x;
+            const r = l + 50;
+            const t = paramStartY + (i*lineOffset);
+            const b = paramStartY + (i*lineOffset+fontSize*scale*0.8);
+
+
+            const boxVerts = this.constructBgBoxVerts(l, r, t,b);
+            boxesArr.push(...boxVerts);
+        }
+
+        this.bgTxtBoxes.buffer.updatePositionBuffer(boxesArr);
+    }
+
+    constructBgBoxVerts(l,r,t,b)
+    {
+        const verts = [ l,t,
+                        r,t,
+                        l,b,
+
+                        l,b,
+                        r,b,
+                        r,t
+        ];
+
+        return verts;
     }
 
     updateText()
     {
-        this.constructText();
-        this.elements.text.txtBuffer.updateTextBufferData(this.txtArr, this.style.text.body.size);
+        this.constructNodeBody();
+        this.elements.heading.buffer.updateTextBufferData([ this.txtArr[0] ], this.style.heading.text.size * this.style.heading.text.upscale);
+        this.elements.text.buffer.updateTextBufferData(this.txtArr.slice(1, this.txtArr.length), this.style.body.text.size * this.style.body.text.upscale);
     }
 }

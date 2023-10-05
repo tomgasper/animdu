@@ -5,10 +5,11 @@ import { RectangleBuffer } from "../Primitives/RectangleBuffer.js";
 import { getProjectionMat, m3 } from "../utils.js";
 
 import { getClipSpaceMousePosition } from "../utils.js";
+import { RoundedRectangleBuffer } from "../Primitives/RoundedRectangleBuffer.js";
 
 export const initalizeApp = (app) =>
 {
-    setUpPrimitveBuffers(app, app.programs[0]);
+    setUpPrimitveBuffers(app, app.programs);
 }
 
 let timer;
@@ -146,15 +147,17 @@ export const initInputListeners = (app) =>
      });
 }
 
-const setUpPrimitveBuffers = (app, program) =>
+const setUpPrimitveBuffers = (app, programs) =>
 {
     // Describe buffers for primitive shape
-    const triangleBuffer = new TriangleBuffer(app.gl, program);
-    const circleBuffer = new CircleBuffer(app.gl,program, 50, 8);
-    const rectangleBuffer = new RectangleBuffer(app.gl,program);    
+    const triangleBuffer = new TriangleBuffer(app.gl, programs[0]);
+    const circleBuffer = new CircleBuffer(app.gl,programs[0], 50, 8);
+    const rectangleBuffer = new RectangleBuffer(app.gl,programs[0]);
+    const roundedRectBuffer = new RoundedRectangleBuffer(app.gl, programs[5]);
 
     app.primitiveBuffers = {
         rectangle: rectangleBuffer,
+        roundedRectangle: roundedRectBuffer,
         circle: circleBuffer,
         triangle: triangleBuffer
     };

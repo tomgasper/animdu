@@ -26,12 +26,12 @@ void main()
     // vec2 top_middle = (u_transform * vec3(0,width_height.x/2.0f,1)).xy;
     // vec2 left_middle = (u_transform * vec3(width_height.y/2.0f, 0,1)).xy;
 
-    vec2 top_middle = (u_transform * vec3(0,-50,1)).xy;
-    vec2 left_middle = (u_transform * vec3(-50,0,1)).xy;
+    vec2 top_middle = (u_transform * vec3(50,0,1)).xy;
+    vec2 left_middle = (u_transform * vec3(0,50,1)).xy;
 
     gl_Position = vec4( (u_transform * vec3(a_vertexPosition, 1)).xy, 0, 1);
 
-    centre_norm_coords = (u_transform * vec3(0,0,1)).xy;
+    centre_norm_coords = (u_transform * vec3(50,50,1)).xy;
     size = vec2(distance(left_middle, centre_norm_coords), distance(top_middle, centre_norm_coords) );
     corner_radius = a_corner_radius;
 }
