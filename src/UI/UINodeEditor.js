@@ -7,6 +7,8 @@ import { hexToRgb } from "../utils.js";
 
 export class UINodeEditor extends UIObject
 {
+    type = "_EDITOR_NODE";
+
     name = "Node Editor";
     components = [];
 

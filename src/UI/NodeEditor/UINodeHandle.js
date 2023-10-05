@@ -1,7 +1,7 @@
 import { RenderableObject } from "../../RenderableObject.js";
 import { InstancedLineBuffer } from "../../Primitives/InstancedLineBuffer.js";
 
-import { getProjectionMat, getViewCoords } from "../../utils.js";
+import { getProjectionMat, getViewCoords, hexToRgb } from "../../utils.js";
 
 import {  getPosFromMat } from "../../App/AppHelper.js";
 
@@ -21,7 +21,7 @@ export class UINodeHandle extends RenderableObject
     parameter = undefined;
 
     line = {
-        width: 5,
+        width: 3,
         data : [],
         obj : undefined,
         connection : {
@@ -73,11 +73,25 @@ export class UINodeHandle extends RenderableObject
         this.line.data = [thisObjPos[0],thisObjPos[1], mousePos[0], mousePos[1]];
 
         const lineBuffer = new InstancedLineBuffer(this.app.gl, this.app.programs[3], this.line.data, true);
-        const line = new RenderableObject(lineBuffer.getInfo(), getProjectionMat(this.app.gl), lineBuffer);
+        const line = new RenderableObject(lineBuffer);
 
         // Set parent
         let parent = this.node.parent ? this.node.parent : this.node.container.parent;
         line.setParent(parent);
+
+        let lineColour = undefined;
+        let lineWidth = undefined;
+
+        if (parent.type === "_EDITOR_NODE")
+        {
+            lineColour = hexToRgb(this.app.UI.style.nodes.component.line.colour);
+            lineWidth = 5;
+        } else {
+            lineColour = hexToRgb(this.app.UI.style.nodes.general.line.colour);
+            lineWidth = 3;
+        }
+
+        line.setOriginalColor(lineColour);
 
         // Add ref the new line
         if (parent.elements.lines)
@@ -87,7 +101,7 @@ export class UINodeHandle extends RenderableObject
         
         line.name = "INSTANCED LINE!";
 
-        line.properties.width = this.line.width;
+        line.properties.width = lineWidth;
 
         this.line.obj = line;
     }

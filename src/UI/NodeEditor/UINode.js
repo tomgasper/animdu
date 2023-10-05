@@ -30,24 +30,42 @@ export class UINode extends UIObject
             height: undefined,
             colour: hexToRgb("464646")
         },
-        marginX: undefined,
-        marginY: undefined,
-        text: {
-            heading: {
+        margin:
+        {
+            x: undefined,
+            y: undefined
+        },
+        heading: {
+            text: {
                 font: undefined,
                 size: 9,
                 colour: [1,1,1,1],
+                upscale: 1
+            }
+        },
+        body:
+        {
+            margin:
+            {
+                x: 0,
+                y: 15,
             },
-            body:
+            text:
             {
                 font: undefined,
                 size: 9,
                 colour: [1,1,1,1],
+                lineOffset: 20,
                 paramTextOffsetY: 20,
                 paramTextOffsetX: undefined,
+                margin:
+                {
+                    x: 0,
+                    y: 8,
+                },
+                upscale : 1
             }
         },
-
         handles:
         {
             L:
@@ -81,13 +99,13 @@ export class UINode extends UIObject
         super(appRef, buffInfo);
 
         // Assign default fonts for UINode
-        this.style.text.heading.font = appRef.UI.style.nodes.general.text.heading.font;
-        this.style.text.heading.size = appRef.UI.style.nodes.general.text.heading.size;
-        this.style.text.heading.colour = appRef.UI.style.nodes.general.text.heading.colour;
+        this.style.heading.text.font = appRef.UI.style.nodes.general.heading.text.font;
+        this.style.heading.text.size = appRef.UI.style.nodes.general.heading.text.size;
+        this.style.heading.text.colour = appRef.UI.style.nodes.general.heading.text.colour;
 
-        this.style.text.body.font = appRef.UI.style.nodes.general.text.body.font;
-        this.style.text.body.size = appRef.UI.style.nodes.general.text.body.size;
-        this.style.text.body.colour = appRef.UI.style.nodes.general.text.body.colour;
+        this.style.body.text.font = appRef.UI.style.nodes.general.body.text.font;
+        this.style.body.text.size = appRef.UI.style.nodes.general.body.text.size;
+        this.style.body.text.colour = appRef.UI.style.nodes.general.body.text.colour;
 
         this.style.handles.L.colour =  hexToRgb(this._ref.UI.style.nodes.params.container.colour);
         this.style.handles.R.colour =  hexToRgb(this._ref.UI.style.nodes.params.container.colour);
@@ -97,64 +115,7 @@ export class UINode extends UIObject
 
     initialize()
     {
-        // Set size based on the background container size
-        const UIBuffers = this._ref.UI.UIBuffers.UINode;
 
-        [this.style.container.width, this.style.container.height ] = UIBuffers.container.size;
-
-        // Stylize Node
-        this.style.text.paramTextOffsetX = this.style.container.width/2;
-        this.style.marginX = this.width/10;
-        this.style.marginY = this.height/10;
-
-        // Retrieve previously initialized buffer
-        const UINodeContainerBuffer = UIBuffers.container.buffer.getInfo();
-        const rect = new RenderableObject(UINodeContainerBuffer);
-        rect.setPosition([0,0]);
-        rect.setOriginalColor(this.containerColor);
-        rect.handlers.onMouseMove = () => { this.handleMouseMove() };
-
-        // Init graphical handlers
-        const cirlceBuffer = UIBuffers.handle.buffer.getInfo();
-
-        const handleR = new UINodeHandle(this._ref.app, cirlceBuffer, this, this);
-        handleR.setPosition([this.style.container.width, this.style.container.height/2]);
-        handleR.setOriginalColor([0.2,0.2,0.2,1])
-        handleR.setCanBeMoved(false);
-        this.elements.handles.R = [ handleR ];
-
-        const handleL = new UINodeHandle(this._ref.app, cirlceBuffer, this, this);
-        handleL.setPosition([0, this.style.container.height/2]);
-        handleL.setOriginalColor([0.2,0.2,0.2,1])
-        handleL.setCanBeMoved(false);
-        this.elements.handles.L = [ handleL ];
-
-        /* this is how txtArr obj looks like:
-            const txtArr = [
-                {
-                data: "Param 1",
-                pos: [0,0]   
-                }, ...
-            ]
-       */
-
-        this.txtArr;
-
-        // Render text
-        if (this.parameters)
-        {
-            this.txtArr = this.convertToTxtArr(this.parameters.list);
-        }
-
-       const txtBatch = this.createBatchText(this.txtArr, this.textSize);
-
-        // Create slider
-        // const sliderContObjs = this.createSlider([1,1], this.container);
-
-        // Create text boxes
-        this.txtBuffer = txtBatch;
-        this.txtBgArr = this.createTxtBg(txtBatch, this.parameters.list.length);
-        this.addObjsToRender([...this.txtBgArr, txtBatch]);
     }
 
     createBatchText(txtArr, textSize)
@@ -168,7 +129,22 @@ export class UINode extends UIObject
         return txtBatch;
     }
 
-    convertToTxtArr(params, offX = 0, offY = 0)
+    createVerticalTxt(strArr, lineOffset, offsetX = 0, offsetY = 0)
+    {
+        const txt = [];
+
+        for (let i = 0; i < strArr.length; i++)
+        {
+            txt.push({
+                data: strArr[i],
+                pos: [offsetX, offsetY + (i * lineOffset)]
+            })
+        }
+
+        return txt;
+    }
+
+    convertToTxtArr(params, lineOffset, offX = 0, offX2 = 0, offY = 0)
     {
         const txtArr = [];
 
@@ -179,17 +155,18 @@ export class UINode extends UIObject
 
                 txtArr.push({
                     data: txt.name.toString(),
-                    pos: [0+offX, (indx*this.style.text.body.paramTextOffsetY) + offY ]
+                    pos: [0+offX, (indx*lineOffset) + offY ]
                 },
                 {
                     data: paramValue.toString(),
-                    pos: [this.style.text.body.paramTextOffsetX + offX, (indx*this.style.text.body.paramTextOffsetY) + offY]
+                    pos: [offX + offX2, (indx*lineOffset) + offY]
                 });
     
         })
         return txtArr;
     }
 
+    /*
     addParam(paramNameStr, parent = this)
     {
         // Init UI text input
@@ -210,6 +187,7 @@ export class UINode extends UIObject
         this.txtBuffer.txtBuffer.updateTextBufferData(newTxtArr, 9);
         this.container.updateWorldMatrix();
     }
+    */
 
     createTxtBg(parent = this, n)
     {
@@ -254,6 +232,7 @@ export class UINode extends UIObject
         return [sliderBg, sliderCircle];
     }
 
+    /*
     addNewTxtBg(parent, indx)
     {
         const buffer = this.UIBuffers.textInput.buffer;
@@ -268,7 +247,7 @@ export class UINode extends UIObject
 
         return rect;
     }
-
+    */
 
     handleInput(e,indx)
     {
@@ -285,6 +264,26 @@ export class UINode extends UIObject
     handleMouseMove()
     {
         const handles = [...this.elements.handles.L, ...this.elements.handles.R];
+
+        // To do - extend comp work area
+        /*
+        if (this.properties.position[0] < 0)
+        {
+            let x = this.properties.position[0];
+
+            const sw = this.parent.style.container.width/100;
+            const sh = this.parent.style.container.height/100;
+
+            const p = this.properties.position;
+            const pp = this.parent.properties.position;
+
+            console.log(sw + " " + sh);
+
+            this.parent.setScale([sw+Math.abs(x/100), sh]);
+            this.setPosition([p[0] - x, p[1]]);
+            this.setPosition([pp[0] + x, pp[1]]);
+        }
+        */
 
         handles.forEach( (handle) => {
             const isConnectedIN = handle.line.connection.type == "IN" ? true : false;
@@ -320,14 +319,6 @@ export class UINode extends UIObject
         })
     }
 
-    /*
-    setPosition(pos)
-    {
-        this.container.setPosition(pos);
-        // this.container.updateWorldMatrix();
-    }
-    */
-
     setVisibleNode(isVisible)
     {
         this.setVisible(isVisible);
@@ -352,7 +343,7 @@ export class UINode extends UIObject
         return handle;
     }
 
-    addIOHandles(type, paramsNum, parent, offsetY = 0, upscale = 1)
+    addIOHandles(type, paramsNum, parent, offsetY = 0, lineOffset)
     {
         let offsetX, arrToPush;
 
@@ -368,7 +359,7 @@ export class UINode extends UIObject
 
         for (let i = 0; i < paramsNum; i++)
         {
-        const pos = [offsetX, this.style.marginY + (i)*this.style.text.body.paramTextOffsetY/upscale + this.style.text.body.size + offsetY];
+        const pos = [offsetX, offsetY + (lineOffset * i)];
         let param = undefined;
 
         if (this.parameters)

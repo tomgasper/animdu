@@ -85,8 +85,11 @@ export class CustomBuffer {
 
     updatePositionBuffer(newVertsPos)
     {
+        this.bufferData = new Float32Array(newVertsPos);
+
         this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.positionBuffer);
-        this.gl.bufferSubData(this.gl.ARRAY_BUFFER, 0, new Float32Array(newVertsPos));
+        this.gl.bufferSubData(this.gl.ARRAY_BUFFER, 0, this.bufferData);
+        this.drawSettings.count = this.bufferData.length/this.attributesInfo.position.size;
     }
 
     changeShader(programInfo)

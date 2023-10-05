@@ -27,12 +27,15 @@ export class UITextInput extends UIObject
 
     container = {};
 
-    constructor(appRef, rect, txtSize, parent, value = "Input text")
+    constructor(appRef, rect, txtSize, parent, value = "Input text", size = [100,50])
     {
         super(appRef, rect);
 
         // style
         this.height = txtSize * 2;
+
+        this.width = size[0];
+        this.height = size[1];
 
         this.active = false;
         this.parent = parent;

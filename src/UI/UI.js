@@ -75,37 +75,45 @@ export class UI
         {
             general:
             {
-                text: {
-                    heading:
+                heading:
                     {
-                        font: undefined,
-                        size: 12,
-                        colour: "FFFFFF"
+                        text:
+                        {
+                            font: undefined,
+                            size: 12,
+                            colour: "FFFFFF"
+                        }
                     },
                     body:
                     {
-                        font: undefined,
-                        size: 10,
-                        colour: "FFFFFF"
-                    }
-                },
-                container:
-                {
-                    size: [150,200],
-                    colour: "3E65C8",
-                },
-                textInput:
-                {
-                    text: {
-                        font: undefined,
-                        size: 9,
-                        colour: "FFFFFF"
+                        text:
+                        {
+                            font: undefined,
+                            size: 10,
+                            colour: "FFFFFF"
+                        }
                     },
                     container:
                     {
-                        colour: "253E7F"
+                        size: [150,200],
+                        colour: "3E65C8",
+                    },
+                    textInput:
+                    {
+                        text: {
+                            font: undefined,
+                            size: 9,
+                            colour: "FFFFFF"
+                        },
+                        container:
+                        {
+                            colour: "253E7F"
+                        }
+                    },
+                    line:
+                    {
+                        colour: "D7E2FF"
                     }
-                }
             },
             component:
             {
@@ -116,6 +124,10 @@ export class UI
                 hideButton:
                 {
                     colour: "253E7F"
+                },
+                line:
+                {
+                    colour: "3E65C8"
                 }
             },
             params:
@@ -191,8 +203,8 @@ export class UI
         this.style.general.text.regular.font = mainFont;
         this.style.general.text.bold.font = mainBoldFont;
 
-        this.style.nodes.general.text.heading.font = mainBoldFont;
-        this.style.nodes.general.text.body.font = mainFont;
+        this.style.nodes.general.heading.text.font = mainBoldFont;
+        this.style.nodes.general.body.text.font = mainFont;
 
         this.style.nodes.general.textInput.text.font = mainFont;
 
@@ -246,34 +258,6 @@ export class UI
         this.addObj(node.getObjsToRender(), ["nodes"]);
 
         return node;
-    }
-
-    addObjNode(obj, params)
-    {
-        const containerBuffer = this.UIBuffers.UINode.container.buffer.getInfo();
-        const newNode = new ObjNode(this.app, containerBuffer, obj, params);
-        newNode.initialize();
-        newNode.setParent(this.viewer);
-
-        return newNode;
-    }
-
-    addFunctionNode(effectorFnc)
-    {
-        const newNode = new FunctionNode(this.app, effectorFnc);
-        newNode.initialize();
-
-        this.addObj(newNode.getObjsToRender(), ["nodes"]);
-        return newNode;
-    }
-
-    addParamNode(type, params)
-    {
-        const newNode = new ParamNode(this.app, type, params);
-        newNode.initialize();
-
-        this.addObj(newNode.getObjsToRender(), ["nodes"]);
-        return newNode;
     }
 
     resize()
