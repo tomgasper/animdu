@@ -8,7 +8,7 @@ export function setUpPickingFramebuffer(gl, targetTexture, depthBuffer)
 
    // attach the texture as the first color attachment
    gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, targetTexture, 0)
-   gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.RENDERBUFFER, depthBuffer);
+   gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_STENCIL_ATTACHMENT, gl.RENDERBUFFER, depthBuffer);
 
    gl.checkFramebufferStatus(gl.FRAMEBUFFER);
 
@@ -32,7 +32,7 @@ export function createDepthBuffer(gl)
   // Create a depth renderbuffer
   let depthBuffer = gl.createRenderbuffer();
   gl.bindRenderbuffer(gl.RENDERBUFFER, depthBuffer);
-  gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_COMPONENT16, 1280,720);
+  gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_STENCIL, 1280,720);
 
   return depthBuffer;
 }
@@ -50,7 +50,7 @@ export function setFramebufferAttachmentSizes(gl, depthBuffer, width, height, re
     gl.texImage2D(gl.TEXTURE_2D, level, internalFormat, width, height, border, format, type, data);
 
     gl.bindRenderbuffer(gl.RENDERBUFFER, depthBuffer);
-    gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_COMPONENT16,width,height);
+    gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_STENCIL ,width,height);
   }
 
 export function getIdFromCurrentPixel(appRef, mouseX, mouseY)
@@ -76,6 +76,15 @@ export function getIdFromCurrentPixel(appRef, mouseX, mouseY)
 
     */
 
+    /*
+    appRef.gl.enable(appRef.gl.STENCIL_TEST);
+    appRef.gl.clearStencil(0);
+    appRef.gl.stencilFunc(appRef.gl.EQUAL, 0, 0xFF);
+    appRef.gl.colorMask(true,true,true,true);
+    appRef.gl.clearColor(0.0,0.0,0.0,0.0);
+    appRef.gl.clear(appRef.gl.COLOR_BUFFER_BIT);
+    */
+
     const data = appRef.pickingData;
 
     readPixelsAsync(
@@ -90,6 +99,8 @@ export function getIdFromCurrentPixel(appRef, mouseX, mouseY)
   
       const arrIndx = data[0];
       const id = (data[1] << 0) + (data[2] << 8) + (data[3] << 16);
+
+      console.log(data);
   
       return { arrIndx: arrIndx , id: id };
     

@@ -120,8 +120,6 @@ export class App
     objUnderMouseID = -1;
     objUnderMouseArrIndx = -1;
 
-    // eventsToProcess = [];
-
     animationCounter = 0;
 
     shouldAnimate = false;
@@ -256,6 +254,8 @@ export class App
             new UINodeParam("scale", "TEXT_READ", [1,1])
         ]);
 
+        // this.UI.addObjNode(this.activeComp.objects[0]);
+
 
         // Render Obj Nodes
         /*
@@ -265,12 +265,10 @@ export class App
         })
         */
 
-        for (let i = 0; i < this.activeComp.objects-1; i++)
-        {
-            const obj = this.activeComp.objects[i];
-            const newObjNode = this.UI.addObjNode(obj);
-            newObjNode.setPosition([300,550]);
-        }
+        
+        const obj = this.activeComp.objects[1];
+        const newObjNode = this.UI.addObjNode(obj);
+        newObjNode.setPosition([500,550]);
 
 
         const fnc = () => console.log("Hello, this is some function!");
@@ -281,6 +279,7 @@ export class App
         compNode.addParamNode("IN", paramList);
         compNode.addParamNode("IN", paramList);
         // compNode.addFunctionNode(effectorFunction);
+        compNode.addParamNode("OUT", paramListOUT);
         compNode.addParamNode("OUT", paramListOUT);
         
         /*
@@ -343,7 +342,7 @@ export class App
 
         this.objsToDraw = [
             { mask: [ this.UI.viewer ], objs: [ ...viewerObjs ] },
-            { mask: [ this.activeComp.viewport ], objs: [ ...activeCompObjs] },
+            { mask: [ this.UI.viewport ], objs: [ ...activeCompObjs] },
         ];
     }
 
@@ -360,6 +359,7 @@ export class App
         const pickingShader = 1;
 
         // Draw to texture - PASS 1
+        // prepareForScndPass(this.gl);
         prepareForFirstPass(this, this.framebuffer, [this.mouseX, this.mouseY]);
         this.drawUI(UIList, pickingShader, this.UI.viewer.camera );
         this.drawComp(activeCompList, pickingShader, this.activeComp.camera);

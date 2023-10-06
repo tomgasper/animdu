@@ -58,6 +58,7 @@ export const handleUnderMouseCursor = (app, id) =>
 {
     if (id.id > 0)
         {
+            console.log(id);
             // substract id by 1 to get correct place of the found object in objsToDraw array 
             const arrIndx = id.arrIndx;
             const pickNdx = id.id - 1;

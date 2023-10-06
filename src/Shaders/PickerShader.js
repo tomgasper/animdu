@@ -18,5 +18,6 @@ out vec4 outColor;
 void main()
 {
     outColor = u_id;
+    //outColor = vec4(0.5f,0.5,0.5,1);
 }
 `;
