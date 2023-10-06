@@ -285,6 +285,15 @@ export class UI
         // this.app.activeComp.camera.setPosition([ ,  ] );
     }
 
+    addObjNode(obj)
+    {
+        const containerBuffer = this.UIBuffers.UINode.container.buffer;
+        const newNode = new ObjNode(this.app, containerBuffer, obj);
+        newNode.setParent(this.viewer);
+
+        return newNode;
+    }
+
     addObj(obj, dir)
     {
         let dest = this[dir[0]];

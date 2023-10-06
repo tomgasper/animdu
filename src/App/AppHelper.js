@@ -171,8 +171,9 @@ export const prepareForFirstPass = (app, framebuffer, mousePos) =>
     app.gl.enable(app.gl.SCISSOR_TEST);
     app.gl.scissor(pixelX, pixelY, 1,1);
 
+    app.gl.stencilMask(0xFF); 
     app.gl.clearColor(0,0,0,0);
-    app.gl.clear(app.gl.COLOR_BUFFER_BIT | app.gl.DEPTH_BUFFER_BIT );
+    app.gl.clear(app.gl.COLOR_BUFFER_BIT | app.gl.DEPTH_BUFFER_BIT || app.gl.STENCIL_BUFFER_BIT );
     // app.gl.enable(app.gl.DEPTH_TEST);
 
     app.setBlendingEnabled(false);

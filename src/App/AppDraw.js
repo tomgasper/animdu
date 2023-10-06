@@ -103,17 +103,17 @@ export const drawObjects = (app, objsToDraw, objsArrIndx, programInfo = undefine
 
 const drawInMask = (appRef, objsArrIndx, program,camera) =>
 {
-    appRef.gl.enable(appRef.gl.STENCIL_TEST);
     appRef.gl.clear(appRef.gl.STENCIL_BUFFER_BIT);
+    appRef.gl.enable(appRef.gl.STENCIL_TEST);
+    
     appRef.gl.stencilFunc(appRef.gl.ALWAYS,1,0xFF);
-    appRef.gl.stencilOp(appRef.gl.KEEP, appRef.gl.KEEP, appRef.gl.REPLACE);
-
+    appRef.gl.stencilOp(appRef.gl.REPLACE, appRef.gl.REPLACE, appRef.gl.REPLACE);
     drawObjects(appRef, appRef.objsToDraw[objsArrIndx].mask, objsArrIndx, program, camera);
-
+    
+    // appRef.gl.stencilMask(0xFF);
     appRef.gl.stencilFunc(appRef.gl.EQUAL, 1, 0xFF);
     appRef.gl.stencilOp(appRef.gl.KEEP, appRef.gl.KEEP, appRef.gl.KEEP);
     drawObjects(appRef, appRef.objsToDraw[objsArrIndx].objs, objsArrIndx, program, camera);
-
     appRef.gl.disable(appRef.gl.STENCIL_TEST);
 }
 
@@ -126,7 +126,7 @@ export const drawPass = (renderSettings) =>
 {
     let { appRef, objsToDraw, program, listIndx, camera } = renderSettings;
 
-    // indx complication is needed for correct retrieval of object under mouse coursor
+    // indx complication is needed for correct retrieval of object under mouse cursor
     for (let i = 0; i < objsToDraw.length; i++)
     {
         if (objsToDraw[i].mask.length > 0)

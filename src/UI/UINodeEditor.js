@@ -40,8 +40,8 @@ export class UINodeEditor extends UIObject
         this.setBuffer(nodeEditorBuffer);
 
         this.setOriginalColor(this.style.container.colour);
-        this.canBeMoved = false;
-        this.properties.highlight = false;
+        this.setCanBeMoved(false);
+        this.setCanBeHighlighted(false);
     }
 
     createContainerVerts(dims)

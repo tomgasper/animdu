@@ -38,7 +38,7 @@ export class UINodeHandle extends RenderableObject
     constructor(app, buffer, node, parent)
     {
         // create renderable object
-        super(buffer, getProjectionMat(app.gl));
+        super(buffer);
 
         // save ref to app
         this.app = app;
