@@ -181,8 +181,7 @@ export class Component extends UIObject
     addFunctionNode(effectorFnc)
     {
         const containerBuffer = this._ref.app.UI.UIBuffers.UINode.container.buffer;
-        const newNode = new FunctionNode(this._ref.app, containerBuffer, effectorFnc);
-        newNode.initialize();
+        const newNode = new FunctionNode(this._ref.app, containerBuffer, this, effectorFnc);
         newNode.setParent(this);
 
         // Save ref
