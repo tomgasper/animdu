@@ -272,14 +272,12 @@ export class App
 
 
         const fnc = () => console.log("Hello, this is some function!");
-        const effectorFunction = new Effector("Custom function", fnc, 3, 2);
+        const effectorFunction = new Effector("Custom function", fnc, 2, 2);
         const componentBuff = this.primitiveBuffers.roundedRectangle;
         const compNode = new Component(this, componentBuff,  [700, 450], [0.1,0.1,0.1,1], "Somesa");
         compNode.addParamNode("IN", paramList);
         compNode.addParamNode("IN", paramList);
-        compNode.addParamNode("IN", paramList);
-        // compNode.addFunctionNode(effectorFunction);
-        compNode.addParamNode("OUT", paramListOUT);
+        compNode.addFunctionNode(effectorFunction);
         compNode.addParamNode("OUT", paramListOUT);
         
         /*
