@@ -218,11 +218,11 @@ function main()
     // Textures and renderbuffers will be attached to framebuffer
     // Create a texture to render to
     const targetTexture = createPickingTargetTexture(gl);
-    const depthBuffer = createDepthBuffer(gl);
-    const fb = setUpPickingFramebuffer(gl, targetTexture, depthBuffer);
+    const depthStencilBuffer = createDepthBuffer(gl);
+    const fb = setUpPickingFramebuffer(gl, targetTexture, depthStencilBuffer);
 
     // Set up new application
-    const app = new App(gl,canvas,programsInfo, fb, depthBuffer, targetTexture);
+    const app = new App(gl,canvas,programsInfo, fb, depthStencilBuffer, targetTexture);
 
     // Set up render loop
     const renderLoop = new RenderLoop( app.doFrame.bind(app) );

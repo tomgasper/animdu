@@ -254,6 +254,19 @@ export class App
             new UINodeParam("scale", "TEXT_READ", [1,1])
         ]);
 
+
+
+        const simParams = [
+            new UINodeParam("position", "TEXT_READ", [0,0]),
+            new UINodeParam("scale", "TEXT_READ", [0,0]),
+        ];
+
+        const simParamsOUT = [
+            new UINodeParam("position", "TEXT_READ", [0,0]),
+            new UINodeParam("scale", "TEXT_READ", [0,0]),
+        ];
+
+
         // this.UI.addObjNode(this.activeComp.objects[0]);
 
 
@@ -275,10 +288,10 @@ export class App
         const effectorFunction = new Effector("Custom function", fnc, 2, 2);
         const componentBuff = this.primitiveBuffers.roundedRectangle;
         const compNode = new Component(this, componentBuff,  [700, 450], [0.1,0.1,0.1,1], "Somesa");
-        compNode.addParamNode("IN", paramList);
-        compNode.addParamNode("IN", paramList);
+        compNode.addParamNode("IN", simParams);
+        compNode.addParamNode("IN", simParams);
         compNode.addFunctionNode(effectorFunction);
-        compNode.addParamNode("OUT", paramListOUT);
+        compNode.addParamNode("OUT", simParamsOUT);
         
         /*
         const fnc2 = () => console.log("Another function!");
@@ -292,7 +305,7 @@ export class App
         const activeViewer = this.UI.viewer;
         activeViewer.addComponent(compNode);
 
-        compNode.setPosition([500,500]);
+        compNode.setPosition([500,900]);
     }
 
     // render loop function called from RenderLoop class

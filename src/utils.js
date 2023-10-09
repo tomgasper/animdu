@@ -1,6 +1,6 @@
 import { RenderableObject } from "./RenderableObject.js";
 
-export function resizeCanvasToDisplaySize(originalRes, canvas, multiplier) {
+export function resizeCanvasToDisplaySize( canvas, multiplier) {
     multiplier = multiplier || 1;
     const width  = canvas.clientWidth  * multiplier | 0;
     const height = canvas.clientHeight * multiplier | 0;

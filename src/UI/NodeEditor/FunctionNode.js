@@ -1,9 +1,6 @@
 import { UINode } from "./UINode.js";
-import { RenderableObject } from "../../RenderableObject.js";
 import { createNewText } from "../../Text/textHelper.js";
-
 import { hexToRgb } from "../../utils.js";
-
 import { Effector } from "./Effector.js";
 
 export class FunctionNode extends UINode
@@ -27,37 +24,34 @@ export class FunctionNode extends UINode
 
     initialize()
     {
-        // Set size based on the background container size
+        // Ref to the buffer
         this._ref.UIBuffers = this._ref.app.UI.UIBuffers.UINode;
 
+        // Set style
         [this.style.container.width, this.style.container.height ] = [130,100];
+        this.style.container.colour = hexToRgb(this._ref.UI.style.nodes.fnc.container.colour);
 
-        // Text
-        const upscale = 2;
-        this.style.body.text.colour = this._ref.UI.style.nodes.params.text.colour;
-        this.style.body.text.size = 10;
+        this.style.body.text.size = 8;
         this.style.body.text.upscale = 2.0;
-        
-        const fontBody = this.style.body.text;
+        this.style.body.text.colour = this._ref.UI.style.nodes.params.text.colour;
 
-        // Stylize Node
-        // this.style.body.text.lineOffset = this.style.container.width/2;
+        this.style.heading.text.size = 9;
+        this.style.heading.text.upscale = 2.0;
+
         this.style.margin.x = 10;
         this.style.margin.y = 10;
 
-        this.style.container.colour = hexToRgb(this._ref.UI.style.nodes.fnc.container.colour);
-        this.setOriginalColor(this.style.container.colour);
+        // Aliases
+        const upscale = this.style.body.text.upscale;
+        const fontBody = this.style.body.text;
+        const fontHeading = this.style.heading.text;
 
+        const program = this._ref.app.programs[2];
 
-        // Retrieve previously initialized buffer
-        /*
-        const UINodeContainerBuffer = this._ref.UIBuffers.container.buffer.getInfo();
-        const rect = new RenderableObject(UINodeContainerBuffer);
-        */
-
-        // Set properties
-        this.setPosition([0,0]);
+        // Set properties for the container
         this.setScale([this.style.container.width/100,this.style.container.height/100]);
+        this.setPosition([0,0]);
+        this.setOriginalColor(this.style.container.colour);
 
         // Set handlers
         this.handlers.onMouseMove = () => { this.handleMouseMove() };
@@ -65,17 +59,26 @@ export class FunctionNode extends UINode
             document.getElementById("functionText").value = this.effector.fnc;
         }
 
+        // Create graphical handlers
         const handleStartY = this.style.margin.y + ( fontBody.size * 2 ) + this.style.body.margin.y;
         const offsetLine = this.style.body.text.size  + this.style.body.text.margin.y;
-
         this.addIOHandles("IN", this.effector.argc, this, handleStartY, offsetLine);
         this.addIOHandles("OUT", this.effector.outc, this, handleStartY, offsetLine);
 
         this.constructNodeBody();
 
-       // creating text batch for this node, to avoid creating a lot of small buffers
-        const txtBatch = createNewText(this._ref.app.gl, this._ref.app.programs[2], this.txtArr, this.style.body.text.size * upscale, fontBody.font, hexToRgb(fontBody.colour));
-        txtBatch.setScale([0.5,0.5]);
+        // Text
+        const titleStr = [this.txtArr[0]];
+        const bodyStr = this.txtArr.slice(1, this.txtArr.length);
+
+        const titleTxt = createNewText(this._ref.app.gl, program, titleStr, fontHeading.size*upscale, fontHeading.font,hexToRgb(fontBody.colour) );
+        titleTxt.setParent(this);
+        titleTxt.setScale([1/upscale,1/upscale]);
+        titleTxt.setCanBeMoved(false);
+
+        // Batch text
+        const txtBatch = createNewText(this._ref.app.gl, program, bodyStr, this.style.body.text.size * upscale, fontBody.font, hexToRgb(fontBody.colour));
+        txtBatch.setScale([1/upscale,1/upscale]);
         txtBatch.setCanBeMoved(false);
         txtBatch.setPosition([ 0, 0 ]);
         txtBatch.setParent(this);
@@ -85,15 +88,13 @@ export class FunctionNode extends UINode
         this.elements.text = txtBatch;
     }
 
-    createIOTxt(type, startX, startY, lineOffset)
+    createIOTxt(type, num, startX, startY, lineOffset)
     {
         if (type !== "IN" && type !== "OUT") throw new Error("Incorrect type of handle");
 
-        const handles = this.component.elements.nodes[type];
-
         const txtArr = [];
 
-        for (let i = 0; i < handles.length; i++)
+        for (let i = 0; i < num; i++)
         {
             txtArr.push(
                 { data: type + "(" + i + ")", pos: [startX, startY + (i * lineOffset)] }
@@ -107,23 +108,27 @@ export class FunctionNode extends UINode
     {
         const fontSize = this.style.body.text.size;
 
-        const scale = this.style.body.text.upscale;
+        const upscale = this.style.body.text.upscale;
         let txtStartX = this.style.margin.x;
         let txtStartY = ( this.style.margin.y + fontSize + this.style.body.margin.y);
         let lineOffset = (fontSize + this.style.body.text.margin.y);
         let horizontalOffset = this.style.body.text.paramTextOffsetX + 5;
 
-        txtStartX *= scale;
-        txtStartY *= scale;
-        lineOffset *= scale;
-        // startOUTtxtX *= scale;
-        // startOUTtxtY *= scale;
+        const txtWidth = 5 * fontSize;
+        let startOUTtxtX = ( this.style.container.width - this.style.margin.x - txtWidth );
+        let startOUTtxtY = this.style.container.height/2;
+
+        txtStartX *= upscale;
+        txtStartY *= upscale;
+        lineOffset *= upscale;
+        startOUTtxtX *= upscale;
+        startOUTtxtY += upscale;
 
         // Render text
         this.txtArr = [
-            { data: this.effector.name, pos: [0,0] },
-            ...this.createIOTxt("IN", txtStartX, txtStartY, lineOffset),
-            ...this.createIOTxt("OUT", txtStartX, txtStartY, lineOffset)
+            { data: this.effector.name, pos: [this.style.margin.x*upscale,this.style.margin.y*upscale] },
+            ...this.createIOTxt("IN", this.effector.argc, txtStartX, txtStartY, lineOffset),
+            ...this.createIOTxt("OUT", this.effector.outc, startOUTtxtX, txtStartY, lineOffset)
         ];
     }
 

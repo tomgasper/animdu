@@ -202,7 +202,7 @@ export const resetMouseClick = (app) =>
 
 export const resizeCanvas = (app) =>
 {
-    if ( resizeCanvasToDisplaySize(window.originalRes, app.gl.canvas, window.devicePixelRatio))
+    if ( resizeCanvasToDisplaySize(app.gl.canvas, window.devicePixelRatio))
     {
         console.log("resizing!");
         app.UI.resize();

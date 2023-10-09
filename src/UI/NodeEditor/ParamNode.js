@@ -32,58 +32,60 @@ export class ParamNode extends UINode
 
     initialize()
     {
-        // Text
-        this.style.body.text.colour = this._ref.UI.style.nodes.params.text.colour;
-        this.style.body.text.size = 8;
-        this.style.heading.text.size = 9;
-        const fontBody = this.style.body.text;
-        const fontHeading  = this.style.heading.text;
-
-        // Set size based on the background container size
+        // Save buffer ref
         this._ref.UIBuffers = this._ref.app.UI.UIBuffers.ObjNode;
 
+        // Set appropriate style for the current node
         [this.style.container.width, this.style.container.height ] = [130, 100];
+        this.style.container.colour = hexToRgb(this._ref.UI.style.nodes.params.container.colour);
 
-        this.setScale([this.style.container.width/100, this.style.container.height/100]);
-
-        // Stylize Node
-        this.style.heading.text.upscale = 2.0;
+        this.style.body.text.colour = this._ref.UI.style.nodes.params.text.colour;
+        this.style.body.text.size = 8;
         this.style.body.text.upscale = 2.0;
 
         this.style.body.text.paramTextOffsetX = 50;
+
+        this.style.heading.text.size = 9;
+        this.style.heading.text.upscale = 2.0;
+
         this.style.margin.x = 10;
         this.style.margin.y = 10;
 
-        this.style.container.colour = hexToRgb(this._ref.UI.style.nodes.params.container.colour);
-        this.setOriginalColor(this.style.container.colour);
+        // Aliases
+        const fontBody = this.style.body.text;
+        const fontHeading  = this.style.heading.text;
 
+        // Set properties for the container
+        this.setOriginalColor(this.style.container.colour);
         this.setPosition([0,0]);
+        this.setScale([this.style.container.width/100, this.style.container.height/100]);
+
+        // Assign handlers
         this.handlers.onMouseMove = () => { this.handleMouseMove()};
 
-        // Init graphical handlers
-        // Render handle for each param to modify
+        // Create graphical handlers
         const handlesType = this.type === "INParamNode" ? "OUT" : "IN";
-
         const handleStartY = this.style.margin.y + ( fontBody.size * 2 ) + this.style.body.margin.y;
         const offsetLine = this.style.body.text.size  + this.style.body.text.margin.y;
-        this.addIOHandles(handlesType, this.parameters.list.length, this, handleStartY, offsetLine);
+        this.addIOHandles(handlesType, this.parameters.length, this, handleStartY, offsetLine);
 
         // Create boxes that will sit behind text
+        // Buffer is intitially empty and will be updated later oon
         const bgBoxesBuffer = new CustomBuffer(this._ref.app.gl, this._ref.app.programs[0], new Array(60).fill(0));
         this.bgTxtBoxes = new RenderableObject(bgBoxesBuffer);
         this.bgTxtBoxes.setCanBeMoved(false);
         this.bgTxtBoxes.setOriginalColor(hexToRgb("C1D2FB"));
+        this.bgTxtBoxes.setPosition([0,0]);
+        this.bgTxtBoxes.setParent(this);
 
         // Render text
         this.constructNodeBody();
 
-        this.bgTxtBoxes.setPosition([0,0]);
-        this.bgTxtBoxes.setParent(this);
-
         // Title font differ from body font
         const titleTxt = createNewText(this._ref.app.gl, this._ref.app.programs[2], this.name, fontHeading.size*this.style.heading.text.upscale, fontHeading.font,hexToRgb(fontBody.colour) );
         titleTxt.setParent(this);
-
+        titleTxt.setCanBeMoved(false);
+        
         // Creating text batch for this node, to avoid creating a lot of small buffers
         const txtBatch = createNewText(this._ref.app.gl, this._ref.app.programs[2], this.txtArr, fontBody.size*this.style.body.text.upscale, fontBody.font, hexToRgb(fontBody.colour));
         txtBatch.setCanBeMoved(false);
@@ -113,18 +115,25 @@ export class ParamNode extends UINode
         }
     }
 
-    setHeadingText()
+    setHeadingText(customStr)
     {
-        let typeStr = "";
-        if (this.type === "INParamNode")
+        if (customStr && typeof customStr == "string")
         {
-            typeStr = "IN";
-        } else if (this.type === "OUTParamNode") 
-        {
-            typeStr = "OUT";
+            this.name = customStr
         }
+        else 
+        {
+            let typeStr = "";
+            if (this.type === "INParamNode")
+            {
+                typeStr = "IN";
+            } else if (this.type === "OUTParamNode") 
+            {
+                typeStr = "OUT";
+            }
 
-        this.name = typeStr + "(" + this.indx + ")";
+            this.name = typeStr + "(" + this.indx + ")";
+        }
         this.updateText();
     }
 
@@ -140,11 +149,11 @@ export class ParamNode extends UINode
 
         this.txtArr = [
             { data: this.name, pos: [this.style.margin.x * scale, this.style.margin.y * scale ] },
-            ...this.convertToTxtArr(this.parameters.list, lineOffset * scale, paramStartX * scale, horizontalOffset * scale, paramStartY * scale)
+            ...this.convertToTxtArr(this.parameters, lineOffset * scale, paramStartX * scale, horizontalOffset * scale, paramStartY * scale)
         ];
 
         const boxesArr = [];
-        for (let i = 0; i < this.parameters.list.length; i++)
+        for (let i = 0; i < this.parameters.length; i++)
         {
             const l = this.style.body.text.paramTextOffsetX + this.style.margin.x;
             const r = l + 50;

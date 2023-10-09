@@ -8,7 +8,7 @@ import { hexToRgb } from "../../utils.js";
 
 export class ObjNode extends UINode
 {
-    type = "ObjNode";
+    type = "_NODE_OBJ";
     obj = undefined;
 
     constructor(appRef, buffInfo, obj)
