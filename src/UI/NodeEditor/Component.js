@@ -15,6 +15,7 @@ import { isNumeric } from "../../utils.js";
 import { hexToRgb } from "../../utils.js";
 
 import { UINode } from "./UINode.js";
+import { UINodeParam } from "./UINodeParam.js";
 
 export class Component extends UIObject
 {
@@ -51,12 +52,15 @@ export class Component extends UIObject
         },
         body:
         {
+            text:{
 
+            }
         },
         heading:
         {
             text: {
                 upscale: undefined,
+                size: undefined
             }
         }
     }
@@ -75,28 +79,26 @@ export class Component extends UIObject
 
     initialize(size = [700, 350], colour = [0.5,0.1,0.3,1])
     {
-        const fontBody = this._ref.UI.style.nodes.general.body.text;
-        const fontHeading = this._ref.UI.style.nodes.general.heading.text;
-
-        this.style.heading.text.upscale = 2.0;
-
-        const upscale = this.style.heading.text.upscale;
-        
+        // Style
         [this.style.container.width, this.style.container.height] = size;
-
-        // Stylize Component Inside
-        this.style.text.paramTextOffsetX = this.style.container.width/2;
+        this.style.container.colour = hexToRgb(this._ref.UI.style.nodes.component.container.colour, 0.85);
         this.style.margin.x = 10;
         this.style.margin.y = 8;
 
-        this.style.container.colour = hexToRgb(this._ref.UI.style.nodes.component.container.colour, 0.85);
-        this.setBlending(true);
+        this.style.body.text.size = 9;
 
-        // const rect = new RenderableObject(this._ref.app.primitiveBuffers.rectangle);
+        this.style.heading.text.size = 12;
+        this.style.heading.text.upscale = 2.0;
+
+        // Aliases
+        const fontBody = this._ref.UI.style.nodes.general.body.text;
+        const fontHeading = this._ref.UI.style.nodes.general.heading.text;
+        const upscale = this.style.heading.text.upscale;        
+        
+        // Set properties of the container
         this.setScale([this.style.container.width/100,this.style.container.height/100]);
         this.setOriginalColor(this.style.container.colour);
-
-        // Save ref and connect to UIViewer
+        this.setBlending(true);
         this.setParent(this._ref.UI.viewer);
 
         // Add button
@@ -105,42 +107,31 @@ export class Component extends UIObject
         newButton.setPosition([this.style.container.width*0.9, this.style.margin.y+(newButton.properties.scale[1]*100)/2]);
         newButton.setOriginalColor(hexToRgb(this._ref.UI.style.nodes.component.hideButton.colour));
 
-        // Create text
-        /*
-        const txtArr = [
-            {
-                data: this.name,
-                pos: [this.style.margin.x*upscale, this.style.margin.y*upscale]
-            }
-        ];
-        */
-
+        // Text
         this.txtArr = undefined;
 
-        // Title font differ from body font
+        // Heading text
         const headingTxt = this.name;
-        const titleTxt = createNewText(this._ref.app.gl, this._ref.app.programs[2], headingTxt, fontHeading.size*this.style.heading.text.upscale, fontHeading.font,hexToRgb(fontBody.colour) );
+        const titleTxt = createNewText(this._ref.app.gl, this._ref.app.programs[2], headingTxt, this.style.heading.text.size*this.style.heading.text.upscale, fontHeading.font,hexToRgb(fontBody.colour) );
         titleTxt.setScale([ 1/upscale,1/upscale ]);
         titleTxt.setParent(this);
         titleTxt.setPosition([this.style.margin.x*upscale, this.style.margin.y*upscale]);
 
         this.elements.heading = titleTxt;
 
-        // const txtBatch = this.createBatchText(txtArr.slice(1,txtArr.length), fontBody);
-        // txtBatch.setParent(this);
-
-        // Add input for duration
-        console.log( titleTxt.buffer.str);
+        // Duration input
         const txtWidth = titleTxt.buffer.str.cpos[0]/2;
         const durInputPos = [txtWidth+this.style.margin.x * upscale + 10, this.style.margin.y*upscale + 3];
         const durationInput = new UITextInput(this._ref.app, this._ref.app.primitiveBuffers.rectangle, 10, this, "5.0s", [40,20]);
         durationInput.setPosition(durInputPos);
-        // durationInput.setScale([0.3,0.2]);
         durationInput.handlers.onValueChange = (newVal) => this.changeDuration(newVal);
 
-        // Handlers
-        newButton.setOnClick(this.transformToNode.bind(this));
+        // Bound animation object
+        this.addParamNode("IN", [new UINodeParam("example", "READ_TEXT", [0])], "Connected Object");
+
+        // Set up handlers
         this.handlers.onDblClick = this.transformToInsideComponent.bind(this);
+        newButton.setOnClick(this.transformToNode.bind(this));
 
         // Save ref
         this.elements.buttons.hide = newButton;
@@ -154,7 +145,7 @@ export class Component extends UIObject
         this.elements.outside = outsideNode;
     }
 
-    addParamNode(type, params)
+    addParamNode(type, params, customStr = undefined)
     {
         const paramNodeIndx = this.elements.nodes.IN.length;
         const buffer = this._ref.app.UI.UIBuffers.UINode.container.buffer;
@@ -170,12 +161,11 @@ export class Component extends UIObject
         }
         else if (type === "OUT") {
             this.elements.nodes.OUT.push(newNode);
-            newNode.setIndx(this.elements.nodes.OUT.length-1);
+            newNode.setIndx(this.elements.nodes.OUT.length);
             newNode.setPosition([this.style.container.width - 130 - 10, this.style.container.height/2-130/2]);
         }
 
-        newNode.setHeadingText();
-
+        newNode.setHeadingText(customStr);
     }
 
     addFunctionNode(effectorFnc)
@@ -183,6 +173,9 @@ export class Component extends UIObject
         const containerBuffer = this._ref.app.UI.UIBuffers.UINode.container.buffer;
         const newNode = new FunctionNode(this._ref.app, containerBuffer, this, effectorFnc);
         newNode.setParent(this);
+
+        const size = newNode.getSize();
+        newNode.setPosition([(this.style.container.width - size[0])/2, (this.style.container.height-size[1])/2]);
 
         // Save ref
         this.elements.nodes.FNC.push(newNode);

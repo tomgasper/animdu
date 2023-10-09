@@ -27,49 +27,41 @@ export class ComponentNode extends UINode
 
     initialize()
     {
+        // Style
+        [this.style.container.width, this.style.container.height ] = [130,130];
+        this.style.container.colour = hexToRgb(this._ref.UI.style.nodes.component.container.colour, 1);
+
         this.style.body.text.upscale = 2.0;
         this.style.heading.text.upscale = 2.0;
 
         this.style.heading.text.size = 10;
         this.style.body.text.size = 9;
 
-        const fontBody = this.style.body.text;
-        const fontHeading = this.style.heading.text;
-
-        // Set size based on the background container size
-        this._ref.UIBuffers = this._ref.app.UI.UIBuffers.UINode;
-
-        this._ref.parent = this.component;
-
-        [this.style.container.width, this.style.container.height ] = [130,130];
-
-        // Stylize Node
-
-        //Text
         this.style.body.text.paramTextOffsetX = this.style.container.width/2;
 
-        // Container
         this.style.margin.x = 10;
         this.style.margin.y = 5;
-        this.style.container.colour = hexToRgb(this._ref.UI.style.nodes.component.container.colour, 1);
 
-        // Handles
         this.style.handles.offsetY = 20.;
-
         this.style.handles.L.position = [ 0, this.style.container.height/4 ];
         this.style.handles.R.position = [ this.style.container.width, this.style.container.height/2 ] ;
 
-        // Save ref
-        this.container = this.component;
-        this.container.handlers.onMouseMove = () => this.handleMouseMove();
+        const fontBody = this.style.body.text;
+        const fontHeading = this.style.heading.text;
 
+        // Refs
+        this._ref.UIBuffers = this._ref.app.UI.UIBuffers.UINode;
+        this._ref.parent = this.component;
+
+        this.container = this.component;
+
+        // Handlers
+        this.container.handlers.onMouseMove = () => this.handleMouseMove();
         this.container.setOnClick( () => console.log("hello!") );
 
         this.constructNodeBody();
 
-        // Render text
-
-       // creating text batch for this node, to avoid creating a lot of small buffers
+        // Text
         const bodyTxt = this.txtArr;
         const txtBatch = createNewText(this._ref.app.gl, this._ref.app.programs[2], bodyTxt, fontBody.size * this.style.body.text.upscale, fontBody.font, hexToRgb(fontBody.colour));
         txtBatch.setCanBeMoved(false);
@@ -115,9 +107,12 @@ export class ComponentNode extends UINode
 
         // add handles
         const inNum = this.component.elements.nodes.IN.length;
-        const outNum = this.component.elements.nodes.OUT.length;
+        const outNum = this.component.elements.nodes.OUT.length + 1;
 
+        // this.addIOHandles("IN", 1, this.container, 0, 0);
         this.addIOHandles("IN", inNum, this.container, this.style.handles.L.position[1], lineOffset);
+        
+        // this.addIOHandles("OUT", 1, this.container, 0,0);
         this.addIOHandles("OUT", outNum, this.container, this.style.handles.R.position[1], lineOffset);
     }
 
@@ -126,10 +121,11 @@ export class ComponentNode extends UINode
         if (type !== "IN" && type !== "OUT") throw new Error("Incorrect type of handle");
 
         const handles = this.component.elements.nodes[type];
+        const num = (type === "IN") ? handles.length - 1 : handles.length;
 
         const txtArr = [];
 
-        for (let i = 0; i < handles.length; i++)
+        for (let i = 0; i < num; i++)
         {
             txtArr.push(
                 { data: type + "(" + i + ")", pos: [startX, startY + (i * lineOffset)] }
@@ -144,6 +140,8 @@ export class ComponentNode extends UINode
         // Change position of outgoing nodes
 
         let newHandleLPos, newHandleRPos;
+        let newAnimHandleLPos, newAnimHandleRPos;
+        let newHandleSize;
         let newColour;
 
         const upscale = this.container.style.heading.text.upscale ? this.container.style.heading.text.upscale : 1.0; 
@@ -152,8 +150,13 @@ export class ComponentNode extends UINode
 
         if (isNode)
         {
+            const animHandleYPos = this.style.margin.y+this.style.heading.text.size;
+
             newHandleLPos = this.style.handles.L.position;
             newHandleRPos = this.style.handles.R.position;
+            newAnimHandleLPos = [0,animHandleYPos];
+            newAnimHandleRPos = [this.style.container.width,animHandleYPos];
+            newHandleSize = [1.2,1.2];
 
             newColour = this.style.container.colour;
 
@@ -161,8 +164,13 @@ export class ComponentNode extends UINode
             headingTxt.setPosition([this.style.margin.x, this.style.margin.y]);
         } else 
         {
-            newHandleLPos = [0, this.component.style.container.height/2 - this.style.body.text.size];
-            newHandleRPos = [this.component.style.container.width, this.component.style.container.height/2 - this.style.body.text.size ];
+            const animHandleYPos = (this.component.style.margin.y+this.component.style.heading.text.size/2)*upscale;
+
+            newHandleLPos = [0, this.component.style.container.height/2 - this.component.style.body.text.size];
+            newHandleRPos = [this.component.style.container.width, this.component.style.container.height/2 - this.component.style.body.text.size ];
+            newAnimHandleLPos = [0,animHandleYPos];
+            newAnimHandleRPos = [this.component.style.container.width,animHandleYPos];
+            newHandleSize = [1.5,1.5];
 
             newColour = this.component.style.container.colour;
 
@@ -170,16 +178,28 @@ export class ComponentNode extends UINode
             headingTxt.setPosition([this.container.style.margin.x*upscale, this.container.style.margin.y*upscale]);
         }
 
-        // Note that we are ignoring container here
-        this.elements.handles.L.forEach( (handle,indx) => {
-            handle.setVisible(true);
-            handle.setPosition([newHandleLPos[0] , newHandleLPos[1] + this.style.lineOffset * indx]);
-        });
 
-        this.elements.handles.R.forEach( (handle, indx) => {
+        this.elements.handles.L[0].setPosition(newAnimHandleLPos);
+        this.elements.handles.L[0].setVisible(true);
+        this.elements.handles.L[0].setScale(newHandleSize);
+        for (let i = 0; i < this.elements.handles.L.length-1; i++)
+        {
+            const handle = this.elements.handles.L[i+1];
+
             handle.setVisible(true);
-            handle.setPosition([newHandleRPos[0] , newHandleRPos[1] + this.style.lineOffset* indx]);
-        });
+            handle.setPosition([newHandleLPos[0] , newHandleLPos[1] + this.style.lineOffset * i]);
+        }
+
+        this.elements.handles.R[0].setPosition(newAnimHandleRPos);
+        this.elements.handles.R[0].setVisible(true);
+        this.elements.handles.R[0].setScale(newHandleSize);
+        for (let i = 0; i < this.elements.handles.R.length-1; i++)
+        {
+            const handle = this.elements.handles.R[i+1];
+
+            handle.setVisible(true);
+            handle.setPosition([newHandleRPos[0] , newHandleRPos[1] + this.style.lineOffset*i]);
+        }
         
         this.elements.text.setVisible(isNode);
         // this.elements.heading.setVisible(true);

@@ -129,21 +129,6 @@ export class UINode extends UIObject
         return txtBatch;
     }
 
-    createVerticalTxt(strArr, lineOffset, offsetX = 0, offsetY = 0)
-    {
-        const txt = [];
-
-        for (let i = 0; i < strArr.length; i++)
-        {
-            txt.push({
-                data: strArr[i],
-                pos: [offsetX, offsetY + (i * lineOffset)]
-            })
-        }
-
-        return txt;
-    }
-
     convertToTxtArr(params, lineOffset, offX = 0, offX2 = 0, offY = 0)
     {
         const txtArr = [];
@@ -189,6 +174,11 @@ export class UINode extends UIObject
     }
     */
 
+    getSize()
+    {
+        return [this.style.container.width, this.style.container.height];
+    }
+
     createTxtBg(parent = this, n)
     {
         const buffer = this.UIBuffers.textInput.buffer;
@@ -231,23 +221,6 @@ export class UINode extends UIObject
 
         return [sliderBg, sliderCircle];
     }
-
-    /*
-    addNewTxtBg(parent, indx)
-    {
-        const buffer = this.UIBuffers.textInput.buffer;
-
-        const rect = new RenderableObject(buffer.getInfo(), getProjectionMat(this.app.gl));
-        rect.setPosition([this.paramTextOffsetX, indx*this.paramTextOffsetY]);
-        rect.setParent(parent);
-        rect.setCanBeMoved(false);
-        rect.setOriginalColor([0.05,0.05,0.6,1]);
-
-        rect.handlers.onInputKey = (e) => this.handleInput(e, indx);
-
-        return rect;
-    }
-    */
 
     handleInput(e,indx)
     {
@@ -364,7 +337,7 @@ export class UINode extends UIObject
 
         if (this.parameters)
         {
-            param = this.parameters.list[i];
+            param = this.parameters[i];
         }
         
         const newHandle = this.createHandle(pos, parent, param);
