@@ -98,6 +98,12 @@ export class UINode extends UIObject
     {
         super(appRef, buffInfo);
 
+        this.setStyle(appRef);
+        this.setParamsList(paramsList);
+    }
+
+    setStyle(appRef)
+    {
         // Assign default fonts for UINode
         this.style.heading.text.font = appRef.UI.style.nodes.general.heading.text.font;
         this.style.heading.text.size = appRef.UI.style.nodes.general.heading.text.size;
@@ -109,13 +115,11 @@ export class UINode extends UIObject
 
         this.style.handles.L.colour =  hexToRgb(this._ref.UI.style.nodes.params.container.colour);
         this.style.handles.R.colour =  hexToRgb(this._ref.UI.style.nodes.params.container.colour);
-
-        this.parameters = paramsList;
     }
 
-    initialize()
+    setParamsList(paramsList)
     {
-
+        this.parameters = paramsList;
     }
 
     createBatchText(txtArr, textSize)
@@ -201,7 +205,7 @@ export class UINode extends UIObject
         const sliderBgSize = this.UIBuffers.sliderBg.size;
 
         const sliderBg = new RenderableObject(sliderBgBuffer, getProjectionMat(this.app.gl));
-        const paramsNum = this.parameters.list.length;
+        const paramsNum = this.parameters.length;
         const pos = [(this.style.container.width-sliderBgSize[0])/2, paramsNum*this.style.text.paramTextOffsetY+sliderBgSize[1]/2];
 
         sliderBg.setPosition(pos);
@@ -224,13 +228,13 @@ export class UINode extends UIObject
 
     handleInput(e,indx)
     {
-        const paramTextToChange = this.parameters.list[indx].value;
+        const paramTextToChange = this.parameters[indx].value;
         const incomingKey = e.key;
 
         const newString = this.changeValueNumeric(paramTextToChange, incomingKey);
         if (newString) paramTextToChange = newString;
 
-        const newTextArr = this.convertToTxtArr(this.parameters.list);            
+        const newTextArr = this.convertToTxtArr(this.parameters);            
         this.txtBuffer.txtBuffer.updateTextBufferData(newTextArr, 9);
     }
 

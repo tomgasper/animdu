@@ -59,6 +59,8 @@ function main()
     }
     };
 
+    console.log(pickingProgramInfo);
+
     const programInfo = {
         program: shaderProgram,
         attribLocations: {

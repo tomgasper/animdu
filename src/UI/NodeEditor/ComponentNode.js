@@ -113,7 +113,7 @@ export class ComponentNode extends UINode
         this.addIOHandles("IN", inNum, this.container, this.style.handles.L.position[1], lineOffset);
         
         // this.addIOHandles("OUT", 1, this.container, 0,0);
-        this.addIOHandles("OUT", outNum, this.container, this.style.handles.R.position[1], lineOffset);
+        this.addIOHandles("OUT", outNum-1, this.container, this.style.handles.R.position[1], lineOffset);
     }
 
     createIOTxt(type, startX, startY, lineOffset)
@@ -121,14 +121,15 @@ export class ComponentNode extends UINode
         if (type !== "IN" && type !== "OUT") throw new Error("Incorrect type of handle");
 
         const handles = this.component.elements.nodes[type];
-        const num = (type === "IN") ? handles.length - 1 : handles.length;
+        const num = handles.length - 1;
 
         const txtArr = [];
 
         for (let i = 0; i < num; i++)
         {
+            let indx = i + 1;
             txtArr.push(
-                { data: type + "(" + i + ")", pos: [startX, startY + (i * lineOffset)] }
+                { data: type + "(" + indx + ")", pos: [startX, startY + (i * lineOffset)] }
             )
         }
 
