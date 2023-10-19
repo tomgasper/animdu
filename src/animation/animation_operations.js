@@ -1,4 +1,4 @@
-import { findNodesOfType } from "../utils.js";
+import { computeTransform, findNodesOfType } from "../utils.js";
 
 import { ObjNode } from "../UI/NodeEditor/ObjNode.js";
 
@@ -6,9 +6,9 @@ import { ObjAnimation } from "./ObjAnimation.js";
 import { ComponentNode } from "../UI/NodeEditor/ComponentNode.js";
 
 import { Digraph } from "../DataStructures/Digraph.js";
-import { ParamNode } from "../UI/NodeEditor/ParamNode.js";
 
-const findConnectedComponents = (startOffset, componentNode) => {
+export const createComponentList = (startOffset, componentNode) => {
+    // Obj to return
     const componentList = [
         {
             componentRef: componentNode,
@@ -17,7 +17,8 @@ const findConnectedComponents = (startOffset, componentNode) => {
 
     let currentComponent = componentNode;
 
-    let accAnimationDuration = startOffset + componentNode.component.animation.duration + 1/60;
+    const DELAY = 1/60;
+    let accAnimationDuration = startOffset + componentNode.component.animation.duration + DELAY;
 
     // traverse via right handle of the node
     while (currentComponent)
@@ -73,7 +74,7 @@ const createAnimationList = (compositionNodesViewer) => {
         const connectedObj = objNode.elements.handles.R[0].line.connection.connectedObj.node;
 
         if (connectedObj instanceof ComponentNode) {
-            const connectedComponents = findConnectedComponents(startOffset, connectedObj);
+            const connectedComponents = createComponentList(startOffset, connectedObj);
             const objAnimationList = new ObjAnimation(objNode.obj, connectedComponents);
 
             animationList.push(objAnimationList);
@@ -83,16 +84,15 @@ const createAnimationList = (compositionNodesViewer) => {
     return animationList;
 }
 
-const gatherComponentsAtTime = (time, animationList) =>
+export const gatherComponentsAtTime = (time, animationList) =>
 {
     const activeObjsAtTime = [];
 
     for (let obj of animationList)
     {
-        // check which components are actie at current animation time
+        // Check which components are active at current animation time
         for (let component of obj.componentsToProcess)
         {
-            console.log(component.componentRef.component.name);
             if ( time >= component.range[0] && time <= component.range[1])
             {
                 activeObjsAtTime.push(component.componentRef);
@@ -101,11 +101,10 @@ const gatherComponentsAtTime = (time, animationList) =>
         }
     }
 
-
     const V = activeObjsAtTime.length;
     let depGraph = new Digraph(V);
 
-    // check what's connected to active componentNodes(dependency)
+    // Check what's connected to active componentNodes(dependency)
     for (let i = 0; i < activeObjsAtTime.length; i++)
     {
         const inputHandles = activeObjsAtTime[i].elements.handles.L;
@@ -118,7 +117,7 @@ const gatherComponentsAtTime = (time, animationList) =>
 
             for (let k = 0; k < activeObjsAtTime.length; k++)
             {
-                // ComponentNodes do change so we have to mark it as a dependency
+                // ComponentNodes are dynamic and affect other Nodes so we have to mark it as a dependency
                 // In the future here will be also added check for VarNode
                 if (connectedObj === activeObjsAtTime[k])
                 {
@@ -135,7 +134,8 @@ const gatherComponentsAtTime = (time, animationList) =>
     }
 
     // Calculate proper processing order
-    const actionsOrder = depGraph.topologicalSort().reverse();
+    // const actionsOrder = depGraph.topologicalSort().reverse();
+    const actionsOrder = depGraph.topologicalSort();
 
     // Sort active objects
     const sortedActiveObjs = [];
@@ -160,10 +160,10 @@ const processInputParamNode = (activeObj, handle) => {
 
     let obj;
 
-    if (connectedObj.type === "ObjNode")
+    if (connectedObj.type === "_NODE_OBJ")
     {
         obj = activeObj.elements.handles.L[paramNodeIndx].line.connection.connectedObj.node.obj;
-    } else if (connectedObj.type === "ComponentNode")
+    } else if (connectedObj.type === "_NODE_COMPONENT")
     {
         obj = activeObj.elements.handles.L[paramNodeIndx].line.connection.connectedObj.node.component.activeObj;
     } else throw new Error("Wrong output!");
@@ -187,7 +187,7 @@ const setOUTvalues = (activeObj) => {
 
     for (let i = 0; i < activeObjOUTNodes.length; i++)
     {
-        const paramsList = activeObjOUTNodes[i].parameters.list;
+        const paramsList = activeObjOUTNodes[i].parameters;
         const paramNodeIndx = activeObjOUTNodes[i].indx;
 
         // get object that is connected Component Node based on index
@@ -195,10 +195,10 @@ const setOUTvalues = (activeObj) => {
         const connectedObj = activeObj.elements.handles.L[paramNodeIndx].line.connection.connectedObj.node;
         let inputObjToSet;
 
-        if (connectedObj.type === "ObjNode")
+        if (connectedObj.type === "_NODE_OBJ")
         {
             inputObjToSet = connectedObj.obj;
-        } else if (connectedObj.type === "ComponentNode")
+        } else if (connectedObj.type === "_NODE_COMPONENT")
         {
             inputObjToSet = connectedObj.component.activeObj;
         } else throw new Error("Wrong output!");
@@ -230,10 +230,10 @@ const processActiveObject = (animTime, activeObj) => {
 
             switch(connectedObjType)
             {
-                case "INParamNode":
+                case "_NODE_PARAM_IN":
                     INRefList[indx] = processInputParamNode(activeObj, handle);
                     break;
-                case "VarNode":
+                case "_NODE_VAR":
                     INRefList[indx] = processInputVarNode(handle);
                     break;
                 default:
@@ -246,8 +246,6 @@ const processActiveObject = (animTime, activeObj) => {
     // call FNC
     // main part
     const functionOutput = exeEffectorFnc(animTime, INRefList, fncNode);
-
-    console.log(functionOutput);
 
     // move values to nodes connected to out lines
     for (let i = 0; i < OUT.length; i++)

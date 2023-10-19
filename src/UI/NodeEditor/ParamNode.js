@@ -7,7 +7,7 @@ import { RenderableObject } from "../../RenderableObject.js";
 
 export class ParamNode extends UINode
 {
-    type = "INParamNode";
+    type = "_NODE_PARAM_IN";
     indx = 0;
 
     name = "ParamNode";
@@ -64,7 +64,7 @@ export class ParamNode extends UINode
         this.handlers.onMouseMove = () => { this.handleMouseMove()};
 
         // Create graphical handlers
-        const handlesType = this.type === "INParamNode" ? "OUT" : "IN";
+        const handlesType = this.type === "_NODE_PARAM_IN" ? "OUT" : "IN";
         const handleStartY = this.style.margin.y + ( fontBody.size * 2 ) + this.style.body.margin.y;
         const offsetLine = this.style.body.text.size  + this.style.body.text.margin.y;
         this.addIOHandles(handlesType, this.parameters.length, this, handleStartY, offsetLine);
@@ -102,8 +102,8 @@ export class ParamNode extends UINode
 
     setType(type)
     {
-        if (type === "IN") this.type = "INParamNode";
-        else if (type === "OUT") this.type = "OUTParamNode";
+        if (type === "IN") this.type = "_NODE_PARAM_IN";
+        else if (type === "OUT") this.type = "_NODE_PARAM_OUT";
         else throw new Error ("Setting incorrect ParamNode type! Must be IN or OUT type");
     }
 
@@ -124,10 +124,10 @@ export class ParamNode extends UINode
         else 
         {
             let typeStr = "";
-            if (this.type === "INParamNode")
+            if (this.type === "_NODE_PARAM_IN")
             {
                 typeStr = "IN";
-            } else if (this.type === "OUTParamNode") 
+            } else if (this.type === "_NODE_PARAM_OUT") 
             {
                 typeStr = "OUT";
             }

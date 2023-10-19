@@ -79,45 +79,6 @@ export class Digraph
 
         return stack;
     }
-    
-
-    /*
-
-    topologicalSort() {
-        console.log(this.adj);
-
-        let L = []; // Empty list that will contain the sorted nodes
-        let tempMarks = new Array(this.V).fill(false); // Nodes with a temporary mark
-        let permMarks = new Array(this.V).fill(false); // Nodes with a permanent mark
-
-        for (let i = 0; i < this.V; i++) {
-            if (!permMarks[i]) {
-                this.visit(i, tempMarks, permMarks, L);
-            }
-        }
-
-        return L;
-    }
-
-    visit(n, tempMarks, permMarks, L) {
-        if (permMarks[n]) {
-            return;
-        }
-        if (tempMarks[n]) {
-            throw new Error("Graph has at least one cycle");
-        }
-
-        tempMarks[n] = true;
-
-        for (let i = 0; i < this.adj[n].length; i++) {
-            this.visit(this.adj[n][i], tempMarks, permMarks, L);
-        }
-
-        tempMarks[n] = false;
-        permMarks[n] = true;
-        L.push(n); // Add n to head of L
-    }
-    */
 
     addEdge(v, w)
     {

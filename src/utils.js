@@ -16,7 +16,7 @@ export function resizeCanvasToDisplaySize( canvas, multiplier) {
     return false;
   }
 
-function setUniforms(gl, programInfo, properties)
+export function setUniforms(gl, programInfo, properties)
 {
     Object.keys(programInfo.uniforms).forEach((property, i) =>{
         // Only assisgn values to shaders that have the given property

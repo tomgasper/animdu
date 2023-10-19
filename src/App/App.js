@@ -228,34 +228,6 @@ export class App
 
         this.activeComp.addObj([solid,obj1,obj2,roundedRect]);
 
-        const paramList = new UINodeParamList([
-            new UINodeParam("position", "TEXT_READ", [0,0]),
-            new UINodeParam("scale", "TEXT_READ", [1,1]),
-            new UINodeParam("rotation", "TEXT_READ", [1])
-        ]);
-
-        const paramList2 = new UINodeParamList([
-            new UINodeParam("position", "TEXT_READ", [0,0]),
-            new UINodeParam("scale", "TEXT_READ", [1,1])
-        ]);
-
-        const paramListOUT = new UINodeParamList([
-            new UINodeParam("position", "TEXT_READ", [0,0]),
-            new UINodeParam("scale", "TEXT_READ", [1,1])
-        ]);
-
-        const paramListOUT2 = new UINodeParamList([
-            new UINodeParam("position", "TEXT_READ", [0,0]),
-            new UINodeParam("scale", "TEXT_READ", [1,1])
-        ]);
-
-        const paramListFNC = new UINodeParamList([
-            new UINodeParam("position", "TEXT_READ", [0,0]),
-            new UINodeParam("scale", "TEXT_READ", [1,1])
-        ]);
-
-
-
         const simParams = [
             new UINodeParam("position", "TEXT_READ", [0,0]),
             new UINodeParam("scale", "TEXT_READ", [0,0]),
@@ -279,31 +251,42 @@ export class App
         */
 
         
-        const obj = this.activeComp.objects[1];
-        const newObjNode = this.UI.addObjNode(obj);
+        const sobj = this.activeComp.objects[1];
+        const sobj2 = this.activeComp.objects[2];
+        const sobj3 = this.activeComp.objects[3];
+
+        const newObjNode = this.UI.addObjNode(sobj);
+        const newObjNode2 = this.UI.addObjNode(sobj2);
+        const newObjNode3 = this.UI.addObjNode(sobj3);
         newObjNode.setPosition([500,550]);
 
 
-        const fnc = () => console.log("Hello, this is some function!");
+        const fnc = (in1) => { return [[100,500]]; };
         const effectorFunction = new Effector("Custom function", fnc, 2, 2);
         const componentBuff = this.primitiveBuffers.roundedRectangle;
-        const compNode = new Component(this, componentBuff,  [700, 450], [0.1,0.1,0.1,1], "Somesa");
-        compNode.addParamNode("IN", simParams);
+        const compNode = new Component(this, componentBuff, 5.0 , "Somesa");
         compNode.addParamNode("IN", simParams);
         compNode.addFunctionNode(effectorFunction);
         compNode.addParamNode("OUT", simParamsOUT);
         
-        /*
         const fnc2 = () => console.log("Another function!");
         const effectorFunction2 = new Effector("Custom function2", fnc2, 3, 2)
-        const compNode2 = new Component(this, componentBuff, [600, 300], [0.1,0.1,0.1,1], "myComponent2");
-        compNode2.addParamNode("IN", paramList2);
+        const compNode2 = new Component(this, componentBuff, 3.0, "myComponent2");
+        compNode2.addParamNode("IN", simParams);
         compNode2.addFunctionNode(effectorFunction2);
-        compNode2.addParamNode("OUT", paramListOUT2);
-        */
+        compNode2.addParamNode("OUT", simParamsOUT);
+
+        const fnc3 = () => console.log("Another function!");
+        const effectorFunction3 = new Effector("Custom function2", fnc3, 3, 2)
+        const compNode3 = new Component(this, componentBuff, 5.0, "myComponent3");
+        compNode3.addParamNode("IN", simParams);
+        compNode3.addFunctionNode(effectorFunction3);
+        compNode3.addParamNode("OUT", simParamsOUT);
 
         const activeViewer = this.UI.viewer;
         activeViewer.addComponent(compNode);
+        activeViewer.addComponent(compNode2);
+        activeViewer.addComponent(compNode3);
 
         compNode.setPosition([500,900]);
     }

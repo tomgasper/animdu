@@ -67,17 +67,18 @@ export class Component extends UIObject
 
     isExtended = true;
 
-    constructor(appRef, buffInfo, size, colour, name = "New component")
+    constructor(appRef, buffInfo, animationDuration, name = "New component")
     {
         super(appRef, buffInfo);
 
         this.addExtraParam({resolution: [this._ref.app.canvas.width,this._ref.app.canvas.height ]});
 
         this.setName(name);
-        this.initialize(size);
+        this.setAnimationDuration(animationDuration);
+        this.initialize();
     }
 
-    initialize(size = [700, 350], colour = [0.5,0.1,0.3,1])
+    initialize(size = [700, 350])
     {
         // Style
         [this.style.container.width, this.style.container.height] = size;
@@ -127,7 +128,8 @@ export class Component extends UIObject
         durationInput.handlers.onValueChange = (newVal) => this.changeDuration(newVal);
 
         // Bound animation object
-        this.addParamNode("IN", [new UINodeParam("example", "READ_TEXT", [0])], "Connected Object");
+        this.addParamNode("IN", [new UINodeParam("position", "READ_TEXT", [0,0])], "Connected Object");
+        this.addParamNode("OUT", [new UINodeParam("position", "READ_TEXT", [0,0])], "SET");
 
         // Set up handlers
         this.handlers.onDblClick = this.transformToInsideComponent.bind(this);
@@ -143,6 +145,12 @@ export class Component extends UIObject
         const outsideNode = new ComponentNode(this._ref.app, buffer, this);
 
         this.elements.outside = outsideNode;
+    }
+
+    setAnimationDuration(animDur)
+    {
+        if (isNumeric(animDur)) this.animation.duration = animDur;
+        else this.animation.duration = 5.0;
     }
 
     addParamNode(type, params, customStr = undefined)
@@ -161,7 +169,7 @@ export class Component extends UIObject
         }
         else if (type === "OUT") {
             this.elements.nodes.OUT.push(newNode);
-            newNode.setIndx(this.elements.nodes.OUT.length);
+            newNode.setIndx(this.elements.nodes.OUT.length-1);
             newNode.setPosition([this.style.container.width - 130 - 10, this.style.container.height/2-130/2]);
         }
 
