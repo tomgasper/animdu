@@ -30,7 +30,7 @@ export const createComponentList = (startOffset, componentNode) => {
         const lineConnection = nodeHandleR.line.connection;
         const connectedObj = lineConnection.connectedObj.node;
 
-        if (connectedObj instanceof ComponentNode)
+        if (connectedObj.getType() == "_NODE_COMPONENT")
         {
             currentComponent = connectedObj;
             componentList.push(
@@ -49,10 +49,12 @@ export const createComponentList = (startOffset, componentNode) => {
     return componentList;
 }
 
-export const getCurrentCompositionNodes = (nodeSpace) =>
+export const getObjNodes = (nodeSpace) =>
 {
     // get objNodes that are inside UI Node Space and are connected to at least one component
     let objNodes = findNodesOfType(nodeSpace, ObjNode);
+    
+    // filter out objNodes that are not connected to any component
     objNodes = objNodes.filter( (objNode) => {
         return objNode.elements.handles.R[0].line.connection.isConnected;
     });
@@ -63,19 +65,23 @@ export const getCurrentCompositionNodes = (nodeSpace) =>
 // should be called when starting an animation
 // dont call every frame
 const createAnimationList = (compositionNodesViewer) => {
-    const objNodes = getCurrentCompositionNodes(compositionNodesViewer);
+    const objNodes = getObjNodes(compositionNodesViewer);
 
     const animationList = [];
 
     // create start point to walk through each obj components
     for (let objNode of objNodes)
     {
-        const startOffset = objNode.elements.handles.R[0].line.connection.animationBreak;
-        const connectedObj = objNode.elements.handles.R[0].line.connection.connectedObj.node;
+        // seqConnection is a connection between nodes that creates a sequence
+        // handles with index 0 are reserved for seqConnection
+        const seqConnection = objNode.getConnection("R", 0);
+        const connectedNode = objNode.getConnectedNode("R", 0);
 
-        if (connectedObj instanceof ComponentNode) {
-            const connectedComponents = createComponentList(startOffset, connectedObj);
-            const objAnimationList = new ObjAnimation(objNode.obj, connectedComponents);
+        const startOffset = seqConnection.animationBreak;
+
+        if (connectedNode.getType() === "_NODE_COMPONENT") {
+            const connectedComponents = createComponentList(startOffset, connectedNode);
+            const objAnimationList = new ObjAnimation(objNode.getObj(), connectedComponents);
 
             animationList.push(objAnimationList);
         }
@@ -153,76 +159,79 @@ const exeEffectorFnc = (animTime, INList, fncNode) => {
     return out;
 }
 
-const processInputParamNode = (activeObj, handle) => {
+const processInputParamNode = (activeComponent, handle) => {
     const paramNodeIndx = handle.line.connection.connectedObj.node.indx;
-    const connectedObj = activeObj.elements.handles.L[paramNodeIndx].line.connection.connectedObj.node;
-    const connectedParam = handle.line.connection.connectedObj.parameter;
+    const connectedHandle = handle.line.connection.connectedObj;
+
+    // External connection to component node
+    const connectedObj = activeComponent.getConnectedNode("L", paramNodeIndx);
 
     let obj;
 
     if (connectedObj.type === "_NODE_OBJ")
     {
-        obj = activeObj.elements.handles.L[paramNodeIndx].line.connection.connectedObj.node.obj;
+        obj = connectedObj.getObj();
     } else if (connectedObj.type === "_NODE_COMPONENT")
     {
-        obj = activeObj.elements.handles.L[paramNodeIndx].line.connection.connectedObj.node.component.activeObj;
+        // here it should read data frmo correct outpu
+        obj = connectedObj.component.activeObj;
     } else throw new Error("Wrong output!");
 
-    // save inputs for effector function
-    connectedParam.value = obj.properties[connectedParam.name];
+    // change value of parameter connected to param node
+    const geometryObjParam = obj.properties[connectedHandle.parameter.name];
+    connectedHandle.setParameter(geometryObjParam);
 
-    // update node's text
-    handle.line.connection.connectedObj.node.updateText();
+    // Update text as well
+    connectedHandle.node.updateText();
 
-    return connectedParam.value;
+    return connectedHandle.parameter.value;
 }
 
 const processInputVarNode = (handle) => {
 
 }
 
-const setOUTvalues = (activeObj) => {
+const setOUTvalues = (activeComponent) => {
     // set values from OUTparamNodes
-    const activeObjOUTNodes = activeObj.component.elements.nodes.OUT;
+    const componentOUTNodes = activeComponent.component.elements.nodes.OUT;
 
-    for (let i = 0; i < activeObjOUTNodes.length; i++)
+    for (let i = 0; i < componentOUTNodes.length; i++)
     {
-        const paramsList = activeObjOUTNodes[i].parameters;
-        const paramNodeIndx = activeObjOUTNodes[i].indx;
+        const paramsList = componentOUTNodes[i].getParams();
+        const paramNodeIndx = componentOUTNodes[i].getCorrespondingComponentHandleIndx();
 
         // get object that is connected Component Node based on index
-        if (!activeObj.elements.handles.L[paramNodeIndx].line.connection.isConnected) continue;
-        const connectedObj = activeObj.elements.handles.L[paramNodeIndx].line.connection.connectedObj.node;
-        let inputObjToSet;
+        const compConnection = activeComponent.getConnection("L", paramNodeIndx);
+        if (!compConnection.isConnected) continue;
+        const connectedObj = compConnection.connectedObj.node;
 
+        let objToSet;
         if (connectedObj.type === "_NODE_OBJ")
         {
-            inputObjToSet = connectedObj.obj;
+            objToSet = connectedObj.obj;
         } else if (connectedObj.type === "_NODE_COMPONENT")
         {
-            inputObjToSet = connectedObj.component.activeObj;
+            objToSet= connectedObj.component.activeObj;
         } else throw new Error("Wrong output!");
 
         for (let param of paramsList)
         {
-            inputObjToSet.properties[param.name] = param.value;
-            inputObjToSet.updateTransform();
+            objToSet.setPropertyParam(param);
         }
     }
 }
 
-const processActiveObject = (animTime, activeObj) => {
-    console.log("Processing: " + activeObj.component.name);
-
+const processActiveComponent = (animTime, activeComponent) => {
+    // Will be extended to be able to process more than one function node
     const fncNode = activeObj.component.elements.nodes.FNC[0];
 
-    const IN = fncNode.elements.handles.L;
-    const OUT = fncNode.elements.handles.R;
+    const IN_fnc = fncNode.elements.handles.L;
+    const OUT_fnc = fncNode.elements.handles.R;
 
     const INRefList = [];
     const beforeParams = [];
 
-    IN.forEach( (handle, indx) => {
+    IN_fnc.forEach( (handle, indx) => {
         if (handle.line.connection.isConnected)
         {
             const connectedObj = handle.line.connection.connectedObj.node;
@@ -231,7 +240,7 @@ const processActiveObject = (animTime, activeObj) => {
             switch(connectedObjType)
             {
                 case "_NODE_PARAM_IN":
-                    INRefList[indx] = processInputParamNode(activeObj, handle);
+                    INRefList[indx] = processInputParamNode(activeComponent, handle);
                     break;
                 case "_NODE_VAR":
                     INRefList[indx] = processInputVarNode(handle);
@@ -248,9 +257,9 @@ const processActiveObject = (animTime, activeObj) => {
     const functionOutput = exeEffectorFnc(animTime, INRefList, fncNode);
 
     // move values to nodes connected to out lines
-    for (let i = 0; i < OUT.length; i++)
+    for (let i = 0; i < OUT_fnc.length; i++)
     {
-        const handle = OUT[i];
+        const handle = OUT_fnc[i];
 
         if (handle.line.connection.isConnected)
         {
@@ -261,14 +270,14 @@ const processActiveObject = (animTime, activeObj) => {
         }
     }
 
-    setOUTvalues(activeObj);
+    setOUTvalues(activeComponent);
 }
 
-const processActiveObjects = (animTime, activeObjectsList) => 
+const processActiveComponents = (animTime, activeObjectsList) => 
 {
     for (let i = 0; i < activeObjectsList.length; i++)
     {
-        processActiveObject(animTime, activeObjectsList[i]);
+        processActiveComponent(animTime, activeObjectsList[i]);
     }
 }
 
@@ -278,5 +287,5 @@ export const procc = ( animTime, nodesContainer ) =>
     // use caching if so
     const animationList = createAnimationList(nodesContainer);
     const sortedActiveObjects = gatherComponentsAtTime(animTime, animationList);
-    processActiveObjects(animTime, sortedActiveObjects);
+    processActiveComponents(animTime, sortedActiveObjects);
 }

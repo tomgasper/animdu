@@ -155,6 +155,40 @@ export class UINode extends UIObject
         return txtArr;
     }
 
+    getConnection(side,indx)
+    {
+        if (side !== "L" && side !== "R") throw new Error("Incorrect side specifier - must be 'L' or 'R', provided: " + side);
+        const handle = this.elements.handles[side];
+
+        if (!handle[indx]) throw new Error("Handle with index: " + indx + "doesn't exist!");
+
+        return handle[indx].line.connection;
+    }
+
+    getConnectedNode(side,indx)
+    {
+        const connection = this.getConnection(side,indx);
+
+        if (!connection.isConnected)
+        {
+            console.log("Node is not connected!");
+            return undefined;
+        }
+
+        if (!connection.connectedObj || !connection.connectedObj.node)
+        {
+            console.log("Node is not connected!");
+            return undefined;
+        }
+
+        return connection.connectedObj.node;
+    }
+
+    getType()
+    {
+        return this.type;
+    }
+
     /*
     addParam(paramNameStr, parent = this)
     {

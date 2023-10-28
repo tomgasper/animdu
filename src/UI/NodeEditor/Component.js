@@ -164,6 +164,7 @@ export class Component extends UIObject
         if (type === "IN")
         {
             this.elements.nodes.IN.push(newNode);
+            // When adding new param node set indx for it to point to the correct handle of component
             newNode.setIndx(this.elements.nodes.IN.length-1);
             newNode.setPosition([0 + 10, this.style.container.height/2-130/2]);
         }

@@ -6,6 +6,7 @@ import { getProjectionMat, getViewCoords, hexToRgb } from "../../utils.js";
 import {  getPosFromMat } from "../../App/AppHelper.js";
 
 import { m3, transformToParentSpace } from "../../utils.js";
+import { UINodeParam } from "./UINodeParam.js";
 
 export class UINodeHandle extends RenderableObject
 {
@@ -274,6 +275,7 @@ export class UINodeHandle extends RenderableObject
 
     setParameter(param)
     {
+        if (!(param instanceof UINodeParam)) console.log('Error setting parameter, at: ' + this + "." + "Incorrect type!");
         this.parameter = param;
     }
 }

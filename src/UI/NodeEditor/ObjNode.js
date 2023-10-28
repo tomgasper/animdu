@@ -81,4 +81,9 @@ export class ObjNode extends UINode
         txtBatch.setScale([0.5,0.5]);
         txtBatch.setParent(this);
     }
+
+    getObj()
+    {
+        return this.obj;
+    }
 }
