@@ -8,7 +8,7 @@ import { RenderableObject } from "../../RenderableObject.js";
 export class ParamNode extends UINode
 {
     type = "_NODE_PARAM_IN";
-    indx = 0;
+    indx = undefined;
 
     name = "ParamNode";
 
@@ -135,6 +135,16 @@ export class ParamNode extends UINode
             this.name = typeStr + "(" + this.indx + ")";
         }
         this.updateText();
+    }
+
+    getCorrespondingComponentHandleIndx()
+    {
+        return this.indx;
+    }
+
+    getParams()
+    {
+        return this.parameters;
     }
 
     constructNodeBody()

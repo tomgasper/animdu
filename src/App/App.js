@@ -239,17 +239,6 @@ export class App
         ];
 
 
-        // this.UI.addObjNode(this.activeComp.objects[0]);
-
-
-        // Render Obj Nodes
-        /*
-        this.activeComp.objects.forEach( (obj) => {
-            const newObjNode = this.UI.addObjNode(obj);
-            newObjNode.setPosition([300,550]);
-        })
-        */
-
         
         const sobj = this.activeComp.objects[1];
         const sobj2 = this.activeComp.objects[2];

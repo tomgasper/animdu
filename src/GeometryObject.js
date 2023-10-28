@@ -1,3 +1,4 @@
+import { UINodeParam } from "./UI/NodeEditor/UINodeParam.js";
 import { m3, computeTransform } from "./utils.js";
 
 export class GeometryObject
@@ -197,6 +198,16 @@ export class GeometryObject
         this.setOrigin(origin);
 
         this.updateTransform();
+    }
+
+    setPropertyParam(param)
+    {
+        if (!(param instanceof UINodeParam)) throw new Error("Incorrect input type!");
+        if (!(this.properties[param.name])) throw new Error("Object: " + this + "doesn't have property: " + param.name);
+        if (!(param.value)) throw new Error("Param value is undefined");
+
+        this.properties[param.name] = param.value;
+        this.updateTransform()
     }
 
     updateTransform()
