@@ -275,8 +275,20 @@ export class UINodeHandle extends RenderableObject
 
     setParameter(param)
     {
-        if (!(param instanceof UINodeParam)) console.log('Error setting parameter, at: ' + this + "." + "Incorrect type!");
+        if (!(param instanceof UINodeParam)) console.log('Error setting parameter, at: ' + this + "." + "Incorrect type: " + param);
         this.parameter = param;
+    }
+
+    setParameterVal(value)
+    {
+        if (value) this.parameter.value = value;
+        else throw new Error("Trying to set undefined as parameter value [" + this.parameter.name + "]");
+    }
+
+    getLineConnectedNode()
+    {
+        if (this.line.connection.isConnected && this.line.connection.connectedObj) return this.line.connection.connectedObj.node;
+        else return undefined;
     }
 }
 

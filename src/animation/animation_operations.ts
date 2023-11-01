@@ -7,7 +7,14 @@ import { ComponentNode } from "../UI/NodeEditor/ComponentNode.js";
 
 import { Digraph } from "../DataStructures/Digraph.js";
 
-export const createComponentList = (startOffset, componentNode) => {
+import { UINode } from "../UI/NodeEditor/UINode.js";
+import { UINodeHandle } from "../UI/NodeEditor/UINodeHandle.js";
+import { ParamNode } from "../UI/NodeEditor/ParamNode.js";
+
+import { FunctionNode } from "../UI/NodeEditor/FunctionNode.js";
+import { UINodeParam } from "../UI/NodeEditor/UINodeParam.js";
+
+export const createComponentList = (startOffset : number, componentNode) => {
     // Obj to return
     const componentList = [
         {
@@ -67,7 +74,7 @@ export const getObjNodes = (nodeSpace) =>
 const createAnimationList = (compositionNodesViewer) => {
     const objNodes = getObjNodes(compositionNodesViewer);
 
-    const animationList = [];
+    const animationList: Array<ObjAnimation> = [];
 
     // create start point to walk through each obj components
     for (let objNode of objNodes)
@@ -92,7 +99,7 @@ const createAnimationList = (compositionNodesViewer) => {
 
 export const gatherComponentsAtTime = (time, animationList) =>
 {
-    const activeObjsAtTime = [];
+    const activeObjsAtTime : Array<ComponentNode> = [];
 
     for (let obj of animationList)
     {
@@ -113,13 +120,13 @@ export const gatherComponentsAtTime = (time, animationList) =>
     // Check what's connected to active componentNodes(dependency)
     for (let i = 0; i < activeObjsAtTime.length; i++)
     {
-        const inputHandles = activeObjsAtTime[i].elements.handles.L;
+        const inputHandles : Array<UINodeHandle> = activeObjsAtTime[i].elements.handles.L;
         for (let j = 1; j < inputHandles.length; j++)
         {
-            // no connection -> leave
-            if ( !(inputHandles[j].line.connection.isConnected)) continue;
+            const connectedObj = inputHandles[j].getLineConnectedNode();
 
-            const connectedObj = inputHandles[j].line.connection.connectedObj.node;
+            // no connection -> leave
+            if ( !connectedObj ) continue;
 
             for (let k = 0; k < activeObjsAtTime.length; k++)
             {
@@ -141,10 +148,10 @@ export const gatherComponentsAtTime = (time, animationList) =>
 
     // Calculate proper processing order
     // const actionsOrder = depGraph.topologicalSort().reverse();
-    const actionsOrder = depGraph.topologicalSort();
+    const actionsOrder : Array<number> = depGraph.topologicalSort();
 
     // Sort active objects
-    const sortedActiveObjs = [];
+    const sortedActiveObjs : Array<ComponentNode> = [];
     for (let i = 0; i < actionsOrder.length; i++)
     {
         sortedActiveObjs.push(activeObjsAtTime[actionsOrder[i]]);
@@ -178,8 +185,8 @@ const processInputParamNode = (activeComponent, handle) => {
     } else throw new Error("Wrong output!");
 
     // change value of parameter connected to param node
-    const geometryObjParam = obj.properties[connectedHandle.parameter.name];
-    connectedHandle.setParameter(geometryObjParam);
+    const geometryObjParamVal = obj.properties[connectedHandle.parameter.name];
+    connectedHandle.setParameterVal(geometryObjParamVal);
 
     // Update text as well
     connectedHandle.node.updateText();
@@ -216,41 +223,46 @@ const setOUTvalues = (activeComponent) => {
 
         for (let param of paramsList)
         {
+            console.log(param);
+            console.log(objToSet);
             objToSet.setPropertyParam(param);
         }
     }
 }
 
-const processActiveComponent = (animTime, activeComponent) => {
+const processActiveComponent = (animTime : number, activeComponent : ComponentNode) => {
     // Will be extended to be able to process more than one function node
-    const fncNode = activeObj.component.elements.nodes.FNC[0];
+    const fncNode : FunctionNode = activeComponent.getFunctionNode()[0];
 
-    const IN_fnc = fncNode.elements.handles.L;
-    const OUT_fnc = fncNode.elements.handles.R;
+    const IN_fnc : Array<UINodeHandle> = fncNode.elements.handles.L;
+    const OUT_fnc : Array<UINodeHandle> = fncNode.elements.handles.R;
 
-    const INRefList = [];
+    const INRefList : Array<ParamNode> = [];
     const beforeParams = [];
 
-    IN_fnc.forEach( (handle, indx) => {
+    for (let i = 0; i < IN_fnc.length; i++)
+    {
+        const handle = IN_fnc[i];
         if (handle.line.connection.isConnected)
         {
-            const connectedObj = handle.line.connection.connectedObj.node;
-            const connectedObjType = connectedObj.type;
+            const connectedObj : ParamNode = handle.getLineConnectedNode();
+            const connectedObjType : string = connectedObj.getType()!;
 
             switch(connectedObjType)
             {
                 case "_NODE_PARAM_IN":
-                    INRefList[indx] = processInputParamNode(activeComponent, handle);
+                    INRefList[i] = processInputParamNode(activeComponent, handle);
                     break;
                 case "_NODE_VAR":
-                    INRefList[indx] = processInputVarNode(handle);
+                    // To do
+                    // INRefList[indx] = processInputVarNode(handle);
                     break;
                 default:
                     throw new Error("Wrong input node type!");
             }
 
         }
-    });
+    }
 
     // call FNC
     // main part
@@ -259,13 +271,13 @@ const processActiveComponent = (animTime, activeComponent) => {
     // move values to nodes connected to out lines
     for (let i = 0; i < OUT_fnc.length; i++)
     {
-        const handle = OUT_fnc[i];
+        const handle : UINodeHandle = OUT_fnc[i];
 
         if (handle.line.connection.isConnected)
         {
-            const connectedObj = handle.line.connection.connectedObj;
+            const connectedObj : UINodeHandle = handle.line.connection.connectedObj!;
 
-            connectedObj.parameter.value = functionOutput[i];
+            connectedObj.setParameterVal(functionOutput[i]);
             connectedObj.node.updateText();
         }
     }
@@ -273,7 +285,7 @@ const processActiveComponent = (animTime, activeComponent) => {
     setOUTvalues(activeComponent);
 }
 
-const processActiveComponents = (animTime, activeObjectsList) => 
+const processActiveComponents = (animTime : number, activeObjectsList : Array<ComponentNode>) => 
 {
     for (let i = 0; i < activeObjectsList.length; i++)
     {
@@ -281,11 +293,11 @@ const processActiveComponents = (animTime, activeObjectsList) =>
     }
 }
 
-export const procc = ( animTime, nodesContainer ) =>
+export const procc = ( animTime : number, nodesContainer : Array<UINode> ) =>
 {
     // check if you're dealing with the same components
     // use caching if so
-    const animationList = createAnimationList(nodesContainer);
-    const sortedActiveObjects = gatherComponentsAtTime(animTime, animationList);
-    processActiveComponents(animTime, sortedActiveObjects);
+        const animationList = createAnimationList(nodesContainer);
+        const sortedActiveObjects = gatherComponentsAtTime(animTime, animationList);
+        processActiveComponents(animTime, sortedActiveObjects);
 }
