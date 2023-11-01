@@ -305,13 +305,27 @@ export class App
         const timeBetweenFrames = this.time - this.lastTime;
         this.animationTimer += timeBetweenFrames;
 
+        try
+        {
         procc(this.animationTimer, this.UI.viewer);
+    } catch(error)
+    {
+        this.stopAnimation();
+        console.error(error);
+    }
+    
     }
 
     startAnimation()
     {
         this.animationTimer = 0.;
         this.shouldAnimate = true;
+    }
+
+    stopAnimation()
+    {
+        console.log("Stoping animation, time: " + this.animationTimer);
+        this.shouldAnimate = false;
     }
 
     createDrawList()

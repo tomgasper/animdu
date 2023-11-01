@@ -70,10 +70,12 @@ export class UINode extends UIObject
         {
             L:
             {
+                colour: undefined,
                 position: undefined
             },
             R:
             {
+                colour: undefined,
                 position: undefined
             }
         }

@@ -209,6 +209,16 @@ export class ComponentNode extends UINode
         // this.container.children.forEach( (child) => child.setVisible(isVisible)) ;
     }
 
+    getFunctionNode()
+    {
+        return this.component.elements.nodes.FNC;
+    }
+
+    getComponentDuration()
+    {
+        return this.component.animation.duration;
+    }
+
     onConnection(anotherNode)
     {
 
@@ -230,5 +240,6 @@ export class ComponentNode extends UINode
     {
         // to do
         console.log("disconnecting: " + this.component.name);
+        this.component.clearActiveObj();
     }
 }

@@ -8,6 +8,7 @@ import { UINode } from "../src/UI/NodeEditor/UINode";
 import { createComponentList } from "../src/animation/animation_operations";
 
 import { gatherComponentsAtTime } from "../src/animation/animation_operations";
+import { UINodeHandle } from "../src/UI/NodeEditor/UINodeHandle";
 
 // Mock dependency
 vi.mock("../src/UI/NodeEditor/UIObject");
@@ -158,12 +159,36 @@ describe("gatherComponentsAtTime", () => {
                             { },
                             { line: { connection: { isConnected: true, connectedObj: { node: componentNode1.componentRef } } } },
                             { line: { connection: { isConnected: true, connectedObj: { node: componentNode2.componentRef } } } }
-                        ]
+                        ],
+                        R: []
                     }
                 }
             },
             range: [0, 10]
         };
+
+        // Add getLineConnectioNode method to the mock
+        const components = [componentNode1, componentNode2, componentNode3];
+        const method = (obj) => {
+            return () => { 
+                return obj.line.connection.connectedObj.node;
+            }
+        }
+        for (let i = 0; i < components.length; i++)
+        {
+            const handlesL = components[i].componentRef.elements.handles.L;
+            const handlesR = components[i].componentRef.elements.handles.R;
+
+            for (let j = 0; j < handlesL.length; j++)
+            {
+                handlesL[j].getLineConnectedNode = method(handlesL[j]);
+            }
+
+            for (let k = 0; k < handlesR.length; k++)
+            {
+                handlesR[k].getLineConnectedNode = method(handlesR[k]);
+            }
+        }
     
         const animationList = [{
             obj:undefined,
@@ -332,6 +357,29 @@ describe("gatherComponentsAtTime", () => {
             },
             range: [0, 10]
         };
+
+        // Add getLineConnectioNode method to the mock
+        const components = [componentNode1, componentNode2, componentNode3,componentNode4, componentNode5, componentNode6 ];
+        const method = (obj) => {
+            return () => { 
+                return obj.line.connection.connectedObj.node;
+            }
+        }
+        for (let i = 0; i < components.length; i++)
+        {
+            const handlesL = components[i].componentRef.elements.handles.L;
+            const handlesR = components[i].componentRef.elements.handles.R;
+
+            for (let j = 0; j < handlesL.length; j++)
+            {
+                handlesL[j].getLineConnectedNode = method(handlesL[j]);
+            }
+
+            for (let k = 0; k < handlesR.length; k++)
+            {
+                handlesR[k].getLineConnectedNode = method(handlesR[k]);
+            }
+        }
     
         const animationList = [{
             obj:undefined,
@@ -445,12 +493,36 @@ describe("gatherComponentsAtTime", () => {
                         L: [
                             {},
                             { line: { connection: { isConnected: true, connectedObj: { node: componentNode2.componentRef } } } }
-                        ]
+                        ],
+                        R: []
                     }
                 }
             },
             range: [0, 10]
         };
+
+        // Add getLineConnectioNode method to the mock
+        const components = [componentNode1, componentNode2, componentNode3];
+        const method = (obj) => {
+            return () => { 
+                return obj.line.connection.connectedObj.node;
+            }
+        }
+        for (let i = 0; i < components.length; i++)
+        {
+            const handlesL = components[i].componentRef.elements.handles.L;
+            const handlesR = components[i].componentRef.elements.handles.R;
+
+            for (let j = 0; j < handlesL.length; j++)
+            {
+                handlesL[j].getLineConnectedNode = method(handlesL[j]);
+            }
+
+            for (let k = 0; k < handlesR.length; k++)
+            {
+                handlesR[k].getLineConnectedNode = method(handlesR[k]);
+            }
+        }
 
         const animationList = [{
             obj:undefined,

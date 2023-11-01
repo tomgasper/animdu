@@ -1,0 +1,1 @@
+{"version":3,"file":"ObjAnimation.js","sourceRoot":"","sources":["../../../src/animation/ObjAnimation.js"],"names":[],"mappings":"AAAA,MAAM,OAAO,YAAY;IAKrB,YAAY,MAAM,EAAE,aAAa;QAHjC,QAAG,GAAG,SAAS,CAAC;QAChB,wBAAmB,GAAG,EAAE,CAAC;QAIrB,IAAI,CAAC,GAAG,GAAG,MAAM,CAAC;QAClB,IAAI,CAAC,mBAAmB,GAAG,aAAa,CAAC;IAC7C,CAAC;CACJ"}

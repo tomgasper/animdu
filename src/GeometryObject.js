@@ -202,9 +202,10 @@ export class GeometryObject
 
     setPropertyParam(param)
     {
+        console.log(this);
         if (!(param instanceof UINodeParam)) throw new Error("Incorrect input type!");
-        if (!(this.properties[param.name])) throw new Error("Object: " + this + "doesn't have property: " + param.name);
-        if (!(param.value)) throw new Error("Param value is undefined");
+        if ( this.properties[param.name] == undefined ) throw new Error("Object: " + this.name + "doesn't have property: " + param.name);
+        if ( param.value == undefined ) throw new Error("Param value is undefined");
 
         this.properties[param.name] = param.value;
         this.updateTransform()

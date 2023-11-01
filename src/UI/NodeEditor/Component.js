@@ -129,7 +129,10 @@ export class Component extends UIObject
 
         // Bound animation object
         this.addParamNode("IN", [new UINodeParam("position", "READ_TEXT", [0,0])], "Connected Object");
-        this.addParamNode("OUT", [new UINodeParam("position", "READ_TEXT", [0,0])], "SET");
+        this.addParamNode("OUT", [
+            new UINodeParam("position", "READ_TEXT", [0,0]),
+            new UINodeParam("rotation", "READ_TEXT", 0)
+        ], "SET");
 
         // Set up handlers
         this.handlers.onDblClick = this.transformToInsideComponent.bind(this);
@@ -276,6 +279,11 @@ export class Component extends UIObject
     {
         if (!(obj instanceof RenderableObject)) throw new Error("Wrong Active Object type!");
         this.activeObj = obj;
+    }
+
+    clearActiveObj()
+    {
+        this.activeObj = undefined;
     }
 
     createBatchText(txtArr, font)

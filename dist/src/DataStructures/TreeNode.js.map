@@ -1,0 +1,1 @@
+{"version":3,"file":"TreeNode.js","sourceRoot":"","sources":["../../../src/DataStructures/TreeNode.js"],"names":[],"mappings":"AAAA,MAAM,OAAO,QAAQ;IAEjB,YAAY,KAAK;QAEb,IAAI,CAAC,KAAK,GAAG,KAAK,CAAC;QACnB,IAAI,CAAC,QAAQ,GAAG,EAAE,CAAC;IACvB,CAAC;IAED,QAAQ,CAAC,KAAK;QAEV,IAAI,CAAC,QAAQ,CAAC,IAAI,CAAC,KAAK,CAAC,CAAC;IAC9B,CAAC;CACJ"}
