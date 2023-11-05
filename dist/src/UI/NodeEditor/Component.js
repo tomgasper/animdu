@@ -11,39 +11,45 @@ import { hexToRgb } from "../../utils.js";
 import { UINode } from "./UINode.js";
 import { UINodeParam } from "./UINodeParam.js";
 export class Component extends UIObject {
+    elements = {
+        nodes: {
+            IN: [],
+            FNC: [],
+            OUT: [],
+        },
+        buttons: {
+            hide: undefined,
+        },
+        lines: [],
+        outside: undefined
+    };
+    animation = {
+        duration: 5.,
+        timer: 0.
+    };
+    activeObj = undefined;
+    style = {
+        ...this.style,
+        text: {
+            paramTextOffsetX: undefined
+        },
+        margin: {
+            x: undefined,
+            y: undefined
+        },
+        body: {
+            text: {}
+        },
+        heading: {
+            text: {
+                upscale: undefined,
+                size: undefined
+            }
+        }
+    };
+    isExtended = true;
     constructor(appRef, buffInfo, animationDuration, name = "New component") {
         super(appRef, buffInfo);
-        this.elements = {
-            nodes: {
-                IN: [],
-                FNC: [],
-                OUT: [],
-            },
-            buttons: {
-                hide: undefined,
-            },
-            lines: [],
-            outside: undefined
-        };
-        this.animation = {
-            duration: 5.,
-            timer: 0.
-        };
-        this.activeObj = undefined;
-        this.style = Object.assign(Object.assign({}, this.style), { text: {
-                paramTextOffsetX: undefined
-            }, margin: {
-                x: undefined,
-                y: undefined
-            }, body: {
-                text: {}
-            }, heading: {
-                text: {
-                    upscale: undefined,
-                    size: undefined
-                }
-            } });
-        this.isExtended = true;
         this.addExtraParam({ resolution: [this._ref.app.canvas.width, this._ref.app.canvas.height] });
         this.setName(name);
         this.setAnimationDuration(animationDuration);

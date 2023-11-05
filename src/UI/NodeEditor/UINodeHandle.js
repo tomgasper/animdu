@@ -285,6 +285,12 @@ export class UINodeHandle extends RenderableObject
         else throw new Error("Trying to set undefined as parameter value [" + this.parameter.name + "]");
     }
 
+    getLineConnectedHandle()
+    {
+        if (this.line.connection.isConnected && this.line.connection.connectedObj) return this.line.connection.connectedObj;
+        else return undefined;
+    }
+
     getLineConnectedNode()
     {
         if (this.line.connection.isConnected && this.line.connection.connectedObj) return this.line.connection.connectedObj.node;

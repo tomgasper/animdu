@@ -1,18 +1,18 @@
 import { fontMetrics, writeString } from "../../lib/webgl_fonts/textutils.js";
 export class TextBuffer {
+    VAO = undefined;
+    position = {
+        buffer: undefined,
+        data: undefined
+    };
+    texture = {};
+    attributesInfo = {};
+    drawSetting = {};
+    programInfo = {};
+    font = {};
+    fontColor = [0, 0, 0, 1];
+    str = {};
     constructor(gl, programInfo, font, txtString, txtSize, fontColor = [0, 0, 0, 1.]) {
-        this.VAO = undefined;
-        this.position = {
-            buffer: undefined,
-            data: undefined
-        };
-        this.texture = {};
-        this.attributesInfo = {};
-        this.drawSetting = {};
-        this.programInfo = {};
-        this.font = {};
-        this.fontColor = [0, 0, 0, 1];
-        this.str = {};
         // Make gl object local
         this.gl = gl;
         this.font = font;

@@ -1,5 +1,19 @@
 import { RenderableObject } from "./RenderableObject.js";
 
+interface ProgramInfo {
+    uniforms: {
+      [key: string]: {
+        type: string;
+        location: WebGLUniformLocation;
+      };
+    };
+  }
+
+interface Properties {
+[key: string]: any;
+}
+  
+
 export function resizeCanvasToDisplaySize( canvas, multiplier) {
     multiplier = multiplier || 1;
     const width  = canvas.clientWidth  * multiplier | 0;
@@ -16,7 +30,7 @@ export function resizeCanvasToDisplaySize( canvas, multiplier) {
     return false;
   }
 
-export function setUniforms(gl, programInfo, properties)
+export function setUniforms(gl: WebGL2RenderingContext, programInfo: ProgramInfo, properties: Properties) : void
 {
     Object.keys(programInfo.uniforms).forEach((property, i) =>{
         // Only assisgn values to shaders that have the given property
@@ -89,7 +103,7 @@ export function getProjectionMat(gl)
 
 
 
-export function getClipSpaceMousePosition(app, e, offset) {
+export function getClipSpaceMousePosition(app: any, e: MouseEvent, offset: { x: number, y: number }): number[]{
     // get canvas relative css position
     const rect = app.gl.canvas.getBoundingClientRect();
     const cssX = e.clientX - offset.x/2 - rect.left;
@@ -107,7 +121,7 @@ export function getClipSpaceMousePosition(app, e, offset) {
   }
 
 // render generic object
-export function renderObject(gl, obj, program)
+export function renderObject(gl: WebGL2RenderingContext, obj : RenderableObject, program : ProgramInfo) : void
 {
     // binding buffer not needed after creating vertex array and bninding it to the vertex buffer
     if (!(obj instanceof RenderableObject)) throw Error("Object is not renderable!");
@@ -142,80 +156,55 @@ export function computeTransform(translation =[0,0],angle = 0, scale = [1,1], or
 }
 
 export const m3 = {
-    identity: function(){
+    identity: (): number[] => {
         return [
-            1, 0, 0,
-            0, 1, 0,
-            0, 0, 1
+          1, 0, 0,
+          0, 1, 0,
+          0, 0, 1
         ];
-    },
-    translation: function(tx, ty) {
+      },
+      translation: (tx: number, ty: number): number[] => {
         return [
-            1, 0, 0,
-            0, 1, 0,
-            tx, ty, 1
+          1, 0, 0,
+          0, 1, 0,
+          tx, ty, 1
         ];
-    },
-
-    rotation: function(angle) {
-        var c = Math.cos(angle);
-        var s = Math.sin(angle);
+      },
+      rotation: (angleInRadians: number): number[] => {
+        const c = Math.cos(angleInRadians);
+        const s = Math.sin(angleInRadians);
         return [
-            c, -s, 0,
-            s, c, 0,
-            0, 0, 1
+          c, -s, 0,
+          s, c, 0,
+          0, 0, 1
         ];
-    },
-
-    scaling: function(sx, sy) {
+      },
+      scaling: (sx: number, sy: number): number[] => {
         return [
-            sx, 0, 0,
-            0, sy, 0,
-            0, 0, 1
+          sx, 0, 0,
+          0, sy, 0,
+          0, 0, 1
         ];
-    },
-    projection: function(width, height) {
-        // This matrix flips the Y axis so that 0 is at the top
-        return [
-            2 / width, 0, 0,
-            0, -2 / height, 0,
-            -1, 1, 1
-        ];
-    },
-    translate: function(m, tx,ty) {
-        return m3.multiply(m, m3.translation(tx,ty));
-    },
-    rotate: function(m, angle) {
-        return m3.multiply(m, m3.rotation(angle));
-    },
-    scale: function(m, sx, sy) {
-        return m3.multiply(m, m3.scaling(sx,sy));
-    },
-    multiply: function(a, b) {
-        var a00 = a[0 * 3 + 0];
-        var a01 = a[0 * 3 + 1];
-        var a02 = a[0 * 3 + 2];
-
-        var a10 = a[1 * 3 + 0];
-        var a11 = a[1 * 3 + 1];
-        var a12 = a[1 * 3 + 2];
-
-        var a20 = a[2 * 3 + 0];
-        var a21 = a[2 * 3 + 1];
-        var a22 = a[2 * 3 + 2];
-
-        var b00 = b[0 * 3 + 0];
-        var b01 = b[0 * 3 + 1];
-        var b02 = b[0 * 3 + 2];
-
-        var b10 = b[1 * 3 + 0];
-        var b11 = b[1 * 3 + 1];
-        var b12 = b[1 * 3 + 2];
-
-        var b20 = b[2 * 3 + 0];
-        var b21 = b[2 * 3 + 1];
-        var b22 = b[2 * 3 + 2];
-     
+      },
+      multiply: (a: number[], b: number[]): number[] => {
+        const a00 = a[0 * 3 + 0];
+        const a01 = a[0 * 3 + 1];
+        const a02 = a[0 * 3 + 2];
+        const a10 = a[1 * 3 + 0];
+        const a11 = a[1 * 3 + 1];
+        const a12 = a[1 * 3 + 2];
+        const a20 = a[2 * 3 + 0];
+        const a21 = a[2 * 3 + 1];
+        const a22 = a[2 * 3 + 2];
+        const b00 = b[0 * 3 + 0];
+        const b01 = b[0 * 3 + 1];
+        const b02 = b[0 * 3 + 2];
+        const b10 = b[1 * 3 + 0];
+        const b11 = b[1 * 3 + 1];
+        const b12 = b[1 * 3 + 2];
+        const b20 = b[2 * 3 + 0];
+        const b21 = b[2 * 3 + 1];
+        const b22 = b[2 * 3 + 2];
         return [
           b00 * a00 + b01 * a10 + b02 * a20,
           b00 * a01 + b01 * a11 + b02 * a21,
@@ -225,10 +214,26 @@ export const m3 = {
           b10 * a02 + b11 * a12 + b12 * a22,
           b20 * a00 + b21 * a10 + b22 * a20,
           b20 * a01 + b21 * a11 + b22 * a21,
-          b20 * a02 + b21 * a12 + b22 * a22,
+          b20 * a02 + b21 * a12 + b22 * a22
         ];
-    },
-    multiplyVector: function(a, v)
+      },
+      projection: (width: number, height: number): number[] => {
+        return [
+          2 / width, 0, 0,
+          0, -2 / height, 0,
+          -1, 1, 1
+        ];
+      },
+      translate: (m: number[], tx: number, ty: number): number[] => {
+        return m3.multiply(m, m3.translation(tx, ty));
+      },
+      rotate: (m: number[], angleInRadians: number): number[] => {
+        return m3.multiply(m, m3.rotation(angleInRadians));
+      },
+      scale: (m: number[], sx: number, sy: number): number[] => {
+        return m3.multiply(m, m3.scaling(sx, sy));
+      },
+    multiplyVector: function(a : number[], v : number [])
     {
         // a = mat, v = vec
 
@@ -245,7 +250,7 @@ export const m3 = {
 
         return out;
     },
-    transpose: function(a)
+    transpose: function(a : number[])
     {
         let t = [0,0,0,0,0,0,0,0,0];
         t[0] = a[0];
@@ -263,7 +268,7 @@ export const m3 = {
         return t;
 
     },
-    multiplyInPlace: function(out, a, b)
+    multiplyInPlace: function(out : number [], a : number[], b : number [])
     {
         var a00 = a[0 * 3 + 0];
         var a01 = a[0 * 3 + 1];
@@ -371,9 +376,9 @@ export const transformToParentSpace = (parent, vecArr, unscale = true, cameraMat
         }
     } 
 
-export const isNumeric = (str) => {
+export const isNumeric = (str : any) => {
     if (typeof str != "string") return false // we only process strings!  
-    return !isNaN(str) && // use type coercion to parse the _entirety_ of the string (`parseFloat` alone does not do this)...
+    return !isNaN(str as any) && // use type coercion to parse the _entirety_ of the string (`parseFloat` alone does not do this)...
            !isNaN(parseFloat(str)) // ...and ensure strings of whitespace fail
   };
 
@@ -405,15 +410,20 @@ export const changeValueNumeric = (startVal, target, inputKey) =>
       return newString;
   }
 
-  export const hexToRgb = (hex, alpha = 1, isNormalize = true) => {
-    let norm = isNormalize ? 255 : 1;
-    var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+  export const hexToRgb = (hex : string | undefined, alpha : number = 1, isNormalize : boolean = true) : number[] | undefined => {
+    if (!hex)
+    {
+        console.error("Input string is undefined!");
+        return;
+    }
+    let norm : number = isNormalize ? 255 : 1;
+    var result : RegExpExecArray | null = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
     return result ? [
       parseInt(result[1], 16)/norm,
       parseInt(result[2], 16)/norm,
       parseInt(result[3], 16)/norm,
       alpha
-     ] : null;
+     ] : undefined;
   }
 
   export const percToFraction = (perc) => {
@@ -426,12 +436,12 @@ export const changeValueNumeric = (startVal, target, inputKey) =>
   }
 
 
-  export const calcViewProjMat = (w,h,camera) =>
+  export const calcViewProjMat = (w : number,h : number ,camera : any ) =>
   {
     if (!camera) throw new Error("No camera matrix provided!");
 
     let projMat = m3.projection(w,h);
-    let viewProjectionMat;
+    let viewProjectionMat : number[];
 
     const viewMat = m3.inverse(camera.matrix);
     viewProjectionMat = m3.multiply(projMat, viewMat);
@@ -441,7 +451,7 @@ export const changeValueNumeric = (startVal, target, inputKey) =>
 
 
 
-  export const getViewCoords = (worldMat, cameraMatInv) => {
+  export const getViewCoords = (worldMat : number [], cameraMatInv : number []) => {
     const newCoords = m3.multiply(cameraMatInv, worldMat);
 
     return [newCoords[6], newCoords[7]];

@@ -3,15 +3,18 @@ import { CustomBuffer } from "../Primitives/CustomBuffer.js";
 import { Component } from "./NodeEditor/Component.js";
 import { hexToRgb } from "../utils.js";
 export class UINodeEditor extends UIObject {
+    type = "_EDITOR_NODE";
+    name = "Node Editor";
+    components = [];
+    style = {
+        ...this.style,
+        container: {
+            colour: undefined
+        },
+    };
     constructor(appRef, UIRef, dims) {
         // dims = [ (float)left, (float)right, (float)top, (float)bottom ]
         super(appRef, undefined);
-        this.type = "_EDITOR_NODE";
-        this.name = "Node Editor";
-        this.components = [];
-        this.style = Object.assign(Object.assign({}, this.style), { container: {
-                colour: undefined
-            } });
         // need to save ref to UI manually as UI instance isn't attached to App instance yet
         this._ref.UI = UIRef;
         this.initialize(dims);

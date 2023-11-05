@@ -343,7 +343,7 @@ Those parameters require ${sizeNeeded} bytes but the current ELEMENT_ARRAY_BUFFE
                 continue;
             }
             const index = gl.getAttribLocation(program, name);
-            const { count } = Object.assign({ count: 1 }, getAttributeTypeInfo(type));
+            const { count } = { count: 1, ...getAttributeTypeInfo(type) };
             for (let jj = 0; jj < count; ++jj) {
                 const ndx = index + jj;
                 const enabled = gl.getVertexAttrib(ndx, gl.VERTEX_ATTRIB_ARRAY_ENABLED);
@@ -2412,9 +2412,12 @@ needs ${sizeNeeded} bytes for draw but buffer is only ${bufferSize} bytes`);
                                     altNames,
                                 });
                             }
-                            uniformInfos.set(name, Object.assign({ index,
+                            uniformInfos.set(name, {
+                                index,
                                 type,
-                                size }, (values && { values })));
+                                size,
+                                ...(values && { values }),
+                            });
                         }
                     }
                     programToUniformSamplerValues.set(program, uniformSamplerValues);
@@ -2831,7 +2834,7 @@ needs ${sizeNeeded} bytes for draw but buffer is only ${bufferSize} bytes`);
                     }
                     const ext = origFn.call(ctx, ...args);
                     if (ext) {
-                        augmentAPI(ext, extensionName, Object.assign(Object.assign({}, options), { origGLErrorFn }));
+                        augmentAPI(ext, extensionName, { ...options, origGLErrorFn });
                     }
                     return ext;
                 };

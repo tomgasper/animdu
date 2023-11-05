@@ -3,13 +3,13 @@ import { createNewText } from "../../Text/textHelper.js";
 import { ObjNode } from "./ObjNode.js";
 import { hexToRgb } from "../../utils.js";
 export class ComponentNode extends UINode {
+    type = "_NODE_COMPONENT";
+    component = undefined;
     // NOTE:
     // elements.handles.R[0] and elements.handles.L[0] are RESERVED for passing through objects
     // and are exclusively for ObjNodes
     constructor(appRef, bufferInfo, component) {
         super(appRef, bufferInfo);
-        this.type = "_NODE_COMPONENT";
-        this.component = undefined;
         this.addExtraParam({ resolution: undefined });
         this.component = component;
         this.initialize();

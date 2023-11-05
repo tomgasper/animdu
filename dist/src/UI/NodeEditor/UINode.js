@@ -1,78 +1,85 @@
 import { getProjectionMat, hexToRgb } from "../../utils.js";
-import { createNewText } from "../../Text/textHelper.js";
 import { UIObject } from "../UIObject.js";
 import { RenderableObject } from "../../RenderableObject.js";
 import { UINodeHandle } from "./UINodeHandle.js";
 import { getPosFromMat } from "../../App/AppHelper.js";
-import { UINodeParam } from "./UINodeParam.js";
 import { transformToParentSpace } from "../../utils.js";
 export class UINode extends UIObject {
+    type;
+    parameters;
+    style = {
+        container: {
+            width: undefined,
+            height: undefined,
+            colour: "464646"
+        },
+        margin: {
+            x: undefined,
+            y: undefined
+        },
+        heading: {
+            text: {
+                font: undefined,
+                size: 9,
+                colour: "FFFFFF",
+                lineOffset: 20,
+                paramTextOffsetY: 20,
+                paramTextOffsetX: undefined,
+                margin: {
+                    x: 0,
+                    y: 8,
+                },
+                upscale: 1
+            }
+        },
+        body: {
+            margin: {
+                x: 0,
+                y: 15,
+            },
+            text: {
+                font: undefined,
+                size: 9,
+                colour: "FFFFFF",
+                lineOffset: 20,
+                paramTextOffsetY: 20,
+                paramTextOffsetX: undefined,
+                margin: {
+                    x: 0,
+                    y: 8,
+                },
+                upscale: 1
+            }
+        },
+        handles: {
+            L: {
+                colour: undefined,
+                position: undefined
+            },
+            R: {
+                colour: undefined,
+                position: undefined
+            }
+        }
+    };
+    elements = {
+        handles: {
+            L: [],
+            R: []
+        }
+    };
     // array of objs
     // { 
     //  paramName: "string",
     //  value: "0"
     // }
-    constructor(appRef, buffInfo, paramsList) {
+    constructor(appRef, buffInfo) {
         super(appRef, buffInfo);
-        this.type = undefined;
-        this.parameters = undefined;
-        this._ref = Object.assign(Object.assign({}, this._ref), { component: undefined });
-        this.style = {
-            container: {
-                width: undefined,
-                height: undefined,
-                colour: hexToRgb("464646")
-            },
-            margin: {
-                x: undefined,
-                y: undefined
-            },
-            heading: {
-                text: {
-                    font: undefined,
-                    size: 9,
-                    colour: [1, 1, 1, 1],
-                    upscale: 1
-                }
-            },
-            body: {
-                margin: {
-                    x: 0,
-                    y: 15,
-                },
-                text: {
-                    font: undefined,
-                    size: 9,
-                    colour: [1, 1, 1, 1],
-                    lineOffset: 20,
-                    paramTextOffsetY: 20,
-                    paramTextOffsetX: undefined,
-                    margin: {
-                        x: 0,
-                        y: 8,
-                    },
-                    upscale: 1
-                }
-            },
-            handles: {
-                L: {
-                    colour: undefined,
-                    position: undefined
-                },
-                R: {
-                    colour: undefined,
-                    position: undefined
-                }
-            }
-        };
-        this.elements = {
-            handles: {
-                L: [],
-                R: []
-            }
+        this._ref = {
+            ...this._ref,
+            component: undefined
         };
         this.setStyle(appRef);
-        this.setParamsList(paramsList);
     }
     setStyle(appRef) {
         // Assign default fonts for UINode
@@ -85,17 +92,18 @@ export class UINode extends UIObject {
         this.style.handles.L.colour = hexToRgb(this._ref.UI.style.nodes.params.container.colour);
         this.style.handles.R.colour = hexToRgb(this._ref.UI.style.nodes.params.container.colour);
     }
-    setParamsList(paramsList) {
-        this.parameters = paramsList;
-    }
-    createBatchText(txtArr, textSize) {
+    /*
+    createBatchText(txtArr, textSize)
+    {
         // creating text batch for this node, to avoid creating a lot of small buffers
         const txtBatch = createNewText(this._ref.app.gl, this._ref.app.programs[2], txtArr, textSize, this._ref.UI.font, this.txtColor);
         txtBatch.setCanBeMoved(false);
-        txtBatch.setPosition([this.marginX, this.marginY]);
+        txtBatch.setPosition([ this.marginX, this.marginY ]);
         txtBatch.setParent(this);
+
         return txtBatch;
     }
+    */
     convertToTxtArr(params, lineOffset, offX = 0, offX2 = 0, offY = 0) {
         const txtArr = [];
         params.forEach((txt, indx) => {
@@ -160,46 +168,66 @@ export class UINode extends UIObject {
     getSize() {
         return [this.style.container.width, this.style.container.height];
     }
-    createTxtBg(parent = this, n) {
+    /*
+    createTxtBg(parent = this, n)
+    {
         const buffer = this.UIBuffers.textInput.buffer;
+
         const arrOfTxtBgs = [];
-        for (let i = 0; i < n; i++) {
+
+        for (let i=0; i < n; i++)
+        {
             const rect = this.addNewTxtBg(parent, i);
             arrOfTxtBgs.push(rect);
         }
+
         return arrOfTxtBgs;
     }
-    createSlider(size = [1, 1], parent = this) {
+    */
+    createSlider(sliderBuffer, size = [1, 1], parent = this) {
         // Set up bg for slider
-        const sliderBgBuffer = this.UIBuffers.sliderBg.buffer.getInfo();
-        const sliderBgSize = this.UIBuffers.sliderBg.size;
-        const sliderBg = new RenderableObject(sliderBgBuffer, getProjectionMat(this.app.gl));
+        if (!this.style.container.width || this.style.container.height) {
+            console.error("Width or height not specifed!");
+            return;
+        }
+        if (!this.style.body.text.paramTextOffsetY) {
+            console.error("Line offset not specified!");
+            return;
+        }
+        const sliderBgBuffer = sliderBuffer.sliderBg.buffer.getInfo();
+        const sliderBgSize = sliderBuffer.sliderBg.size;
+        const sliderBg = new RenderableObject(sliderBgBuffer, getProjectionMat(this._ref.app.gl));
         const paramsNum = this.parameters.length;
-        const pos = [(this.style.container.width - sliderBgSize[0]) / 2, paramsNum * this.style.text.paramTextOffsetY + sliderBgSize[1] / 2];
+        const pos = [(this.style.container.width - sliderBgSize[0]) / 2, paramsNum * this.style.body.text.paramTextOffsetY + sliderBgSize[1] / 2];
         sliderBg.setPosition(pos);
         sliderBg.setCanBeMoved(false);
         sliderBg.setCanBeHighlighted(false);
         sliderBg.setParent(parent);
         // Set up circle
-        const circleBuffer = this.UIBuffers.sliderCircle.buffer.getInfo();
-        const sliderCircle = new RenderableObject(circleBuffer, getProjectionMat(this.app.gl));
+        const circleBuffer = sliderBuffer.sliderCircle.buffer.getInfo();
+        const sliderCircle = new RenderableObject(circleBuffer, getProjectionMat(this._ref.app.gl));
         sliderCircle.setScale(size);
         sliderCircle.setCanBeMoved(true);
         sliderCircle.setPosition([0, sliderBgSize[1] / 2]);
         sliderCircle.setOriginalColor([0, 0, 0, 1]);
         sliderCircle.setParent(sliderBg);
-        sliderCircle.moveRestriction = { x: [0, 100], y: [sliderBgSize[1] / 2, sliderBgSize[1] / 2] };
+        const moveRestriction = { x: [0, 100], y: [sliderBgSize[1] / 2, sliderBgSize[1] / 2] };
+        sliderCircle.addExtraParam(moveRestriction);
         return [sliderBg, sliderCircle];
     }
-    handleInput(e, indx) {
+    /*
+    handleInput(e : KeyboardEvent,indx : number)
+    {
         const paramTextToChange = this.parameters[indx].value;
         const incomingKey = e.key;
+
         const newString = this.changeValueNumeric(paramTextToChange, incomingKey);
-        if (newString)
-            paramTextToChange = newString;
+        if (newString) paramTextToChange = newString;
+
         const newTextArr = this.convertToTxtArr(this.parameters);
         this.txtBuffer.txtBuffer.updateTextBufferData(newTextArr, 9);
     }
+    */
     handleMouseMove() {
         const handles = [...this.elements.handles.L, ...this.elements.handles.R];
         // To do - extend comp work area
@@ -221,23 +249,32 @@ export class UINode extends UIObject {
             this.setPosition([pp[0] + x, pp[1]]);
         }
         */
-        handles.forEach((handle) => {
+        for (let i = 0; i < handles.length; i++) {
+            let handle = handles[i];
             const isConnectedIN = handle.line.connection.type == "IN" ? true : false;
             // return if there's nothing to update
             if (!isConnectedIN && !handle.line.obj)
                 return;
             let data;
             let objToUpdate;
-            const connectedObj = handle.line.connection.connectedObj;
+            const connectedObj = handle.getLineConnectedHandle(); // as ... can be erased after upgrading UINodeHandle to ts
+            if (!connectedObj) {
+                console.error("No connected node!");
+                continue;
+            }
             let connectedObjPos = getPosFromMat(connectedObj);
             let handlePos = getPosFromMat(handle);
             // center the line end
             const parent = this.parent ? this.parent : this._ref.UI.viewer;
             const vecs = [connectedObjPos, handlePos];
-            transformToParentSpace(parent, vecs, true);
+            transformToParentSpace(parent, vecs, true, undefined);
             [connectedObjPos, handlePos] = vecs;
             if (isConnectedIN === true) {
                 data = [connectedObjPos[0], connectedObjPos[1], handlePos[0], handlePos[1]];
+                if (!connectedObj.line) {
+                    console.error("Incorrect connection");
+                    continue;
+                }
                 objToUpdate = connectedObj.line;
             }
             else {
@@ -245,7 +282,7 @@ export class UINode extends UIObject {
                 objToUpdate = handle.line;
             }
             objToUpdate.update.call(objToUpdate, data);
-        });
+        }
     }
     setVisibleNode(isVisible) {
         this.setVisible(isVisible);
@@ -263,8 +300,13 @@ export class UINode extends UIObject {
         }
         return handle;
     }
-    addIOHandles(type, paramsNum, parent, offsetY = 0, lineOffset) {
-        let offsetX, arrToPush;
+    addIOHandles(type, handleNum, parent, offsetY = 0, lineOffset) {
+        if (!this.style.container.width) {
+            console.error("Container width not specified!");
+            return;
+        }
+        let offsetX;
+        let arrToPush;
         if (type === "IN") {
             offsetX = 0;
             arrToPush = this.elements.handles.L;
@@ -273,10 +315,14 @@ export class UINode extends UIObject {
             offsetX = this.style.container.width;
             arrToPush = this.elements.handles.R;
         }
-        for (let i = 0; i < paramsNum; i++) {
+        else {
+            console.error("Invalid handle type- must be IN or OUT");
+            return;
+        }
+        for (let i = 0; i < handleNum; i++) {
             const pos = [offsetX, offsetY + (lineOffset * i)];
-            let param = undefined;
-            if (this.parameters) {
+            let param;
+            if (this.parameters && this.parameters[i]) {
                 param = this.parameters[i];
             }
             const newHandle = this.createHandle(pos, parent, param);

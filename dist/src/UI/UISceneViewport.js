@@ -1,10 +1,10 @@
 import { CustomBuffer } from "../Primitives/CustomBuffer.js";
 import { UIObject } from "./UIObject.js";
 export class UISceneViewport extends UIObject {
+    position = [0, 0];
+    appRef = undefined;
     constructor(appRef, size, colour) {
         super(appRef, undefined);
-        this.position = [0, 0];
-        this.appRef = undefined;
         this.width = size[0];
         this.height = size[1];
         this.style.colour = colour;

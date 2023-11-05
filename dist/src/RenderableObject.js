@@ -1,16 +1,17 @@
 import { GeometryObject } from "./GeometryObject.js";
 export class RenderableObject extends GeometryObject {
+    /*
+    renderInfo = {
+        bufferInfo: undefined,
+        vertexArrInfo: undefined,
+        drawInfo: undefined,
+        programInfo: undefined
+    };
+    */
+    buffer = {};
+    name;
     constructor(objBuffer, extraParams) {
         super();
-        /*
-        renderInfo = {
-            bufferInfo: undefined,
-            vertexArrInfo: undefined,
-            drawInfo: undefined,
-            programInfo: undefined
-        };
-        */
-        this.buffer = {};
         if (objBuffer === undefined) {
             this.buffer = undefined;
         }
@@ -18,7 +19,7 @@ export class RenderableObject extends GeometryObject {
             this.setBuffer(objBuffer);
         }
         if (extraParams) {
-            this.properties = Object.assign(Object.assign({}, this.properties), extraParams);
+            this.addExtraParam(extraParams);
         }
     }
     setBuffer(objBuffer) {
@@ -27,8 +28,13 @@ export class RenderableObject extends GeometryObject {
         this.buffer = objBuffer;
         this.buffer.renderInfo = objBuffer.getInfo();
     }
-    addExtraParam(extraParam) {
-        this.properties = Object.assign(Object.assign({}, this.properties), extraParam);
+    addExtraParam(extraParams) {
+        this.properties = {
+            ...this.properties, ...extraParams
+        };
+    }
+    setName(name) {
+        this.name = name;
     }
 }
 //# sourceMappingURL=RenderableObject.js.map

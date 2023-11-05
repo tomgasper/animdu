@@ -4,17 +4,20 @@ import { UIObject } from "./UIObject.js";
 import { changeValueNumeric } from "../utils.js";
 import { hexToRgb } from "../utils.js";
 export class UITextInput extends UIObject {
+    height = 50;
+    width = 100;
+    containerBuffer = undefined;
+    active = false;
+    value = "Put text here!";
+    handlers = {
+        ...this.handlers,
+        onValueChange: undefined,
+    };
+    parent = {};
+    txtObj = {};
+    container = {};
     constructor(appRef, rect, txtSize, parent, value = "Input text", size = [100, 50]) {
         super(appRef, rect);
-        this.height = 50;
-        this.width = 100;
-        this.containerBuffer = undefined;
-        this.active = false;
-        this.value = "Put text here!";
-        this.handlers = Object.assign(Object.assign({}, this.handlers), { onValueChange: undefined });
-        this.parent = {};
-        this.txtObj = {};
-        this.container = {};
         // style
         this.height = txtSize * 2;
         this.width = size[0];

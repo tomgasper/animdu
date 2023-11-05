@@ -36,11 +36,11 @@ export const createComponentList = (startOffset, componentNode) => {
     return componentList;
 };
 export const getObjNodes = (nodeSpace) => {
-    // get objNodes that are inside UI Node Space and are connected to at least one component
+    // Get ObjNodes that are inside UI Node Space
     let objNodes = findNodesOfType(nodeSpace, ObjNode);
-    // filter out objNodes that are not connected to any component
-    objNodes = objNodes.filter((objNode) => {
-        return objNode.elements.handles.R[0].line.connection.isConnected;
+    // Filter out ObjNodes that are not connected to any component
+    objNodes = objNodes.filter((objNode, indx) => {
+        return objNode.getConnection("R", indx).isConnected;
     });
     return objNodes;
 };

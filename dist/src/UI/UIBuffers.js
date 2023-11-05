@@ -2,61 +2,61 @@ import { RectangleBuffer } from "../Primitives/RectangleBuffer.js";
 import { CircleBuffer } from "../Primitives/CircleBuffer.js";
 import { RoundedRectangleBuffer } from "../Primitives/RoundedRectangleBuffer.js";
 export class UIBuffers {
+    UINode = {
+        container: {
+            buffer: undefined,
+            size: [],
+        },
+        textInput: {
+            buffer: undefined,
+            size: [],
+        },
+        handle: {
+            buffer: undefined,
+            size: [],
+        },
+        sliderCircle: {
+            buffer: undefined,
+            size: []
+        },
+        sliderBg: {
+            buffer: undefined,
+            size: []
+        }
+    };
+    ObjNode = {
+        container: {
+            buffer: undefined,
+            size: [],
+        },
+        textInput: {
+            buffer: undefined,
+            size: [],
+        },
+        handle: {
+            buffer: undefined,
+            size: [],
+        },
+        sliderCircle: {
+            buffer: undefined,
+            size: []
+        },
+        sliderBg: {
+            buffer: undefined,
+            size: []
+        }
+    };
+    UILayerInfo = {
+        container: {
+            buffer: undefined,
+            size: [],
+        },
+        deleteButton: {
+            buffer: undefined,
+            size: []
+        }
+    };
     constructor() {
-        this.UINode = {
-            container: {
-                buffer: undefined,
-                size: [],
-            },
-            textInput: {
-                buffer: undefined,
-                size: [],
-            },
-            handle: {
-                buffer: undefined,
-                size: [],
-            },
-            sliderCircle: {
-                buffer: undefined,
-                size: []
-            },
-            sliderBg: {
-                buffer: undefined,
-                size: []
-            }
-        };
-        this.ObjNode = {
-            container: {
-                buffer: undefined,
-                size: [],
-            },
-            textInput: {
-                buffer: undefined,
-                size: [],
-            },
-            handle: {
-                buffer: undefined,
-                size: [],
-            },
-            sliderCircle: {
-                buffer: undefined,
-                size: []
-            },
-            sliderBg: {
-                buffer: undefined,
-                size: []
-            }
-        };
-        this.UILayerInfo = {
-            container: {
-                buffer: undefined,
-                size: [],
-            },
-            deleteButton: {
-                buffer: undefined,
-                size: []
-            }
-        };
     }
     createUINodeBuffers(gl, programs, size, roundness = 0.05) {
         this.UINode.container.size = size;

@@ -1,15 +1,15 @@
 import { computeTransform } from "../utils.js";
 export class Camera {
+    position = [0, 0];
+    zoom = 1;
+    rotation = 0;
+    origin = [0, 0];
+    matrix = [
+        1, 0, 0,
+        0, 1, 0,
+        0, 0, 1
+    ];
     constructor() {
-        this.position = [0, 0];
-        this.zoom = 1;
-        this.rotation = 0;
-        this.origin = [0, 0];
-        this.matrix = [
-            1, 0, 0,
-            0, 1, 0,
-            0, 0, 1
-        ];
     }
     setPosition(pos) {
         if (pos && pos.length == 2) {

@@ -2,10 +2,15 @@ import { RenderableObject } from "../RenderableObject.js";
 import { Camera } from "./Camera.js";
 import { ObjNode } from "../UI/NodeEditor/ObjNode.js";
 export class Composition {
+    app;
+    objects = [];
+    id;
+    name;
+    camera;
+    viewport;
+    offset = [0, 0];
+    animations = [];
     constructor(app, name, viewport) {
-        this.objects = [];
-        this.offset = [0, 0];
-        this.animations = [];
         // Save ref to the app
         this.app = app;
         this.id = app.comps.length;

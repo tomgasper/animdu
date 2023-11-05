@@ -12,6 +12,7 @@ export class RenderableObject extends GeometryObject
     */
 
     buffer = {};
+    name;
     
     constructor(objBuffer, extraParams)
     {
@@ -26,9 +27,7 @@ export class RenderableObject extends GeometryObject
 
         if (extraParams)
         {
-            this.properties = {
-                ...this.properties, ...extraParams
-            }
+            this.addExtraParam(extraParams);
         }
     }
 
@@ -40,10 +39,15 @@ export class RenderableObject extends GeometryObject
         this.buffer.renderInfo = objBuffer.getInfo();
     }
 
-    addExtraParam(extraParam)
+    addExtraParam(extraParams)
     {
         this.properties = {
-            ...this.properties, ...extraParam
+            ...this.properties, ...extraParams
         }
+    }
+
+    setName(name)
+    {
+        this.name = name;
     }
 }

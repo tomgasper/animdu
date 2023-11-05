@@ -1,7 +1,14 @@
 import { RenderableObject } from "../RenderableObject.js";
 
+import { ContainerStyle } from "./NodeEditor/NodeEditorStyleTypes.js";
+
+interface RefType {
+    [key: string] : any
+};
+
 export class UIObject extends RenderableObject{
-    _ref = 
+
+    protected _ref : RefType=
     {
         app: undefined,
         UI: undefined
@@ -10,23 +17,27 @@ export class UIObject extends RenderableObject{
     container = undefined;
     elements = {};
 
-    name = "";
+    containerStyle : ContainerStyle =
+    {
+        width: undefined,
+        height: undefined,
+        colour: undefined
+    };
+
     style = {
-        container:
-        {
-            width: undefined,
-            height: undefined
-        }
+        container: this.containerStyle
     }
 
 
-    constructor(appRef, buffInfo)
+    constructor(appRef : any, buffInfo)
     {
         super(buffInfo);
 
         this._ref.app = appRef;
         this._ref.UI = appRef.UI;
     }
+
+    /*
 
     getObjsToRender()
     {
@@ -62,7 +73,9 @@ export class UIObject extends RenderableObject{
         this._ref.UI.addObj(this.getObjsToRender(), dest);
     }
 
-    setName(name)
+    */
+
+    setName(name : number)
     {
         this.name = name;
     }

@@ -5,13 +5,16 @@ import { UINodeHandle } from "./UINodeHandle.js";
 import { createNewText } from "../../Text/textHelper.js";
 
 import { hexToRgb } from "../../utils.js";
+import { RenderableObject } from "../../RenderableObject.js";
+import { TextData } from "./TextData.js";
 
 export class ObjNode extends UINode
 {
     type = "_NODE_OBJ";
-    obj = undefined;
+    txtArr : TextData[];
+    obj : RenderableObject;
 
-    constructor(appRef, buffInfo, obj)
+    constructor(appRef, buffInfo, obj : RenderableObject)
     {
         super(appRef, buffInfo);
 
@@ -35,8 +38,6 @@ export class ObjNode extends UINode
         this.style.margin.x = 10;
         this.style.margin.y = 10;
 
-        this.paramTextOffsetX = this.width/2;
-
         // Create aliases for better readability
         const width = this.style.container.width;
         const height = this.style.container.height;
@@ -50,7 +51,7 @@ export class ObjNode extends UINode
         this.setScale([this.style.container.width/100, this.style.container.height/100]);
 
         // Set properties
-        this.setOriginalColor(this.style.container.colour);
+        this.setOriginalColor(hexToRgb(this.style.container.colour));
 
         // Set handlers
         this.handlers.onMouseMove = () => { this.handleMouseMove() };
@@ -68,10 +69,7 @@ export class ObjNode extends UINode
         // Render text
         this.txtArr = 
         [
-            {
-                data: String(this.obj.name),
-                pos: [0,0]
-            }
+            new TextData(String(this.obj.name), [0,0])
         ];
 
        // creating text batch for this node, to avoid creating a lot of small buffers
@@ -82,7 +80,7 @@ export class ObjNode extends UINode
         txtBatch.setParent(this);
     }
 
-    getObj()
+    getObj() : RenderableObject
     {
         return this.obj;
     }

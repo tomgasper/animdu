@@ -437,8 +437,14 @@
                             getMemoryInfo() {
                                 const drawingbuffer = computeDrawingbufferSize(ctx, drawingBufferInfo);
                                 return {
-                                    memory: Object.assign(Object.assign({}, memory), { drawingbuffer, total: drawingbuffer + memory.buffer + memory.texture + memory.renderbuffer }),
-                                    resources: Object.assign({}, resources)
+                                    memory: {
+                                        ...memory,
+                                        drawingbuffer,
+                                        total: drawingbuffer + memory.buffer + memory.texture + memory.renderbuffer,
+                                    },
+                                    resources: {
+                                        ...resources,
+                                    }
                                 };
                             },
                         },
@@ -948,7 +954,7 @@
                     }
                     const ext = origFn.call(ctx, ...args);
                     if (ext) {
-                        augmentAPI(ext, extensionName, Object.assign(Object.assign({}, options), { origGLErrorFn }));
+                        augmentAPI(ext, extensionName, { ...options, origGLErrorFn });
                     }
                     return ext;
                 };
