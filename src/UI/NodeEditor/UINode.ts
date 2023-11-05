@@ -8,27 +8,33 @@ import { RenderableObject } from "../../RenderableObject.js";
 import { UINodeHandle } from "./UINodeHandle.js";
 import { getPosFromMat } from "../../App/AppHelper.js";
 
+import { transformToParentSpace } from "../../utils.js";
+import { Line } from "./NodeEditorTypes.js";
 import { UINodeParam } from "./UINodeParam.js";
 
-import { transformToParentSpace } from "../../utils.js";
+import { TextArray, LineConnection } from "./NodeEditorTypes.js";
 
+import { Style } from "./NodeEditorStyleTypes.js";
+
+type Elements = {
+    handles:
+    {
+        L: Array<UINodeHandle>,
+        R: Array<UINodeHandle>
+    }
+};
 
 export class UINode extends UIObject
 {
-    type = undefined;
-    parameters = undefined;
+    type : string;
+    parameters : UINodeParam[];
 
-    _ref = {
-        ...this._ref,
-        component: undefined
-    };
-
-    style = {
-        container:
+    style : Style = {
+        container :
         {
             width: undefined,
             height: undefined,
-            colour: hexToRgb("464646")
+            colour: "464646"
         },
         margin:
         {
@@ -39,8 +45,16 @@ export class UINode extends UIObject
             text: {
                 font: undefined,
                 size: 9,
-                colour: [1,1,1,1],
-                upscale: 1
+                colour: "FFFFFF",
+                lineOffset: 20,
+                paramTextOffsetY: 20,
+                paramTextOffsetX: undefined,
+                margin:
+                {
+                    x: 0,
+                    y: 8,
+                },
+                upscale : 1
             }
         },
         body:
@@ -54,7 +68,7 @@ export class UINode extends UIObject
             {
                 font: undefined,
                 size: 9,
-                colour: [1,1,1,1],
+                colour: "FFFFFF",
                 lineOffset: 20,
                 paramTextOffsetY: 20,
                 paramTextOffsetX: undefined,
@@ -76,12 +90,12 @@ export class UINode extends UIObject
             R:
             {
                 colour: undefined,
-                position: undefined
+                position:undefined
             }
         }
     }
 
-    elements =
+    elements : Elements =
     {
         handles:
         {
@@ -96,12 +110,16 @@ export class UINode extends UIObject
     //  value: "0"
     // }
 
-    constructor(appRef, buffInfo, paramsList)
+    constructor(appRef, buffInfo)
     {
         super(appRef, buffInfo);
 
+        this._ref = {
+            ...this._ref,
+            component: undefined
+        };
+
         this.setStyle(appRef);
-        this.setParamsList(paramsList);
     }
 
     setStyle(appRef)
@@ -119,11 +137,7 @@ export class UINode extends UIObject
         this.style.handles.R.colour =  hexToRgb(this._ref.UI.style.nodes.params.container.colour);
     }
 
-    setParamsList(paramsList)
-    {
-        this.parameters = paramsList;
-    }
-
+    /*
     createBatchText(txtArr, textSize)
     {
         // creating text batch for this node, to avoid creating a lot of small buffers
@@ -134,13 +148,14 @@ export class UINode extends UIObject
 
         return txtBatch;
     }
+    */
 
-    convertToTxtArr(params, lineOffset, offX = 0, offX2 = 0, offY = 0)
+    convertToTxtArr(params : UINodeParam[], lineOffset, offX = 0, offX2 = 0, offY = 0)
     {
-        const txtArr = [];
+        const txtArr : TextArray[] = [];
 
         params.forEach( (txt, indx) => {
-            let paramValue = txt.value;
+            let paramValue : number | any[] = txt.value;
             if (Array.isArray(txt.value)) paramValue = txt.value.map( val => val.toFixed(1) );
 
 
@@ -157,7 +172,7 @@ export class UINode extends UIObject
         return txtArr;
     }
 
-    getConnection(side,indx)
+    getConnection(side : string,indx : number) : LineConnection
     {
         if (side !== "L" && side !== "R") throw new Error("Incorrect side specifier - must be 'L' or 'R', provided: " + side);
         const handle = this.elements.handles[side];
@@ -167,9 +182,9 @@ export class UINode extends UIObject
         return handle[indx].line.connection;
     }
 
-    getConnectedNode(side,indx)
+    getConnectedNode(side : string,indx : number)
     {
-        const connection = this.getConnection(side,indx);
+        const connection : LineConnection = this.getConnection(side,indx);
 
         if (!connection.isConnected)
         {
@@ -177,7 +192,7 @@ export class UINode extends UIObject
             return undefined;
         }
 
-        if (!connection.connectedObj || !connection.connectedObj.node)
+        if (!connection.connectedObj || !connection.connectedObj.node )
         {
             console.log("Node is not connected!");
             return undefined;
@@ -219,6 +234,7 @@ export class UINode extends UIObject
         return [this.style.container.width, this.style.container.height];
     }
 
+    /*
     createTxtBg(parent = this, n)
     {
         const buffer = this.UIBuffers.textInput.buffer;
@@ -233,16 +249,30 @@ export class UINode extends UIObject
 
         return arrOfTxtBgs;
     }
+    */
 
-    createSlider(size = [1,1], parent = this)
+    
+    createSlider(sliderBuffer : any, size = [1,1], parent = this)
     {
         // Set up bg for slider
-        const sliderBgBuffer = this.UIBuffers.sliderBg.buffer.getInfo();
-        const sliderBgSize = this.UIBuffers.sliderBg.size;
+        if (!this.style.container.width || this.style.container.height)
+        {
+            console.error("Width or height not specifed!");
+            return;
+        }
 
-        const sliderBg = new RenderableObject(sliderBgBuffer, getProjectionMat(this.app.gl));
+        if (!this.style.body.text.paramTextOffsetY)
+        {
+            console.error("Line offset not specified!");
+            return;   
+        }
+
+        const sliderBgBuffer = sliderBuffer.sliderBg.buffer.getInfo();
+        const sliderBgSize = sliderBuffer.sliderBg.size;
+
+        const sliderBg = new RenderableObject(sliderBgBuffer, getProjectionMat(this._ref.app.gl));
         const paramsNum = this.parameters.length;
-        const pos = [(this.style.container.width-sliderBgSize[0])/2, paramsNum*this.style.text.paramTextOffsetY+sliderBgSize[1]/2];
+        const pos = [(this.style.container.width-sliderBgSize[0])/2, paramsNum*this.style.body.text.paramTextOffsetY+sliderBgSize[1]/2];
 
         sliderBg.setPosition(pos);
         sliderBg.setCanBeMoved(false);
@@ -250,19 +280,22 @@ export class UINode extends UIObject
         sliderBg.setParent(parent);
 
         // Set up circle
-        const circleBuffer = this.UIBuffers.sliderCircle.buffer.getInfo();
-        const sliderCircle = new RenderableObject(circleBuffer, getProjectionMat(this.app.gl));
+        const circleBuffer = sliderBuffer.sliderCircle.buffer.getInfo();
+        const sliderCircle = new RenderableObject(circleBuffer, getProjectionMat(this._ref.app.gl));
         sliderCircle.setScale(size);
         sliderCircle.setCanBeMoved(true);
         sliderCircle.setPosition([0,sliderBgSize[1]/2]);
         sliderCircle.setOriginalColor([0,0,0,1]);
         sliderCircle.setParent(sliderBg);
-        sliderCircle.moveRestriction = {x: [0,100], y: [sliderBgSize[1]/2,sliderBgSize[1]/2] };
+
+        const moveRestriction = {x: [0,100], y: [sliderBgSize[1]/2,sliderBgSize[1]/2] };
+        sliderCircle.addExtraParam(moveRestriction);
 
         return [sliderBg, sliderCircle];
     }
 
-    handleInput(e,indx)
+    /*
+    handleInput(e : KeyboardEvent,indx : number)
     {
         const paramTextToChange = this.parameters[indx].value;
         const incomingKey = e.key;
@@ -273,6 +306,7 @@ export class UINode extends UIObject
         const newTextArr = this.convertToTxtArr(this.parameters);            
         this.txtBuffer.txtBuffer.updateTextBufferData(newTextArr, 9);
     }
+    */
 
     handleMouseMove()
     {
@@ -298,29 +332,43 @@ export class UINode extends UIObject
         }
         */
 
-        handles.forEach( (handle) => {
+        for (let i = 0; i < handles.length; i++)
+        {
+            let handle : UINodeHandle = handles[i];
+
             const isConnectedIN = handle.line.connection.type == "IN" ? true : false;
 
             // return if there's nothing to update
             if (!isConnectedIN && !handle.line.obj) return;
 
-            let data;
-            let objToUpdate;
-            const connectedObj = handle.line.connection.connectedObj;
+            let data : number[];
+            let objToUpdate : Line;
+            const connectedObj : UINodeHandle | undefined = handle.getLineConnectedHandle() as UINodeHandle | undefined; // as ... can be erased after upgrading UINodeHandle to ts
 
-            let connectedObjPos = getPosFromMat(connectedObj);
-            let handlePos = getPosFromMat(handle);
+            if (!connectedObj)
+            {
+                console.error("No connected node!");
+                continue;
+            }
+
+            let connectedObjPos : number [] = getPosFromMat(connectedObj);
+            let handlePos : number [] = getPosFromMat(handle);
 
             // center the line end
             const parent = this.parent ? this.parent : this._ref.UI.viewer;
 
             const vecs= [ connectedObjPos, handlePos ];
-            transformToParentSpace(parent, vecs, true);
+            transformToParentSpace(parent, vecs, true, undefined);
             [ connectedObjPos, handlePos ] = vecs;
 
             if (isConnectedIN === true)
             {
                 data = [connectedObjPos[0], connectedObjPos[1], handlePos[0], handlePos[1]];
+                if (!connectedObj.line)
+                {
+                    console.error("Incorrect connection");
+                    continue;
+                }
                 objToUpdate = connectedObj.line;
             } else 
             {
@@ -329,16 +377,17 @@ export class UINode extends UIObject
             }
 
             objToUpdate.update.call(objToUpdate, data);
-        })
+        }
+
     }
 
-    setVisibleNode(isVisible)
+    setVisibleNode(isVisible : boolean)
     {
         this.setVisible(isVisible);
         this.children.forEach( (child) => child.setVisible(isVisible)) ;
     }
     
-    createHandle(pos, parent, parameter)
+    createHandle(pos : number [], parent : RenderableObject, parameter : UINodeParam | undefined)
     {
         const cirlceBuffer = this._ref.UIBuffers.handle.buffer;
 
@@ -356,9 +405,16 @@ export class UINode extends UIObject
         return handle;
     }
 
-    addIOHandles(type, paramsNum, parent, offsetY = 0, lineOffset)
+    addIOHandles(type : string, handleNum : number, parent : RenderableObject, offsetY : number = 0, lineOffset : number)
     {
-        let offsetX, arrToPush;
+        if (!this.style.container.width)
+        {
+            console.error("Container width not specified!");
+            return;
+        }
+
+        let offsetX : number;
+        let arrToPush: UINodeHandle[];
 
         if (type === "IN")
         {
@@ -368,20 +424,23 @@ export class UINode extends UIObject
         {
             offsetX = this.style.container.width;
             arrToPush = this.elements.handles.R;
+        } else {
+            console.error("Invalid handle type- must be IN or OUT");
+            return;
         }
 
-        for (let i = 0; i < paramsNum; i++)
+        for (let i = 0; i < handleNum; i++)
         {
-        const pos = [offsetX, offsetY + (lineOffset * i)];
-        let param = undefined;
+            const pos = [offsetX, offsetY + (lineOffset * i)];
+            let param : UINodeParam | undefined;
 
-        if (this.parameters)
-        {
-            param = this.parameters[i];
-        }
-        
-        const newHandle = this.createHandle(pos, parent, param);
-        arrToPush.push(newHandle);
+            if (this.parameters && this.parameters[i])
+            {
+                param = this.parameters[i];
+            }
+            
+            const newHandle = this.createHandle(pos, parent, param);
+            arrToPush.push(newHandle);
         }
     }
 

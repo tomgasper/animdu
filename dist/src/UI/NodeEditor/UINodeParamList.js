@@ -1,7 +1,7 @@
 import { UINodeParam } from "./UINodeParam.js";
 export class UINodeParamList {
+    list = [];
     constructor(initParamName) {
-        this.list = [];
         if (typeof initParamName == "string") {
             const newParam = new UINodeParam(initParamName);
             this.addNewParam(newParam);

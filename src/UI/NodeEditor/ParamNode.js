@@ -27,6 +27,8 @@ export class ParamNode extends UINode
         this.setType(type);
         this.setName(name);
 
+        this.setParamsList(paramsList);
+
         this.initialize();
     }
 
@@ -197,5 +199,10 @@ export class ParamNode extends UINode
         this.constructNodeBody();
         this.elements.heading.buffer.updateTextBufferData([ this.txtArr[0] ], this.style.heading.text.size * this.style.heading.text.upscale);
         this.elements.text.buffer.updateTextBufferData(this.txtArr.slice(1, this.txtArr.length), this.style.body.text.size * this.style.body.text.upscale);
+    }
+
+    setParamsList(paramsList)
+    {
+        this.parameters = paramsList;
     }
 }

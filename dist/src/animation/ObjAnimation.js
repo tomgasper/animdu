@@ -1,7 +1,7 @@
 export class ObjAnimation {
+    obj = undefined;
+    componentsToProcess = [];
     constructor(objRef, componentList) {
-        this.obj = undefined;
-        this.componentsToProcess = [];
         this.obj = objRef;
         this.componentsToProcess = componentList;
     }

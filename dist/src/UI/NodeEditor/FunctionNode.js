@@ -2,10 +2,12 @@ import { UINode } from "./UINode.js";
 import { createNewText } from "../../Text/textHelper.js";
 import { hexToRgb } from "../../utils.js";
 import { Effector } from "./Effector.js";
+import { UINodeParam } from "./UINodeParam.js";
 export class FunctionNode extends UINode {
+    effector = undefined;
+    parameters = [];
     constructor(appRef, buffInfo, component, fnc) {
         super(appRef, buffInfo);
-        this.effector = undefined;
         this.addExtraParam({
             resolution: [this._ref.app.gl.canvas.width, this._ref.app.gl.canvas.height]
         });

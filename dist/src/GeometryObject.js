@@ -1,16 +1,18 @@
 import { UINodeParam } from "./UI/NodeEditor/UINodeParam.js";
 import { m3, computeTransform } from "./utils.js";
 export class GeometryObject {
+    // If set to true can be detected by mouse move and picked up
+    comp;
+    id = Math.floor(Math.random() * Date.now());
+    localMatrix = [1, 0, 0,
+        0, 1, 0,
+        0, 0, 1];
+    worldMatrix = [1, 0, 0,
+        0, 1, 0,
+        0, 0, 1];
+    parent = undefined;
+    children = [];
     constructor() {
-        this.id = Math.floor(Math.random() * Date.now());
-        this.localMatrix = [1, 0, 0,
-            0, 1, 0,
-            0, 0, 1];
-        this.worldMatrix = [1, 0, 0,
-            0, 1, 0,
-            0, 0, 1];
-        this.parent = undefined;
-        this.children = [];
         this.properties = {
             id: [0, 0, 0, 1],
             color: [0.5, 0.7, 0.2, 1],

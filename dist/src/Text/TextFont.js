@@ -1,14 +1,14 @@
 export class TextFont {
+    gl = {};
+    texture = {};
+    textureSrcStr = "";
+    textureImg = undefined;
+    textureFormat = undefined;
+    color = [0, 0, 0, 1];
+    subpixel = 1.0;
+    // Javascript file with info needed for the shader to know where each letter is on the texture image
+    decoder = {};
     constructor(gl, fontSettings, textureFormat) {
-        this.gl = {};
-        this.texture = {};
-        this.textureSrcStr = "";
-        this.textureImg = undefined;
-        this.textureFormat = undefined;
-        this.color = [0, 0, 0, 1];
-        this.subpixel = 1.0;
-        // Javascript file with info needed for the shader to know where each letter is on the texture image
-        this.decoder = {};
         this.gl = gl;
         if (fontSettings.color)
             this.color = fontSettings.color;

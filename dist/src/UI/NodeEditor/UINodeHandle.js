@@ -5,28 +5,28 @@ import { getPosFromMat } from "../../App/AppHelper.js";
 import { m3, transformToParentSpace } from "../../utils.js";
 import { UINodeParam } from "./UINodeParam.js";
 export class UINodeHandle extends RenderableObject {
+    // ref to scene object
+    scene = {};
+    canMove = true;
+    objToConnect = undefined;
+    node = {};
+    parameter = undefined;
+    line = {
+        width: 3,
+        data: [],
+        obj: undefined,
+        connection: {
+            isConnected: false,
+            type: undefined,
+            connectedObj: undefined,
+            animationBreak: 0.
+        },
+        update: this.updateLine
+    };
+    prevCrossOverIdx = -1;
     constructor(app, buffer, node, parent) {
         // create renderable object
         super(buffer);
-        // ref to scene object
-        this.scene = {};
-        this.canMove = true;
-        this.objToConnect = undefined;
-        this.node = {};
-        this.parameter = undefined;
-        this.line = {
-            width: 3,
-            data: [],
-            obj: undefined,
-            connection: {
-                isConnected: false,
-                type: undefined,
-                connectedObj: undefined,
-                animationBreak: 0.
-            },
-            update: this.updateLine
-        };
-        this.prevCrossOverIdx = -1;
         // save ref to app
         this.app = app;
         // Set up handlers
@@ -200,6 +200,12 @@ export class UINodeHandle extends RenderableObject {
             this.parameter.value = value;
         else
             throw new Error("Trying to set undefined as parameter value [" + this.parameter.name + "]");
+    }
+    getLineConnectedHandle() {
+        if (this.line.connection.isConnected && this.line.connection.connectedObj)
+            return this.line.connection.connectedObj;
+        else
+            return undefined;
     }
     getLineConnectedNode() {
         if (this.line.connection.isConnected && this.line.connection.connectedObj)

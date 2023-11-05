@@ -4,17 +4,20 @@ import { hexToRgb } from "../../utils.js";
 import { CustomBuffer } from "../../Primitives/CustomBuffer.js";
 import { RenderableObject } from "../../RenderableObject.js";
 export class ParamNode extends UINode {
+    type = "_NODE_PARAM_IN";
+    indx = undefined;
+    name = "ParamNode";
+    elements = { ...this.elements,
+        text: undefined
+    };
     constructor(app, buffInfo, type, paramsList, name = "Node") {
         super(app, buffInfo, paramsList);
-        this.type = "_NODE_PARAM_IN";
-        this.indx = undefined;
-        this.name = "ParamNode";
-        this.elements = Object.assign(Object.assign({}, this.elements), { text: undefined });
         this.addExtraParam({
             resolution: [this._ref.app.gl.canvas.width, this._ref.app.gl.canvas.height]
         });
         this.setType(type);
         this.setName(name);
+        this.setParamsList(paramsList);
         this.initialize();
     }
     initialize() {
@@ -141,6 +144,9 @@ export class ParamNode extends UINode {
         this.constructNodeBody();
         this.elements.heading.buffer.updateTextBufferData([this.txtArr[0]], this.style.heading.text.size * this.style.heading.text.upscale);
         this.elements.text.buffer.updateTextBufferData(this.txtArr.slice(1, this.txtArr.length), this.style.body.text.size * this.style.body.text.upscale);
+    }
+    setParamsList(paramsList) {
+        this.parameters = paramsList;
     }
 }
 //# sourceMappingURL=ParamNode.js.map

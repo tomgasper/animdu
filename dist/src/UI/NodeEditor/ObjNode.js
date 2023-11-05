@@ -2,11 +2,13 @@ import { UINode } from "./UINode.js";
 import { UINodeHandle } from "./UINodeHandle.js";
 import { createNewText } from "../../Text/textHelper.js";
 import { hexToRgb } from "../../utils.js";
+import { TextData } from "./TextData.js";
 export class ObjNode extends UINode {
+    type = "_NODE_OBJ";
+    txtArr;
+    obj;
     constructor(appRef, buffInfo, obj) {
         super(appRef, buffInfo);
-        this.type = "_NODE_OBJ";
-        this.obj = undefined;
         this.addExtraParam({
             resolution: [this._ref.app.gl.canvas.width, this._ref.app.gl.canvas.height]
         });
@@ -20,7 +22,6 @@ export class ObjNode extends UINode {
         this.style.heading.text.upscale = 2.0;
         this.style.margin.x = 10;
         this.style.margin.y = 10;
-        this.paramTextOffsetX = this.width / 2;
         // Create aliases for better readability
         const width = this.style.container.width;
         const height = this.style.container.height;
@@ -30,7 +31,7 @@ export class ObjNode extends UINode {
         const upscale = 2.0;
         this.setScale([this.style.container.width / 100, this.style.container.height / 100]);
         // Set properties
-        this.setOriginalColor(this.style.container.colour);
+        this.setOriginalColor(hexToRgb(this.style.container.colour));
         // Set handlers
         this.handlers.onMouseMove = () => { this.handleMouseMove(); };
         // Create handlers
@@ -44,10 +45,7 @@ export class ObjNode extends UINode {
         // Render text
         this.txtArr =
             [
-                {
-                    data: String(this.obj.name),
-                    pos: [0, 0]
-                }
+                new TextData(String(this.obj.name), [0, 0])
             ];
         // creating text batch for this node, to avoid creating a lot of small buffers
         const txtBatch = createNewText(this._ref.app.gl, this._ref.app.programs[2], this.txtArr, hFontSize * upscale, fontHeading.font, hexToRgb(fontHeading.colour));

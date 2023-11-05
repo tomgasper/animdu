@@ -14,6 +14,8 @@ import { ParamNode } from "../UI/NodeEditor/ParamNode.js";
 import { FunctionNode } from "../UI/NodeEditor/FunctionNode.js";
 import { UINodeParam } from "../UI/NodeEditor/UINodeParam.js";
 
+import { Line,LineConnection } from "../UI/NodeEditor/NodeEditorTypes.js";
+
 export const createComponentList = (startOffset : number, componentNode) => {
     // Obj to return
     const componentList = [
@@ -58,12 +60,12 @@ export const createComponentList = (startOffset : number, componentNode) => {
 
 export const getObjNodes = (nodeSpace) =>
 {
-    // get objNodes that are inside UI Node Space and are connected to at least one component
-    let objNodes = findNodesOfType(nodeSpace, ObjNode);
+    // Get ObjNodes that are inside UI Node Space
+    let objNodes : ObjNode[] = findNodesOfType(nodeSpace, ObjNode);
     
-    // filter out objNodes that are not connected to any component
-    objNodes = objNodes.filter( (objNode) => {
-        return objNode.elements.handles.R[0].line.connection.isConnected;
+    // Filter out ObjNodes that are not connected to any component
+    objNodes = objNodes.filter( (objNode,indx) => {
+        return objNode.getConnection("R", indx).isConnected;
     });
 
     return objNodes;
@@ -72,7 +74,7 @@ export const getObjNodes = (nodeSpace) =>
 // should be called when starting an animation
 // dont call every frame
 const createAnimationList = (compositionNodesViewer) => {
-    const objNodes = getObjNodes(compositionNodesViewer);
+    const objNodes : ObjNode[] = getObjNodes(compositionNodesViewer);
 
     const animationList: Array<ObjAnimation> = [];
 
@@ -81,8 +83,8 @@ const createAnimationList = (compositionNodesViewer) => {
     {
         // seqConnection is a connection between nodes that creates a sequence
         // handles with index 0 are reserved for seqConnection
-        const seqConnection = objNode.getConnection("R", 0);
-        const connectedNode = objNode.getConnectedNode("R", 0);
+        const seqConnection : LineConnection = objNode.getConnection("R", 0);
+        const connectedNode : UINode = objNode.getConnectedNode("R", 0);
 
         const startOffset = seqConnection.animationBreak;
 

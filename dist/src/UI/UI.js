@@ -11,152 +11,127 @@ import { UINodeEditor } from "./UINodeEditor.js";
 import { percToFraction } from "../utils.js";
 import { Camera } from "../Composition/Camera.js";
 export class UI {
-    constructor(app) {
-        this.panels = {
-            params: undefined,
-            layers: undefined,
-        };
-        this.viewer = {
-            objects: [],
-        };
-        this.viewport = {
-            objects: []
-        };
-        this.topBar = {
-            objects: [],
-        };
-        this.nodes = {
-            objects: [],
-        };
-        this.buttons = {
-            objects: []
-        };
-        this.leftPanelWidth = 300;
-        this.rightPanelWidth = 300;
-        this.style = {
-            general: {
-                mainColour: "3E65C8",
-                secondaryColour: "000000",
-                text: {
-                    regular: {
-                        font: undefined,
-                        fontSize: 10,
-                    },
-                    bold: {
-                        font: undefined,
-                        fontSize: 10,
-                    }
+    app;
+    panels = {
+        params: undefined,
+        layers: undefined,
+    };
+    viewer = {
+        objects: [],
+    };
+    viewport = {
+        objects: []
+    };
+    topBar = {
+        objects: [],
+    };
+    nodes = {
+        objects: [],
+    };
+    buttons = {
+        objects: []
+    };
+    leftPanelWidth = 300;
+    rightPanelWidth = 300;
+    topBarHeight;
+    viewerStartY;
+    style = {
+        general: {
+            mainColour: "3E65C8",
+            secondaryColour: "000000",
+            text: {
+                regular: {
+                    font: undefined,
+                    fontSize: 10,
                 },
-            },
-            nodes: {
-                general: {
-                    heading: {
-                        text: {
-                            font: undefined,
-                            size: 12,
-                            colour: "FFFFFF"
-                        }
-                    },
-                    body: {
-                        text: {
-                            font: undefined,
-                            size: 10,
-                            colour: "FFFFFF"
-                        }
-                    },
-                    container: {
-                        size: [150, 200],
-                        colour: "3E65C8",
-                    },
-                    textInput: {
-                        text: {
-                            font: undefined,
-                            size: 9,
-                            colour: "FFFFFF"
-                        },
-                        container: {
-                            colour: "253E7F"
-                        }
-                    },
-                    line: {
-                        colour: "D7E2FF"
-                    }
-                },
-                component: {
-                    container: {
-                        colour: "3E65C8",
-                    },
-                    hideButton: {
-                        colour: "253E7F"
-                    },
-                    line: {
-                        colour: "3E65C8"
-                    }
-                },
-                params: {
-                    container: {
-                        colour: "D7E2FF"
-                    },
-                    text: {
-                        colour: "000000"
-                    }
-                },
-                fnc: {
-                    container: {
-                        colour: "D7E2FF"
-                    },
-                    text: {
-                        colour: "000000"
-                    }
+                bold: {
+                    font: undefined,
+                    fontSize: 10,
                 }
             },
-            nodeViewer: {
-                general: {},
-                size: {
-                    // in %
-                    height: "50%",
-                    width: "100%"
+        },
+        nodes: {
+            general: {
+                heading: {
+                    text: {
+                        font: undefined,
+                        size: 12,
+                        colour: "FFFFFF"
+                    }
+                },
+                body: {
+                    text: {
+                        font: undefined,
+                        size: 10,
+                        colour: "FFFFFF"
+                    }
                 },
                 container: {
-                    colour: "E2E2E2"
+                    size: [150, 200],
+                    colour: "3E65C8",
+                },
+                textInput: {
+                    text: {
+                        font: undefined,
+                        size: 9,
+                        colour: "FFFFFF"
+                    },
+                    container: {
+                        colour: "253E7F"
+                    }
+                },
+                line: {
+                    colour: "D7E2FF"
                 }
             },
-            viewport: {
-                size: {
-                    height: "50%",
-                    width: "50%"
+            component: {
+                container: {
+                    colour: "3E65C8",
+                },
+                hideButton: {
+                    colour: "253E7F"
+                },
+                line: {
+                    colour: "3E65C8"
+                }
+            },
+            params: {
+                container: {
+                    colour: "D7E2FF"
+                },
+                text: {
+                    colour: "000000"
+                }
+            },
+            fnc: {
+                container: {
+                    colour: "D7E2FF"
+                },
+                text: {
+                    colour: "000000"
                 }
             }
-        };
-        this.initUI = (app) => {
-            this.initializeUIBuffers(app, app.programs);
-            const [mainFont, mainBoldFont] = setUpMainFont(app, this);
-            this.style.general.text.regular.font = mainFont;
-            this.style.general.text.bold.font = mainBoldFont;
-            this.style.nodes.general.heading.text.font = mainBoldFont;
-            this.style.nodes.general.body.text.font = mainFont;
-            this.style.nodes.general.textInput.text.font = mainFont;
-            // Create scene viewport
-            const sceneViewportSize = [this.app.gl.canvas.clientWidth, this.app.gl.canvas.clientHeight];
-            this.viewport = new UISceneViewport(this.app, sceneViewportSize, [0.6, 0.6, 0.6, 1]);
-            // Create node space viewport
-            const editorSpaceDims = [0, this.app.gl.canvas.clientWidth,
-                this.app.gl.canvas.clientHeight / 2, this.app.gl.canvas.clientHeight];
-            // const [ nodeSpaceContainerBuffer, nodeSpaceContainerVerts ] = this.createContainer(viewerDims);
-            this.viewer = new UINodeEditor(this.app, this, editorSpaceDims);
-            // add camera to the viewer
-            this.viewer.camera = new Camera();
-        };
-        this.initializeUIBuffers = (app, programs) => {
-            // Set up UI
-            const UIBuffersStore = new UIBuffers();
-            const UINodeSize = [130, 120];
-            UIBuffersStore.createUINodeBuffers(app.gl, programs, UINodeSize, 0.05);
-            const ObjNodeSize = [130, 100];
-            UIBuffersStore.createObjNodeBuffers(app.gl, programs, ObjNodeSize, 0.2);
-            // save ref
-            this.UIBuffers = UIBuffersStore;
-        };
+        },
+        nodeViewer: {
+            general: {},
+            size: {
+                // in %
+                height: "50%",
+                width: "100%"
+            },
+            container: {
+                colour: "E2E2E2"
+            }
+        },
+        viewport: {
+            size: {
+                height: "50%",
+                width: "50%"
+            }
+        }
+    };
+    UIBuffers;
+    constructor(app) {
         // Save ref to the app
         this.app = app;
         this.start(app);
@@ -164,6 +139,35 @@ export class UI {
     start(app) {
         this.initUI(app, this);
     }
+    initUI = (app) => {
+        this.initializeUIBuffers(app, app.programs);
+        const [mainFont, mainBoldFont] = setUpMainFont(app, this);
+        this.style.general.text.regular.font = mainFont;
+        this.style.general.text.bold.font = mainBoldFont;
+        this.style.nodes.general.heading.text.font = mainBoldFont;
+        this.style.nodes.general.body.text.font = mainFont;
+        this.style.nodes.general.textInput.text.font = mainFont;
+        // Create scene viewport
+        const sceneViewportSize = [this.app.gl.canvas.clientWidth, this.app.gl.canvas.clientHeight];
+        this.viewport = new UISceneViewport(this.app, sceneViewportSize, [0.6, 0.6, 0.6, 1]);
+        // Create node space viewport
+        const editorSpaceDims = [0, this.app.gl.canvas.clientWidth,
+            this.app.gl.canvas.clientHeight / 2, this.app.gl.canvas.clientHeight];
+        // const [ nodeSpaceContainerBuffer, nodeSpaceContainerVerts ] = this.createContainer(viewerDims);
+        this.viewer = new UINodeEditor(this.app, this, editorSpaceDims);
+        // add camera to the viewer
+        this.viewer.camera = new Camera();
+    };
+    initializeUIBuffers = (app, programs) => {
+        // Set up UI
+        const UIBuffersStore = new UIBuffers();
+        const UINodeSize = [130, 120];
+        UIBuffersStore.createUINodeBuffers(app.gl, programs, UINodeSize, 0.05);
+        const ObjNodeSize = [130, 100];
+        UIBuffersStore.createObjNodeBuffers(app.gl, programs, ObjNodeSize, 0.2);
+        // save ref
+        this.UIBuffers = UIBuffersStore;
+    };
     addNode(paramList, pos = [0, 0]) {
         let params = paramList;
         if (paramList instanceof UINodeParamList) {

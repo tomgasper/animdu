@@ -13,85 +13,86 @@ import { Component } from "../UI/NodeEditor/Component.js";
 import { procc } from "../animation/animation_operations.js";
 import { RoundedRectangleBuffer } from "../Primitives/RoundedRectangleBuffer.js";
 export class App {
-    constructor(gl, canvas, programsInfo, framebuffer, depthBuffer, renderTexture) {
-        this.gl = {};
-        this.programs = [];
-        this.canvas = {};
-        this.document = {};
-        this.time = 0.;
-        this.fps = 0.;
-        this.primitiveBuffers = undefined;
-        this.objsToDraw = [];
-        this.framebuffer = {};
-        this.depthBuffer = {};
-        this.renderTexture = {};
-        this.isMouseDown = false;
-        this.isMouseClicked = false;
-        this.isMouseClickedTwice = false;
-        this.clickOffset = undefined;
-        this.mouseX = 0;
-        this.mouseY = 0;
-        this.prevMouseX = 0;
-        this.prevMouseY = 0;
-        // to do
-        this.state = {
-            activeObj: {
-                id: 0,
-                arrIndx: 0
+    gl = {};
+    programs = [];
+    canvas = {};
+    document = {};
+    time = 0.;
+    fps = 0.;
+    primitiveBuffers = undefined;
+    objsToDraw = [];
+    framebuffer = {};
+    depthBuffer = {};
+    renderTexture = {};
+    isMouseDown = false;
+    isMouseClicked = false;
+    isMouseClickedTwice = false;
+    clickOffset = undefined;
+    mouseX = 0;
+    mouseY = 0;
+    prevMouseX = 0;
+    prevMouseY = 0;
+    // to do
+    state = {
+        activeObj: {
+            id: 0,
+            arrIndx: 0
+        },
+        prevActiveObj: {
+            id: 0,
+            arrIndx: 0
+        },
+        objIDToDrag: {
+            id: 0,
+            arrIndx: 0
+        },
+        input: {
+            keyboard: {
+                keyPressed: [],
             },
-            prevActiveObj: {
-                id: 0,
-                arrIndx: 0
-            },
-            objIDToDrag: {
-                id: 0,
-                arrIndx: 0
-            },
-            input: {
-                keyboard: {
-                    keyPressed: [],
+            mouse: {
+                position: {
+                    x: 0,
+                    y: 0
                 },
-                mouse: {
-                    position: {
-                        x: 0,
-                        y: 0
-                    },
-                    prevPosition: {
-                        x: 0,
-                        y: 0
-                    },
-                    isMouseDown: false,
-                    isMouseClicked: false,
-                    isMouseClickedTwice: false,
-                    clickOffset: 0
-                }
+                prevPosition: {
+                    x: 0,
+                    y: 0
+                },
+                isMouseDown: false,
+                isMouseClicked: false,
+                isMouseClickedTwice: false,
+                clickOffset: 0
             }
-        };
-        this.inputState = {
-            keyPressed: [],
-        };
-        this.settings = {
-            render: {
-                blendingEnabled: false
-            }
-        };
-        this.pickingData = new Uint8Array(4);
-        this.comps = [];
-        this.activeComp = {};
-        this.fontUI = undefined;
-        this.activeObjID = -1;
-        this.activeObjArrIndx = -1;
-        this.prevActiveObjID = -1;
-        this.prevActiveObjArrIndx = -1;
-        this.objectIDtoDrag = -1;
-        this.objectToDragArrIndx = -1;
-        this.objUnderMouseID = -1;
-        this.objUnderMouseArrIndx = -1;
-        this.animationCounter = 0;
-        this.shouldAnimate = false;
-        this.animationTimer = 0.;
-        this.lastTime = 0.;
-        this.drawCalls = 0;
+        }
+    };
+    inputState = {
+        keyPressed: [],
+    };
+    settings = {
+        render: {
+            blendingEnabled: false
+        }
+    };
+    pickingData = new Uint8Array(4);
+    comps = [];
+    activeComp = {};
+    UI;
+    fontUI = undefined;
+    activeObjID = -1;
+    activeObjArrIndx = -1;
+    prevActiveObjID = -1;
+    prevActiveObjArrIndx = -1;
+    objectIDtoDrag = -1;
+    objectToDragArrIndx = -1;
+    objUnderMouseID = -1;
+    objUnderMouseArrIndx = -1;
+    animationCounter = 0;
+    shouldAnimate = false;
+    animationTimer = 0.;
+    lastTime = 0.;
+    drawCalls = 0;
+    constructor(gl, canvas, programsInfo, framebuffer, depthBuffer, renderTexture) {
         // save gl for local use
         this.gl = gl;
         this.ext = this.gl.getExtension('GMAN_webgl_memory');
