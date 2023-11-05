@@ -177,7 +177,7 @@ export class UINode extends UIObject
         if (side !== "L" && side !== "R") throw new Error("Incorrect side specifier - must be 'L' or 'R', provided: " + side);
         const handle = this.elements.handles[side];
 
-        if (!handle[indx]) throw new Error("Handle with index: " + indx + "doesn't exist!");
+        if (!handle[indx]) throw new Error("Handle with index: " + indx + " doesn't exist!");
 
         return handle[indx].line.connection;
     }
@@ -339,7 +339,7 @@ export class UINode extends UIObject
             const isConnectedIN = handle.line.connection.type == "IN" ? true : false;
 
             // return if there's nothing to update
-            if (!isConnectedIN && !handle.line.obj) return;
+            if (!isConnectedIN && !handle.line.obj) continue;
 
             let data : number[];
             let objToUpdate : Line;

@@ -64,8 +64,8 @@ export const getObjNodes = (nodeSpace) =>
     let objNodes : ObjNode[] = findNodesOfType(nodeSpace, ObjNode);
     
     // Filter out ObjNodes that are not connected to any component
-    objNodes = objNodes.filter( (objNode,indx) => {
-        return objNode.getConnection("R", indx).isConnected;
+    objNodes = objNodes.filter( (objNode) => {
+        return objNode.getConnection("R", 0).isConnected;
     });
 
     return objNodes;
