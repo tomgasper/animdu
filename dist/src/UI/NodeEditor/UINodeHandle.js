@@ -1,16 +1,18 @@
 import { RenderableObject } from "../../RenderableObject.js";
 import { InstancedLineBuffer } from "../../Primitives/InstancedLineBuffer.js";
-import { getProjectionMat, getViewCoords, hexToRgb } from "../../utils.js";
+import { hexToRgb } from "../../utils.js";
 import { getPosFromMat } from "../../App/AppHelper.js";
 import { m3, transformToParentSpace } from "../../utils.js";
 import { UINodeParam } from "./UINodeParam.js";
 export class UINodeHandle extends RenderableObject {
     // ref to scene object
-    scene = {};
-    canMove = true;
-    objToConnect = undefined;
-    node = {};
-    parameter = undefined;
+    _ref = {
+        app: undefined,
+        UI: undefined
+    };
+    node;
+    parent = undefined;
+    parameter;
     line = {
         width: 3,
         data: [],
@@ -23,92 +25,95 @@ export class UINodeHandle extends RenderableObject {
         },
         update: this.updateLine
     };
-    prevCrossOverIdx = -1;
-    constructor(app, buffer, node, parent) {
+    constructor(appRef, buffer, node, parent) {
         // create renderable object
         super(buffer);
-        // save ref to app
-        this.app = app;
+        this._ref.app = appRef;
+        this._ref.UI = appRef.UI;
         // Set up handlers
         this.handlers.onMouseMove = (mousePos) => this.handleHandleMouseMove(mousePos);
         this.handlers.onMouseUp = (objUnderMouseID) => this.handleHandleMouseUp(objUnderMouseID);
-        if (parent) {
+        if (parent)
             this.setParent(parent);
-        }
         if (node)
             this.node = node;
     }
-    updateLine(data) {
-        this.data = data;
-        if (this.obj)
-            this.obj.buffer.updatePointsBuffer(this.data);
+    updateLine(line, data) {
+        line.data = data;
+        if (line.obj)
+            line.obj.buffer.updatePointsBuffer(line.data);
         else
-            console.log("Can't update line. The buffer hasn't been created yet!");
+            console.log("Can't update line. No renderable object!");
     }
     createNewLine(mousePos) {
         // creating new line
         const thisObjPos = getPosFromMat(this);
         this.line.data = [thisObjPos[0], thisObjPos[1], mousePos[0], mousePos[1]];
-        const lineBuffer = new InstancedLineBuffer(this.app.gl, this.app.programs[3], this.line.data, true);
+        const lineBuffer = new InstancedLineBuffer(this._ref.app.gl, this._ref.app.programs[3], this.line.data, true);
         const line = new RenderableObject(lineBuffer);
-        // Set parent
+        // Set parent - either UINodeEditor or UINode
         let parent = this.node.parent ? this.node.parent : this.node.container.parent;
         line.setParent(parent);
-        let lineColour = undefined;
-        let lineWidth = undefined;
+        let lineColour;
+        let lineWidthVal;
         if (parent.type === "_EDITOR_NODE") {
-            lineColour = hexToRgb(this.app.UI.style.nodes.component.line.colour);
-            lineWidth = 5;
+            lineColour = hexToRgb(this._ref.UI.style.nodes.component.line.colour);
+            lineWidthVal = 5;
         }
         else {
-            lineColour = hexToRgb(this.app.UI.style.nodes.general.line.colour);
-            lineWidth = 3;
+            lineColour = hexToRgb(this._ref.UI.style.nodes.general.line.colour);
+            lineWidthVal = 3;
         }
         line.setOriginalColor(lineColour);
         // Add ref the new line
         if (parent.elements.lines) {
             parent.elements.lines.push(line);
         }
-        line.name = "INSTANCED LINE!";
-        line.properties.width = lineWidth;
+        const lineWidthParam = {
+            width: lineWidthVal
+        };
+        line.addExtraParam(lineWidthParam);
+        // Save Ref to Renderable Object
         this.line.obj = line;
     }
-    deleteLine(gl, app, line) {
+    deleteLine(gl, line) {
         const lineBuffer = line.obj.buffer;
         console.log("[WARNING]: Deleteing VAO and buffers for: " + lineBuffer);
         gl.deleteBuffer(lineBuffer.pointsBuffer);
         gl.deleteBuffer(lineBuffer.positionBuffer);
         gl.deleteVertexArray(lineBuffer.VAO);
-        // update children list of parent
+        // Update children list of parent
         const lineParent = line.obj.parent;
         lineParent.deleteChild(line.obj);
-        // delete ref
+        // Delete ref
         let parent = this.node.parent ? this.node.parent : this.node.container.parent;
         if (parent.elements.lines) {
             parent.elements.lines = parent.elements.lines.filter((lineInComponent) => lineInComponent.id !== line.obj.id);
         }
-        // clean up ref object
+        // Clean up ref object
         line.data = [];
         line.obj.buffer = undefined;
         line.obj = undefined;
     }
     handleHandleMouseUp(objUnderMouseID) {
-        const objUnderMouse = this.app.objsToDraw[this.app.objUnderMouseArrIndx].objs[objUnderMouseID];
+        const objUnderMouse = this._ref.app.objsToDraw[this._ref.app.objUnderMouseArrIndx].objs[objUnderMouseID];
         if (objUnderMouse instanceof UINodeHandle && this != objUnderMouse) {
-            const camera = this.app.UI.viewer.camera;
+            const camera = this._ref.UI.viewer.camera;
             const camInv = m3.inverse(camera.matrix);
             this.handleObjConnection(this, objUnderMouse);
             const newCoords = m3.transformPoint(camInv, getPosFromMat(objUnderMouse.worldMatrix));
             const viewCoords = m3.multiply(camInv, objUnderMouse.worldMatrix);
             const objUnderMousePos = getPosFromMat(viewCoords);
-            console.log(newCoords);
             // center the line end
+            if (!this.parent) {
+                throw new Error("Object needs a parent!");
+            }
             const componentViewer = this.parent.parent;
             const vecs = [newCoords];
-            transformToParentSpace(componentViewer, vecs, true);
+            transformToParentSpace(componentViewer, vecs, true, undefined);
             let data = this.line.data;
             data = [data[0], data[1], vecs[0][0], vecs[0][1]];
-            this.line.update(data);
+            this.line.update(this.line, data);
         }
         else {
             // no handle under the mouse on release so get rid of preview line
@@ -119,25 +124,21 @@ export class UINodeHandle extends RenderableObject {
                 this.handleObjDisconnection(this, true);
             }
             else
-                this.deleteLine(this.app.gl, this.app, this.line);
+                this.deleteLine(this._ref.app.gl, this.line);
         }
     }
     handleHandleMouseMove(mousePos) {
-        if (!this.canMove)
-            return;
-        console.log("MOVING!");
         // create new line if one doesn't exist yet
         if (!this.line.obj)
             this.createNewLine(mousePos);
         const componentViewer = this.parent.parent;
-        const camera = this.app.UI.viewer.camera;
+        const camera = this._ref.app.UI.viewer.camera;
         const camInv = m3.inverse(camera.matrix);
         const viewCoords = m3.multiply(camInv, this.worldMatrix);
         const vecs = [[viewCoords[6], viewCoords[7]], mousePos];
         transformToParentSpace(componentViewer, vecs, true, camInv);
         const data = [vecs[0][0], vecs[0][1], vecs[1][0], vecs[1][1]];
-        // const data = [this.worldMatrix[6], this.worldMatrix[7], vecs[0][0], vecs[0][1]];
-        this.line.update(data);
+        this.line.update(this.line, data);
     }
     // connect logic
     connect(outHandle) {
@@ -156,12 +157,12 @@ export class UINodeHandle extends RenderableObject {
         handle.line.connection.animationBreak = 0.;
         if (handle.line.obj && deleteLine) {
             console.log("Deleting: " + handle.line);
-            this.deleteLine(this.app.gl, this.app, handle.line);
+            this.deleteLine(this._ref.app.gl, handle.line);
         }
     }
     handleObjDisconnection(handle, deleteLine) {
         this.disconnect(handle, deleteLine);
-        // call on disconnect callback
+        // Call on disconnect callback
         handle.node.onDisconnect();
     }
     handleObjConnection(startObj, objToConnect) {
@@ -196,10 +197,11 @@ export class UINodeHandle extends RenderableObject {
         this.parameter = param;
     }
     setParameterVal(value) {
-        if (value)
-            this.parameter.value = value;
-        else
+        if (!this.parameter)
+            throw new Error("No parameter set for this UINodeHandle!");
+        if (!value)
             throw new Error("Trying to set undefined as parameter value [" + this.parameter.name + "]");
+        this.parameter.value = value;
     }
     getLineConnectedHandle() {
         if (this.line.connection.isConnected && this.line.connection.connectedObj)

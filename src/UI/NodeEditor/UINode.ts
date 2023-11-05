@@ -376,7 +376,7 @@ export class UINode extends UIObject
                 objToUpdate = handle.line;
             }
 
-            objToUpdate.update.call(objToUpdate, data);
+            objToUpdate.update(objToUpdate, data);
         }
 
     }

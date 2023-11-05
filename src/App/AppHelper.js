@@ -45,7 +45,7 @@ export const modifyParameter = (obj, paramCode, value) =>
         } 
     }
 
-export const getPosFromMat = (obj) =>
+export const getPosFromMat = (obj)  =>
 {
     // accept node instance or matrix
     if ( obj instanceof GeometryObject || obj.length == 9 )
