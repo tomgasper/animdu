@@ -125,7 +125,7 @@ export class UINode extends UIObject {
             throw new Error("Incorrect side specifier - must be 'L' or 'R', provided: " + side);
         const handle = this.elements.handles[side];
         if (!handle[indx])
-            throw new Error("Handle with index: " + indx + "doesn't exist!");
+            throw new Error("Handle with index: " + indx + " doesn't exist!");
         return handle[indx].line.connection;
     }
     getConnectedNode(side, indx) {
@@ -254,7 +254,7 @@ export class UINode extends UIObject {
             const isConnectedIN = handle.line.connection.type == "IN" ? true : false;
             // return if there's nothing to update
             if (!isConnectedIN && !handle.line.obj)
-                return;
+                continue;
             let data;
             let objToUpdate;
             const connectedObj = handle.getLineConnectedHandle(); // as ... can be erased after upgrading UINodeHandle to ts
