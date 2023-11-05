@@ -4,3 +4,5 @@
 notes/
 design/
 node_modules
+.vscode/
+dist/

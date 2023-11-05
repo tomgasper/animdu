@@ -281,7 +281,7 @@ export class UINode extends UIObject {
                 data = [handlePos[0], handlePos[1], connectedObjPos[0], connectedObjPos[1]];
                 objToUpdate = handle.line;
             }
-            objToUpdate.update.call(objToUpdate, data);
+            objToUpdate.update(objToUpdate, data);
         }
     }
     setVisibleNode(isVisible) {

@@ -15,5 +15,5 @@ export interface Line {
     data: number[];
     obj: any | undefined;
     connection: LineConnection
-    update: (data : number []) => void;
+    update: (obj: any, data : number []) => void;
 }
