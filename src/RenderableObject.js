@@ -1,4 +1,5 @@
 import { GeometryObject } from "./GeometryObject.js";
+import { UINodeParam } from "./UI/NodeEditor/UINodeParam.js";
 
 export class RenderableObject extends GeometryObject
 {
@@ -49,5 +50,15 @@ export class RenderableObject extends GeometryObject
     setName(name)
     {
         this.name = name;
+    }
+
+    setPropertyParam(param)
+    {
+        if (!(param instanceof UINodeParam)) throw new Error("Incorrect input type!");
+        if ( this.properties[param.name] == undefined ) throw new Error("Object: " + this.name + "doesn't have property: " + param.name);
+        if ( param.value == undefined ) throw new Error("Param value is undefined");
+
+        this.properties[param.name] = param.value;
+        this.updateTransform()
     }
 }

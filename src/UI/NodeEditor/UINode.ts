@@ -15,14 +15,7 @@ import { UINodeParam } from "./UINodeParam.js";
 import { TextArray, LineConnection } from "./NodeEditorTypes.js";
 
 import { Style } from "./NodeEditorStyleTypes.js";
-
-type Elements = {
-    handles:
-    {
-        L: Array<UINodeHandle>,
-        R: Array<UINodeHandle>
-    }
-};
+import { GeometryObject } from "../../GeometryObject.js";
 
 export class UINode extends UIObject
 {
@@ -34,7 +27,12 @@ export class UINode extends UIObject
         {
             width: undefined,
             height: undefined,
-            colour: "464646"
+            colour: "464646",
+            margin:
+            {
+                x: 0,
+                y: 0
+            }
         },
         margin:
         {
@@ -95,11 +93,11 @@ export class UINode extends UIObject
         }
     }
 
-    elements : Elements =
+    elements : { [key: string] : any} =
     {
         handles:
         {
-            L: [],
+            L : [],
             R: []
         }
     }
@@ -122,7 +120,7 @@ export class UINode extends UIObject
         this.setStyle(appRef);
     }
 
-    setStyle(appRef)
+    protected setStyle(appRef)
     {
         // Assign default fonts for UINode
         this.style.heading.text.font = appRef.UI.style.nodes.general.heading.text.font;
@@ -229,8 +227,13 @@ export class UINode extends UIObject
     }
     */
 
-    getSize()
+    getSize() : number []
     {
+        if (!this.style.container.width || !this.style.container.height)
+        {
+            throw new Error("Width and height must be defined");
+        }
+        
         return [this.style.container.width, this.style.container.height];
     }
 
@@ -384,7 +387,7 @@ export class UINode extends UIObject
     setVisibleNode(isVisible : boolean)
     {
         this.setVisible(isVisible);
-        this.children.forEach( (child) => child.setVisible(isVisible)) ;
+        this.children.forEach( (child : GeometryObject) => child.setVisible(isVisible)) ;
     }
     
     createHandle(pos : number [], parent : RenderableObject, parameter : UINodeParam | undefined)

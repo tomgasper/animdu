@@ -17,8 +17,11 @@ export class GeometryObject
                     0,0,1];
 
     
-    parent = undefined;
-    children = [];
+    parent : GeometryObject;
+    children : GeometryObject[] = [];
+
+    properties : { [key: string] : any };
+    handlers : { [key: string] : any}
 
     constructor()
     {
@@ -57,7 +60,7 @@ export class GeometryObject
         this.properties.id = id;
     }
 
-    setParent(parent)
+    setParent(parent : GeometryObject)
     {
         // remove this node from parent
         if (this.parent)
@@ -99,7 +102,7 @@ export class GeometryObject
         }
 
         // process all the children
-        this.children.forEach((child) => {
+        this.children.forEach((child : GeometryObject) => {
             child.updateWorldMatrix(worldMatrix);
         });
     }
@@ -198,17 +201,6 @@ export class GeometryObject
         this.setOrigin(origin);
 
         this.updateTransform();
-    }
-
-    setPropertyParam(param)
-    {
-        console.log(this);
-        if (!(param instanceof UINodeParam)) throw new Error("Incorrect input type!");
-        if ( this.properties[param.name] == undefined ) throw new Error("Object: " + this.name + "doesn't have property: " + param.name);
-        if ( param.value == undefined ) throw new Error("Param value is undefined");
-
-        this.properties[param.name] = param.value;
-        this.updateTransform()
     }
 
     updateTransform()

@@ -14,68 +14,36 @@ export class UIObject extends RenderableObject{
         UI: undefined
     }
 
-    container = undefined;
+    container : RenderableObject | undefined;
     elements = {};
 
     containerStyle : ContainerStyle =
     {
         width: undefined,
         height: undefined,
-        colour: undefined
+        colour: undefined,
+        margin:
+        {
+            x: undefined,
+            y: undefined
+        }
     };
 
-    style = {
-        container: this.containerStyle
-    }
-
+    style : RefType;
 
     constructor(appRef : any, buffInfo)
     {
         super(buffInfo);
 
+        this.style = {
+            container: this.containerStyle
+        }
+
         this._ref.app = appRef;
         this._ref.UI = appRef.UI;
     }
 
-    /*
-
-    getObjsToRender()
-    {
-        return this.objsToRender;
-    }
-
-    addObjToRender(obj)
-        {
-        if (obj && obj instanceof SceneObject)
-        {
-            this.objsToRender.push(obj);
-        } else throw Error("Incorrect object has been pushed to render"); 
-    }
-
-    addObjsToRender(obj_arr)
-        {
-            obj_arr.forEach((obj) => {
-                this.addObjToRender(obj);
-            })
-    }
-
-    removeObjs(scene, objs)
-    {
-        if (scene) scene.removeObjsFromScene(objs);
-
-        objs.forEach( (obj) => {
-            this.objsToRender = this.objsToRender.filter( objToRender => objToRender.id !== obj.id );
-        })
-    }
-
-    addToUIList(dest)
-    {
-        this._ref.UI.addObj(this.getObjsToRender(), dest);
-    }
-
-    */
-
-    setName(name : number)
+    setName(name : string)
     {
         this.name = name;
     }

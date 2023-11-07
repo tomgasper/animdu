@@ -3,13 +3,18 @@ import { createNewText } from "../../Text/textHelper.js";
 import { hexToRgb } from "../../utils.js";
 import { Effector } from "./Effector.js";
 import { UINodeParam } from "./UINodeParam.js";
+import { TextData } from "./TextData.js";
+import { Component } from "./Component.js";
 
 export class FunctionNode extends UINode
 {
-    effector = undefined;
-    parameters = [];
+    effector : Effector;
+    parameters : UINodeParam [] = [];
+    txtArr : TextData[];
 
-    constructor(appRef, buffInfo, component, fnc)
+    component : Component;
+
+    constructor(appRef, buffInfo, component : Component, effector : Effector)
     {
         super(appRef, buffInfo);
 
@@ -17,9 +22,13 @@ export class FunctionNode extends UINode
             resolution: [this._ref.app.gl.canvas.width, this._ref.app.gl.canvas.height]
         });
 
-        this.setFunction(fnc);
+        this.setEffector(effector);
 
         this.component = component;
+        this.elements = {
+            ...this.elements,
+            text : undefined
+        };
 
         this.initialize();
     }
@@ -31,7 +40,7 @@ export class FunctionNode extends UINode
 
         // Set style
         [this.style.container.width, this.style.container.height ] = [130,100];
-        this.style.container.colour = hexToRgb(this._ref.UI.style.nodes.fnc.container.colour);
+        this.style.container.colour = this._ref.UI.style.nodes.fnc.container.colour;
 
         this.style.body.text.size = 8;
         this.style.body.text.upscale = 2.0;
@@ -40,8 +49,8 @@ export class FunctionNode extends UINode
         this.style.heading.text.size = 9;
         this.style.heading.text.upscale = 2.0;
 
-        this.style.margin.x = 10;
-        this.style.margin.y = 10;
+        this.style.container.margin.x = 6;
+        this.style.container.margin.y = 10;
 
         // Aliases
         const upscale = this.style.body.text.upscale;
@@ -53,17 +62,19 @@ export class FunctionNode extends UINode
         // Set properties for the container
         this.setScale([this.style.container.width/100,this.style.container.height/100]);
         this.setPosition([0,0]);
-        this.setOriginalColor(this.style.container.colour);
+        this.setOriginalColor(hexToRgb(this.style.container.colour));
 
         // Set handlers
         this.handlers.onMouseMove = () => { this.handleMouseMove() };
         this.handlers.onClick = () => {
-            document.getElementById("functionText").value = this.effector.fnc;
+            const windowInput : HTMLInputElement = document.getElementById("functionText") as HTMLInputElement;
+            if (!windowInput) return;
+            windowInput.value = this.effector.fnc;
         }
 
         // Create graphical handlers
-        const handleStartY = this.style.margin.y + ( fontBody.size * 2 ) + this.style.body.margin.y;
-        const offsetLine = this.style.body.text.size  + this.style.body.text.margin.y;
+        const handleStartY = this.style.container.margin.y + ( fontBody.size * 2 ) + this.style.body.margin.y!;
+        const offsetLine = this.style.body.text.size  + this.style.body.text.margin.y!;
         this.addIOHandles("IN", this.effector.argc, this, handleStartY, offsetLine);
         this.addIOHandles("OUT", this.effector.outc, this, handleStartY, offsetLine);
 
@@ -87,56 +98,70 @@ export class FunctionNode extends UINode
 
         this.setParent(this.component);
 
+        // Save ref
         this.elements.text = txtBatch;
     }
 
-    createIOTxt(type, num, startX, startY, lineOffset)
+    private createIOTxt(type : string, num : number, startX : number, startY : number, lineOffset : number) : TextData[]
     {
         if (type !== "IN" && type !== "OUT") throw new Error("Incorrect type of handle");
 
-        const txtArr = [];
+        const txtArr : TextData[] = [];
 
         for (let i = 0; i < num; i++)
         {
+            const str = `${type} (${i})`;
+            const pos = [startX, startY + (i * lineOffset)];
             txtArr.push(
-                { data: type + "(" + i + ")", pos: [startX, startY + (i * lineOffset)] }
+                new TextData(str,pos)
             )
         }
 
         return txtArr;
     }
 
-    constructNodeBody()
+    private constructNodeBody() : void
     {
+        if (this.style.body.margin.y == undefined || this.style.body.margin.x == undefined || this.style.body.text.margin.y == undefined) throw new Error("Style not specified");
+        //if (this.style.body.text.paramTextOffsetX == undefined ) throw new Error("Style not specified");
+
         const fontSize = this.style.body.text.size;
 
         const upscale = this.style.body.text.upscale;
-        let txtStartX = this.style.margin.x;
-        let txtStartY = ( this.style.margin.y + fontSize + this.style.body.margin.y);
+        let startINtxtX = this.style.container.margin.x!;
+        let startINtxtY = ( this.style.container.margin.y! + fontSize + this.style.body.margin.y);
         let lineOffset = (fontSize + this.style.body.text.margin.y);
-        let horizontalOffset = this.style.body.text.paramTextOffsetX + 5;
+        // let horizontalOffset = this.style.body.text.paramTextOffsetX + 5;
 
         const txtWidth = 5 * fontSize;
-        let startOUTtxtX = ( this.style.container.width - this.style.margin.x - txtWidth );
-        let startOUTtxtY = this.style.container.height/2;
+        let startOUTtxtX = ( this.style.container.width! - this.style.container.margin.x! - txtWidth );
+        let startOUTtxtY = this.style.container.height!/2;
 
-        txtStartX *= upscale;
-        txtStartY *= upscale;
+        startINtxtX *= upscale;
+        startINtxtY *= upscale;
         lineOffset *= upscale;
         startOUTtxtX *= upscale;
         startOUTtxtY += upscale;
 
         // Render text
         this.txtArr = [
-            { data: this.effector.name, pos: [this.style.margin.x*upscale,this.style.margin.y*upscale] },
-            ...this.createIOTxt("IN", this.effector.argc, txtStartX, txtStartY, lineOffset),
-            ...this.createIOTxt("OUT", this.effector.outc, startOUTtxtX, txtStartY, lineOffset)
+            { data: this.effector.name, pos: [this.style.container.margin.x!*upscale,this.style.container.margin.y!*upscale] },
+            ...this.createIOTxt("IN", this.effector.argc, startINtxtX, startINtxtY, lineOffset),
+            ...this.createIOTxt("OUT", this.effector.outc, startOUTtxtX, startINtxtY,  lineOffset)
         ];
     }
 
-    setFunction(effectorFnc)
+    public setFunction(effectorFnc : string)
     {
-        console.log(effectorFnc);
-        this.effector = eval(effectorFnc);
+        if (!effectorFnc || !(typeof effectorFnc === "string")) throw new Error("Incorrect input type");
+
+        this.effector.fnc = eval(effectorFnc);
+    }
+
+    public setEffector(effector : Effector)
+    {
+        if (!effector || !(effector instanceof Effector)) throw new Error("Incorrect input type");
+
+        this.effector = effector;
     }
 }

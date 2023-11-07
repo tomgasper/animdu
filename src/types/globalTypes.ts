@@ -1,0 +1,1 @@
+export type anyFnc = (...args: any[]) => any;
