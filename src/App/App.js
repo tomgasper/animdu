@@ -7,7 +7,6 @@ import { drawPass } from "./AppDraw.js";
 import { handleEvents } from "./AppHandlers.js";
 
 import { UI } from "../UI/UI.js";
-import { UINodeParamList } from "../UI/NodeEditor/UINodeParamList.js";
 import { UINodeParam } from "../UI/NodeEditor/UINodeParam.js";
 import { RectangleBuffer } from "../Primitives/RectangleBuffer.js";
 
@@ -45,49 +44,6 @@ export class App
 
     prevMouseX = 0;
     prevMouseY = 0;
-
-    // to do
-    state = {
-        activeObj:
-        {
-            id: 0,
-            arrIndx: 0
-        },
-        prevActiveObj:
-        {
-            id:0,
-            arrIndx: 0
-        },
-        objIDToDrag:
-        {
-            id: 0,
-            arrIndx: 0
-        },
-        input:
-        {
-            keyboard:
-            {
-                keyPressed: [],
-            },
-            mouse:
-            {
-                position:
-                {
-                    x: 0,
-                    y: 0
-                },
-                prevPosition:
-                {
-                    x: 0,
-                    y: 0
-                },
-                isMouseDown: false,
-                isMouseClicked: false,
-                isMouseClickedTwice: false,
-                clickOffset: 0
-            }
-        }
-    }
 
     inputState = {
         keyPressed: [],
@@ -287,12 +243,6 @@ export class App
         this.lastTime = this.time;
         this.time = elapsedTime * 0.001;
         this.fps = fps;
-
-        // calculate world matrices for all objects
-        // this.UI.viewer.container.children.forEach( (obj) => obj.updateWorldMatrix() );
-
-        // Gather objs to draw
-        // this.constructLayersPanel(this.activeComp.viewport);
 
         if (this.shouldAnimate) this.processAnimationFrame(elapsedTime);
         this.createDrawList(this.UI, this.activeComp.objects);

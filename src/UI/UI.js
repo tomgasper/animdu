@@ -281,8 +281,6 @@ export class UI
 
         
         const cameraZoom = this.app.activeComp.camera.zoom;
-        // const centre = [-(viewportOffsetX + viewportSize[0]/2)*(1/cameraZoom),(-viewportSize[1]/2)*(1/cameraZoom)];
-        // this.app.activeComp.camera.setPosition([ ,  ] );
     }
 
     addObjNode(obj)

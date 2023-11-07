@@ -39,6 +39,7 @@ export interface ContainerStyle {
   width: number | undefined;
   height: number | undefined;
   colour: string | undefined;
+  margin: Margin;
 }
 
 export interface Style {

@@ -16,14 +16,41 @@ import { hexToRgb } from "../../utils.js";
 
 import { UINode } from "./UINode.js";
 import { UINodeParam } from "./UINodeParam.js";
+import { TextData } from "./TextData.js";
+import { UINodeHandle } from "./UINodeHandle.js";
+import { TextObject } from "../../Text/TextObject.js";
+import { anyFnc } from "../../types/globalTypes.js";
+import { Effector } from "./Effector.js";
+
+interface ComponentElements {
+            nodes: {
+                IN: ParamNode[],
+                FNC: FunctionNode[],
+                OUT: ParamNode[]
+            },
+            text:
+            {
+                heading: TextObject | undefined
+            },
+            buttons:
+            {
+                hide: Button | undefined
+            },
+            lines: RenderableObject[],
+            outside: ComponentNode | undefined
+}
 
 export class Component extends UIObject
 {
-    elements = {
+    elements : ComponentElements = {
         nodes: {
             IN: [],
             FNC: [],
             OUT: [],
+        },
+        text:
+        {
+            heading: undefined
         },
         buttons:
         {
@@ -38,40 +65,19 @@ export class Component extends UIObject
         timer: 0.
     }
 
-    activeObj = undefined;
-
-    style = {
-        ...this.style,
-        text: {
-            paramTextOffsetX: undefined
-        },
-        margin:
-        {
-            x: undefined,
-            y: undefined
-        },
-        body:
-        {
-            text:{
-
-            }
-        },
-        heading:
-        {
-            text: {
-                upscale: undefined,
-                size: undefined
-            }
-        }
-    }
+    activeObj : RenderableObject | undefined;
 
     isExtended = true;
 
-    constructor(appRef, buffInfo, animationDuration, name = "New component")
+    txtArr : TextData[];
+
+    constructor(appRef, buffInfo, animationDuration : number, name : string = "New component")
     {
         super(appRef, buffInfo);
 
-        this.addExtraParam({resolution: [this._ref.app.canvas.width,this._ref.app.canvas.height ]});
+        this.addExtraParam({
+            resolution: [this._ref.app.canvas.width,this._ref.app.canvas.height
+        ]});
 
         this.setName(name);
         this.setAnimationDuration(animationDuration);
@@ -81,7 +87,33 @@ export class Component extends UIObject
     initialize(size = [700, 350])
     {
         // Style
-        [this.style.container.width, this.style.container.height] = size;
+        this.style = {
+            ...this.style,
+            text: {
+                paramTextOffsetX: undefined
+            },
+            margin:
+            {
+                x: undefined,
+                y: undefined
+            },
+            body:
+            {
+                text:{
+    
+                }
+            },
+            heading:
+            {
+                text: {
+                    upscale: undefined,
+                    size: undefined
+                }
+            }
+        }
+
+        this.style.container.width = size[0];
+        this.style.container.height = size[1];
         this.style.container.colour = hexToRgb(this._ref.UI.style.nodes.component.container.colour, 0.85);
         this.style.margin.x = 10;
         this.style.margin.y = 8;
@@ -92,9 +124,9 @@ export class Component extends UIObject
         this.style.heading.text.upscale = 2.0;
 
         // Aliases
-        const fontBody = this._ref.UI.style.nodes.general.body.text;
-        const fontHeading = this._ref.UI.style.nodes.general.heading.text;
-        const upscale = this.style.heading.text.upscale;        
+        const fontBody : any = this._ref.UI.style.nodes.general.body.text;
+        const fontHeading : any = this._ref.UI.style.nodes.general.heading.text;
+        const upscale : number = this.style.heading.text.upscale;        
         
         // Set properties of the container
         this.setScale([this.style.container.width/100,this.style.container.height/100]);
@@ -109,16 +141,15 @@ export class Component extends UIObject
         newButton.setOriginalColor(hexToRgb(this._ref.UI.style.nodes.component.hideButton.colour));
 
         // Text
-        this.txtArr = undefined;
 
         // Heading text
-        const headingTxt = this.name;
-        const titleTxt = createNewText(this._ref.app.gl, this._ref.app.programs[2], headingTxt, this.style.heading.text.size*this.style.heading.text.upscale, fontHeading.font,hexToRgb(fontBody.colour) );
+        const headingTxt : string = this.name;
+        const titleTxt : TextObject = createNewText(this._ref.app.gl, this._ref.app.programs[2], headingTxt, this.style.heading.text.size*this.style.heading.text.upscale, fontHeading.font,hexToRgb(fontBody.colour) );
         titleTxt.setScale([ 1/upscale,1/upscale ]);
         titleTxt.setParent(this);
         titleTxt.setPosition([this.style.margin.x*upscale, this.style.margin.y*upscale]);
 
-        this.elements.heading = titleTxt;
+        this.elements.text.heading = titleTxt;
 
         // Duration input
         const txtWidth = titleTxt.buffer.str.cpos[0]/2;
@@ -150,13 +181,13 @@ export class Component extends UIObject
         this.elements.outside = outsideNode;
     }
 
-    setAnimationDuration(animDur)
+    setAnimationDuration(animDur : number)
     {
         if (isNumeric(animDur)) this.animation.duration = animDur;
         else this.animation.duration = 5.0;
     }
 
-    addParamNode(type, params, customStr = undefined)
+    addParamNode(type : string, params : UINodeParam[] , customStr : string | undefined = undefined)
     {
         const paramNodeIndx = this.elements.nodes.IN.length;
         const buffer = this._ref.app.UI.UIBuffers.UINode.container.buffer;
@@ -180,36 +211,45 @@ export class Component extends UIObject
         newNode.setHeadingText(customStr);
     }
 
-    addFunctionNode(effectorFnc)
+    public addFunctionNode(effector : Effector) : void
     {
         const containerBuffer = this._ref.app.UI.UIBuffers.UINode.container.buffer;
-        const newNode = new FunctionNode(this._ref.app, containerBuffer, this, effectorFnc);
+        const newNode = new FunctionNode(this._ref.app, containerBuffer, this, effector);
         newNode.setParent(this);
 
-        const size = newNode.getSize();
+        const size : number[] = newNode.getSize();
         newNode.setPosition([(this.style.container.width - size[0])/2, (this.style.container.height-size[1])/2]);
 
         // Save ref
         this.elements.nodes.FNC.push(newNode);
     }
 
-    transformToNode()
+    private transformToNode() : void
     {
         // Turn off inside elements
         this.changeElementsVisibility(false);
         // but keep heading text always visible
-        this.elements.heading.setVisible(true);
+        if (this.elements.text.heading) this.elements.text.heading.setVisible(true);
 
         this.changeSize(false);
-        this.elements.buttons.hide.setVisible(false);
+        if (this.elements.buttons.hide) this.elements.buttons.hide.setVisible(false);
 
-        if (!this.elements.outside) this.initializeNode();
+        if (!this.elements.outside)
+        {
+            // Try to initialize outside node
+            this.initializeNode();
+            
+            // Didn't succeed -> throw error
+            if (!this.elements.outside) throw new Error("Error creating outside node!");
+        }
+
         this.elements.outside.transformToNode(true);
 
         // need to update world matrix property as a new position of components
         // won't be available til redraw
-        this.elements.outside.container.updateWorldMatrix(this.elements.outside.container.parent.worldMatrix);
-        this.elements.outside.handleMouseMove();
+        this.updatePosWhenScaling(this.elements.outside);
+        // this.elements.outside.container.updateWorldMatrix(this.elements.outside.container.parent.worldMatrix);
+        // this.elements.outside.handleMouseMove();
 
         this.isExtended = false;
     }
@@ -218,22 +258,35 @@ export class Component extends UIObject
     {
         if (this.isExtended) return;
 
+        if (!this.elements.outside) throw new Error("No outside node specified!");
+
         this.changeElementsVisibility(true);
         this.changeSize(true);
-        this.elements.buttons.hide.setVisible(true);
+        if (this.elements.buttons.hide) this.elements.buttons.hide.setVisible(true);
 
         this.elements.outside.transformToNode(false);
 
         // need to update world matrix property as a new position of components
         // won't be available til redraw
-        console.log(this.elements.outside);
-        this.elements.outside.container.updateWorldMatrix(this.elements.outside.container.parent.worldMatrix);
-        this.elements.outside.handleMouseMove();
+        this.updatePosWhenScaling(this.elements.outside);
+        // this.elements.outside.container.updateWorldMatrix(this.elements.outside.container.parent.worldMatrix);
+        // this.elements.outside.handleMouseMove();
 
         this.isExtended = true;
     }
 
-    changeSize(extend)
+    private updatePosWhenScaling(node : ComponentNode) : void
+    {
+        if (!node || !node.container )
+        {
+            console.error("Couldn't update position");
+            return;
+        }
+        node.container.updateWorldMatrix(node.container.parent.worldMatrix);
+        node.handleMouseMove();
+    }
+
+    changeSize(extend : boolean)
     {
         const newNodeSize = [130, 130];
 
@@ -253,7 +306,7 @@ export class Component extends UIObject
         this.setScale(newSize);
     }
 
-    changeElementsVisibility(isVisible)
+    changeElementsVisibility(isVisible : boolean)
     {
         // hide children
         for (let i = 0; i < this.children.length; i++)
@@ -275,7 +328,7 @@ export class Component extends UIObject
         */
     }
 
-    setActiveObj(obj)
+    setActiveObj(obj : RenderableObject)
     {
         if (!(obj instanceof RenderableObject)) throw new Error("Wrong Active Object type!");
         this.activeObj = obj;
@@ -296,9 +349,9 @@ export class Component extends UIObject
         return txtBatch;
     }
 
-    changeDuration(newDuration)
+    changeDuration(newDuration : string) : void
     {
         if (isNumeric(newDuration)) this.animation.duration = parseFloat(newDuration);
-        console.log(this.name + " new duration: " + this.duration);
+        console.log(this.name + " new duration: " + this.animation.duration);
     }
 }

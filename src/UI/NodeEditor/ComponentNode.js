@@ -147,7 +147,7 @@ export class ComponentNode extends UINode
 
         const upscale = this.container.style.heading.text.upscale ? this.container.style.heading.text.upscale : 1.0; 
 
-        const headingTxt = this.container.elements.heading;
+        const headingTxt = this.container.elements.text.heading;
 
         if (isNode)
         {
