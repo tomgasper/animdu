@@ -2,24 +2,19 @@ import { computeTransform } from "../utils.js";
 
 export class Camera
 {
-    position = [0,0];
-    zoom = 1;
-    rotation = 0;
+    position : number[] = [0,0];
+    zoom : number = 1;
+    rotation : number = 0;
 
     origin = [0,0];
 
-    matrix = [
+    matrix : number[] = [
         1, 0, 0,
         0, 1, 0,
         0, 0, 1
     ];
 
-    constructor()
-    {
-
-    }
-
-    setPosition(pos)
+    setPosition(pos : number[])
     {
         if(pos && pos.length == 2)
         {
@@ -31,7 +26,7 @@ export class Camera
         } else throw Error("Wrong position input!");
     }
 
-    setRotation(angle)
+    setRotation(angle : number)
     {
         if (angle)
         {
@@ -40,7 +35,7 @@ export class Camera
         }
     }
 
-    setZoom(zoom)
+    setZoom(zoom : number)
     {
         if (typeof zoom!== "number") throw new Error("Wrong zoom data, must be a number!");
 

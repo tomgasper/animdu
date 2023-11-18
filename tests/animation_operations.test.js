@@ -1,6 +1,5 @@
 import { beforeAll, describe, expect, it, vi } from "vitest";
 
-import { ObjNode } from "../src/UI/NodeEditor/ObjNode";
 import { ComponentNode } from "../src/UI/NodeEditor/ComponentNode";
 import { Component } from "../src/UI/NodeEditor/Component";
 import { UINode } from "../src/UI/NodeEditor/UINode";
@@ -8,7 +7,6 @@ import { UINode } from "../src/UI/NodeEditor/UINode";
 import { createComponentList } from "../src/animation/animation_operations";
 
 import { gatherComponentsAtTime } from "../src/animation/animation_operations";
-import { UINodeHandle } from "../src/UI/NodeEditor/UINodeHandle";
 
 // Mock dependency
 vi.mock("../src/UI/NodeEditor/UIObject");

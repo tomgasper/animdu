@@ -8,7 +8,7 @@ import { setFramebufferAttachmentSizes } from "../pickingFramebuffer.js";
 import { Composition } from "../Composition/Composition.js";
 import { GeometryObject } from "../GeometryObject.js";
 
-export const resetMousePointer = (body) =>
+export const resetMousePointer = (body : HTMLBodyElement) =>
 {
     if (body.style.cursor !== "default")
     {
@@ -16,7 +16,8 @@ export const resetMousePointer = (body) =>
     }
 };
 
-export const createNewRect = (scene, width, height, roundness = 0.05) =>
+/*
+export const createNewRect = (scene, width : number, height : number, roundness : number = 0.05) =>
 {
     const projectionMat = getProjectionMat(scene.gl);
 
@@ -45,12 +46,15 @@ export const modifyParameter = (obj, paramCode, value) =>
         } 
     }
 
-export const getPosFromMat = (obj)  =>
+*/
+
+
+export const getPosFromMat = (obj : RenderableObject | number[] )  =>
 {
     // accept node instance or matrix
-    if ( obj instanceof GeometryObject || obj.length == 9 )
+    if ( obj instanceof GeometryObject )
     {
-        let pos;
+        let pos : number[];
 
         if (obj.worldMatrix) pos = [obj.worldMatrix[6], obj.worldMatrix[7]];
         else pos = [obj[6], obj[7]];
@@ -59,6 +63,7 @@ export const getPosFromMat = (obj)  =>
     } else throw Error("Wrong input object!");
 }
 
+// should only pass state manager
 export const moveObjectWithCoursor = (app) =>
     {
         const objToDrag = app.objsToDraw[app.objectToDragArrIndx].objs[app.objectIDtoDrag];
@@ -135,6 +140,7 @@ export const moveObjectWithCoursor = (app) =>
                 objToDrag.updateWorldMatrix(parentWorldMat);
     }
 
+    // should only pass state manager
     export const canMoveObj = (app) =>
     {
         if (app.objectIDtoDrag < 0 || app.objectToDragArrIndx < 0) return false;
@@ -144,7 +150,7 @@ export const moveObjectWithCoursor = (app) =>
         else return false;
 }
 
-export const highlightObjUnderCursor = (document, object) =>
+export const highlightObjUnderCursor = (document : HTMLBodyElement, object : RenderableObject) =>
 {
     if (object.properties.highlight)
         {
@@ -157,7 +163,7 @@ export const highlightObjUnderCursor = (document, object) =>
         } else resetMousePointer(document);
 }
 
-export const prepareForFirstPass = (app, framebuffer, mousePos) =>
+export const prepareForFirstPass = (app, framebuffer, mousePos : number[]) =>
 {
     // Draw the objects to the texture
     app.gl.bindFramebuffer(app.gl.FRAMEBUFFER, framebuffer);
@@ -224,7 +230,7 @@ export const addObjToDrawList = (obj, drawList, camera) =>
 
     for (let i = 0; i < obj.children.length; i++)
     {
-        addObjToDrawList(obj.children[i],drawList);
+        addObjToDrawList(obj.children[i],drawList, undefined);
     }
 }
 
