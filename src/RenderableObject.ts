@@ -1,5 +1,7 @@
-import { GeometryObject } from "./GeometryObject.js";
-import { UINodeParam } from "./UI/NodeEditor/UINodeParam.js";
+import { GeometryObject } from "./GeometryObject";
+import { UINodeParam } from "./UI/NodeEditor/UINodeParam";
+
+import { anyObj } from "./types/globalTypes";
 
 export class RenderableObject extends GeometryObject
 {
@@ -9,13 +11,13 @@ export class RenderableObject extends GeometryObject
         vertexArrInfo: undefined,
         drawInfo: undefined,
         programInfo: undefined
-    };
+    };s
     */
 
-    buffer = {};
-    name;
+    buffer;
+    name : string;
     
-    constructor(objBuffer, extraParams)
+    constructor(objBuffer, extraParams : anyObj)
     {
         super();
 
@@ -32,7 +34,7 @@ export class RenderableObject extends GeometryObject
         }
     }
 
-    setBuffer(objBuffer)
+    setBuffer(objBuffer : anyObj)
     {
         if (!objBuffer || !objBuffer.getInfo() ) throw new Error("Setting incorrect buffer!");
 
@@ -40,19 +42,19 @@ export class RenderableObject extends GeometryObject
         this.buffer.renderInfo = objBuffer.getInfo();
     }
 
-    addExtraParam(extraParams)
+    addExtraParam(extraParams : anyObj)
     {
         this.properties = {
             ...this.properties, ...extraParams
         }
     }
 
-    setName(name)
+    setName(name : string)
     {
         this.name = name;
     }
 
-    setPropertyParam(param)
+    setPropertyParam(param : UINodeParam)
     {
         if (!(param instanceof UINodeParam)) throw new Error("Incorrect input type!");
         if ( this.properties[param.name] == undefined ) throw new Error("Object: " + this.name + "doesn't have property: " + param.name);

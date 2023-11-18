@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 // Import setUniforms function
-import { setUniforms } from "../src/utils.js";
+import { setUniforms } from "../src/utils";
 
 // Define a mock programInfo object
 const programInfo = {

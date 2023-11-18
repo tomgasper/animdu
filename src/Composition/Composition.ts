@@ -3,21 +3,24 @@ import { Camera } from "./Camera.js";
 
 import { ObjNode } from "../UI/NodeEditor/ObjNode.js";
 
+import { anyObj } from "../types/globalTypes.js";
+import { UISceneViewport } from "../UI/UISceneViewport.js";
+
 export class Composition
 {
-    app;
-    objects = [];
-    id;
-    name;
+    app : anyObj;
+    objects : RenderableObject[] = [];
+    id : number;
+    name : string;
 
-    camera;
+    camera : Camera;
 
-    viewport;
-    offset = [0,0];
+    viewport : UISceneViewport | undefined;
+    offset : number[] = [0,0];
 
     animations = [];
     
-    constructor(app, name, viewport)
+    constructor(app, name : string, viewport : UISceneViewport)
     {
         // Save ref to the app
         this.app = app;
@@ -29,7 +32,8 @@ export class Composition
         this.camera = new Camera();
     }
 
-    addObj(obj)
+    /*
+    addObj(obj : RenderableObject | RenderableObject[] )
     {
         // handle array of objects
         if (obj.length && obj.length > 1)
@@ -43,8 +47,29 @@ export class Composition
             });
         } else if (obj instanceof RenderableObject) this.objects.push(obj);
     }
+    */
 
-    removeObj(obj)
+    addObj(obj : RenderableObject )
+    {
+        if (obj && obj instanceof RenderableObject) {
+
+            obj.assignToComp(this);
+            this.objects.push(obj);
+            if (!obj.parent && this.viewport) obj.setParent(this.viewport);
+        }
+        else throw new Error("Incorrect input type!");
+    }
+
+    addMultipleObjs(objs : RenderableObject[])
+    {
+        for (let i = 0; i < objs.length; i++)
+        {
+            let obj : RenderableObject = objs[i];
+            this.addObj(obj);
+        }
+    }
+
+    removeObj(obj : RenderableObject)
     {
         this.objects.forEach((arr_obj, indx, arr) => {
             if (arr_obj.id == obj.id)
@@ -56,7 +81,7 @@ export class Composition
             }
         });
 
-        obj = undefined;
+        // obj = undefined;
     }
 
     getObjs()
@@ -64,6 +89,7 @@ export class Composition
         return this.objects;
     }
 
+    /*
     findStartComponents()
     {
         const activeViewer = this.app.UI.viewer;
@@ -86,12 +112,13 @@ export class Composition
 
         return compsToProcess;
     }
+    */
 
+    /*
     calculateAnimation(animationList)
     {
         // animation list
         // Input:
-        /*
         {
             {
                 obj: objRef,
@@ -119,7 +146,6 @@ export class Composition
                 }
             }
         }
-        */
 
         let steps = 500;
 
@@ -169,6 +195,9 @@ export class Composition
         this.app.animationCounter = 0;
         this.animations = [ outList ];
     }
+    */
+
+    /*
 
     calculateComponents()
     {
@@ -265,4 +294,5 @@ export class Composition
         // first go to the earliest in params
         // start from that point
     }
+    */
 }

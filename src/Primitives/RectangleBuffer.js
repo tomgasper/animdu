@@ -1,5 +1,5 @@
 export class RectangleBuffer {
-    constructor(gl, programInfo, size, rounded = undefined, textureSrc)
+    constructor(gl, programInfo, size, rounded, textureSrc)
     {
          // Make gl object local
          this.gl = gl;

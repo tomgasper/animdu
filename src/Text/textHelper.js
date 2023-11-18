@@ -1,8 +1,6 @@
 import { TextObject } from "./TextObject.js";
 import { TextBuffer } from "./TextBuffer.js";
 
-import { getProjectionMat } from "../utils.js";
-
 export function createNewText(gl, program, text, textSize, font, txtColor)
 {
     // Create text object
