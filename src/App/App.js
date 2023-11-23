@@ -17,6 +17,8 @@ import { procc } from "../animation/animation_operations.js";
 
 import { RoundedRectangleBuffer } from "../Primitives/RoundedRectangleBuffer.js";
 
+import { InputManager } from "./InputManager.js";
+
 export class App
 {
     gl = {};
@@ -306,7 +308,6 @@ export class App
         const pickingShader = 1;
 
         // Draw to texture - PASS 1
-        // prepareForScndPass(this.gl);
         prepareForFirstPass(this, this.framebuffer, [this.mouseX, this.mouseY]);
         this.drawUI(UIList, pickingShader, this.UI.viewer.camera );
         this.drawComp(activeCompList, pickingShader, this.activeComp.camera);

@@ -14,7 +14,6 @@ export const initalizeApp = (app) =>
 
 let timer;
 const delay = 10;
-let prevent = false;
 
 const onMouseStop = (app) => {
     app.prevMouseX = app.mouseX;
