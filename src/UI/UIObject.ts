@@ -33,7 +33,7 @@ export class UIObject extends RenderableObject{
 
     constructor(appRef : any, buffInfo)
     {
-        super(buffInfo);
+        super(buffInfo, undefined);
 
         this.style = {
             container: this.containerStyle

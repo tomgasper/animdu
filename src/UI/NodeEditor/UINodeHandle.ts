@@ -35,7 +35,7 @@ export class UINodeHandle extends RenderableObject
     constructor(appRef, buffer, node , parent : RenderableObject | undefined)
     {
         // create renderable object
-        super(buffer);
+        super(buffer, undefined);
 
         this._ref.app = appRef;
         this._ref.UI = appRef.UI;
@@ -64,7 +64,7 @@ export class UINodeHandle extends RenderableObject
         this.line.data = [thisObjPos[0],thisObjPos[1], mousePos[0], mousePos[1]];
 
         const lineBuffer = new InstancedLineBuffer(this._ref.app.gl, this._ref.app.programs[3], this.line.data, true);
-        const line = new RenderableObject(lineBuffer);
+        const line = new RenderableObject(lineBuffer, undefined);
 
         // Set parent - either UINodeEditor or UINode
         let parent = this.node.parent ? this.node.parent : this.node.container.parent;

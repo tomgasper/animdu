@@ -53,25 +53,23 @@ export function setFramebufferAttachmentSizes(gl, depthStencilBuffer, width, hei
     gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_STENCIL ,width,height);
   }
 
-export function getIdFromCurrentPixel(appRef, mouseX, mouseY)
+export function getIdFromCurrentPixel(glRef, pickingDataRef, mouseX, mouseY)
 {
-  const pixelX = mouseX * appRef.gl.canvas.width / appRef.gl.canvas.clientWidth;
-  const pixelY = appRef.gl.canvas.height - mouseY * appRef.gl.canvas.height / appRef.gl.canvas.clientHeight - 1;
-
-    const data = appRef.pickingData;
+  const pixelX = mouseX * glRef.canvas.width / glRef.canvas.clientWidth;
+  const pixelY = glRef.canvas.height - mouseY * glRef.canvas.height / glRef.canvas.clientHeight - 1;
 
     readPixelsAsync(
-      appRef.gl,
+      glRef,
       pixelX,            // x
       pixelY,            // y
       1,                 // width
       1,                 // height
       appRef.gl.RGBA,           // format
       appRef.gl.UNSIGNED_BYTE,  // type
-      data);             // typed array to hold result
+      pickingDataRef);             // typed array to hold result
   
-      const arrIndx = data[0];
-      const id = (data[1] << 0) + (data[2] << 8) + (data[3] << 16);
+      const arrIndx = pickingDataRef[0];
+      const id = (pickingDataRef[1] << 0) + (pickingDataRef[2] << 8) + (pickingDataRef[3] << 16);
   
       return { arrIndx: arrIndx , id: id };
     }

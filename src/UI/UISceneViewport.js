@@ -15,7 +15,7 @@ export class UISceneViewport extends UIObject
         this.height = size[1];
         this.style.colour = colour;
 
-    this.initViewport(this.width, this.height, colour);
+        this.initViewport(this.width, this.height, colour);
     }
 
     
@@ -37,7 +37,6 @@ export class UISceneViewport extends UIObject
 
         this.setCanBeHighlighted(false);
         this.setCanBeMoved(false);
-        // viewport.setPosition(this.position);
         this.setOriginalColor(colour);
         this.updateWorldMatrix();
 
