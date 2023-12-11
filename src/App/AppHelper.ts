@@ -7,47 +7,17 @@ import { setFramebufferAttachmentSizes } from "../pickingFramebuffer.js";
 
 import { Composition } from "../Composition/Composition.js";
 import { GeometryObject } from "../GeometryObject.js";
+import { IDType, InputManagerState, SceneManagerState } from "../types/globalTypes.js";
+import { SceneManager } from "./SceneManager.js";
+import { InputManager } from "./InputManager.js";
 
-export const resetMousePointer = (body : HTMLBodyElement) =>
+export const resetMousePointer = (documentStyle) =>
 {
-    if (body.style.cursor !== "default")
+    if (documentStyle.cursor !== "default")
     {
-        body.style.cursor = "default";
+        documentStyle.cursor = "default";
     }
 };
-
-/*
-export const createNewRect = (scene, width : number, height : number, roundness : number = 0.05) =>
-{
-    const projectionMat = getProjectionMat(scene.gl);
-
-    const rectangleBuffer = new RectangleBuffer(scene.gl,scene.programs[0], [width,height], roundness);    
-    const rect = new RenderableObject(rectangleBuffer.getInfo(), projectionMat);
-
-    rect.properties.movable = true;
-    rect.setPosition([0,0]);
-    rect.setOriginalColor([0.5,0.5,0.5,1]);
-
-    return rect;
-}
-
-export const modifyParameter = (obj, paramCode, value) =>
-{
-        switch(paramCode)
-        {
-            case "position":
-                obj.setPosition(value);
-                break;
-
-            case "scale":
-
-                obj.setScale(value);
-                break;
-        } 
-    }
-
-*/
-
 
 export const getPosFromMat = (obj : RenderableObject | number[] )  =>
 {
@@ -64,33 +34,30 @@ export const getPosFromMat = (obj : RenderableObject | number[] )  =>
 }
 
 // should only pass state manager
-export const moveObjectWithCoursor = (app) =>
+export const moveObjectWithCoursor = (  inputManager : InputManager,
+                                        sceneManager : SceneManager,
+                                        UI) =>
     {
-        const objToDrag = app.objsToDraw[app.objectToDragArrIndx].objs[app.objectIDtoDrag];
+        const mousePos = inputManager.getMousePos();
+        const objToDrag = sceneManager.getObjByID(sceneManager.getObjIDToDrag());
+        const clickOffset = inputManager.getClickOffset();
 
-        // checking if obj is a scene object or UI object so correct view matrix is applied
-        let camera = objToDrag.comp ? app.activeComp.camera.matrix : app.UI.viewer.camera.matrix;
+        // Checking if obj is a scene object or UI object so correct view matrix is applied
+        let camera = objToDrag.comp ? sceneManager.getActiveComp().camera.matrix : UI.viewer.camera.matrix;
 
-        if (!app.clickOffset)
+        if (!clickOffset)
         {
             let curr_pos = [ objToDrag.worldMatrix[6], objToDrag.worldMatrix[7] ];
 
             curr_pos = getPosFromMat(m3.multiply(m3.inverse(camera), objToDrag.worldMatrix));
             
-            app.clickOffset = [app.mouseX - curr_pos[0], app.mouseY - curr_pos[1]];
-            // app.clickOffset = [0,0];
+            inputManager.setClickOffset(mousePos.x - curr_pos[0], mousePos.y - curr_pos[1]);
         }
 
                 let parentWorldMat;
-                let mouseTranslation = m3.translation(app.mouseX - app.clickOffset[0],app.mouseY - app.clickOffset[1]);
-                
-                /*
-                if (objToDrag.comp)
-                {
-                    const invViewMat = app.activeComp.camera.matrix;
-                    
-                } else mous
-                */
+                const newClickOffset = inputManager.getClickOffset()!;
+                let mouseTranslation = m3.translation(mousePos.x - newClickOffset.x,
+                                                            mousePos.y - newClickOffset.y);
 
                 mouseTranslation = m3.multiply(camera, mouseTranslation);
 
@@ -122,12 +89,6 @@ export const moveObjectWithCoursor = (app) =>
                 // handle move restrictions
                 if (objToDrag.moveRestriction)
                 {
-                    // parentWorldMat = objToDrag.parent.worldMatrix;
-                    // let parentWorldMatInv = m3.inverse(parentWorldMat);
-                    
-                    // let mouseTranslation = m3.translation(obj);
-                    // let mousePosInDiffCord = m3.multiply(parentWorldMatInv, mouseTranslation);
-
                     const objGlobalPos = getPosFromMat(objToDrag);
                     const xBound = objToDrag.moveRestriction.x;
                     const yBound = objToDrag.moveRestriction.y;
@@ -141,16 +102,19 @@ export const moveObjectWithCoursor = (app) =>
     }
 
     // should only pass state manager
-    export const canMoveObj = (app) =>
+    export const canMoveObj = (inputManager : InputManager, sceneManager : SceneManager ) =>
     {
-        if (app.objectIDtoDrag < 0 || app.objectToDragArrIndx < 0) return false;
+        const isMouseDown = inputManager.getIsMouseDown();
+        const objToDrag = sceneManager.getObjIDToDrag();
 
-        const objToMove = app.objsToDraw[app.objectToDragArrIndx].objs[app.objectIDtoDrag];
-        if (app.isMouseDown && objToMove.properties.movable === true) return true;
+        if (objToDrag.id < 0 || objToDrag.arrIndx < 0) return false;
+
+        const objToMove = sceneManager.getObjByID(objToDrag);
+        if (isMouseDown == true && objToMove.properties.movable === true) return true;
         else return false;
 }
 
-export const highlightObjUnderCursor = (document : HTMLBodyElement, object : RenderableObject) =>
+export const highlightObjUnderCursor = (documentStyleRef, object : RenderableObject) =>
 {
     if (object.properties.highlight)
         {
@@ -158,9 +122,9 @@ export const highlightObjUnderCursor = (document : HTMLBodyElement, object : Ren
             // object.setColor([1,1,0.3,1]);
 
             // change the mouse pointer style
-            document.style.cursor = "pointer";
+            documentStyleRef.cursor = "pointer";
 
-        } else resetMousePointer(document);
+        } else resetMousePointer(documentStyleRef);
 }
 
 export const prepareForFirstPass = (app, framebuffer, mousePos : number[]) =>

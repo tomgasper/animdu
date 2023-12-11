@@ -1,5 +1,5 @@
-import { getClipSpaceMousePosition } from "../utils.js";
 import { SceneManager } from "./SceneManager.js";
+import { InputManagerState } from "../types/globalTypes.js";
 
 export class InputManager
 {
@@ -10,14 +10,20 @@ export class InputManager
     private isMouseDown: boolean;
     private isMouseClicked: boolean;
     private isMouseClickedTwice: boolean;
+    private isMouseWheel : boolean;
+    private wheelYDelta : number;
     private mouseX: number;
     private mouseY: number;
-    private clickOffset: { x: number; y: number } | undefined;
+    private clickOffsetRef: { x: number; y: number } | undefined;
     private mouseTimer : number;
 
     // Previouse mouse position
     private prevMouseX : number;
     private prevMouseY : number;
+
+    //
+    private mouseClientX : number;
+    private mouseClientY : number;
 
     constructor(glCanvas, sceneManager : SceneManager)
     {
@@ -25,11 +31,12 @@ export class InputManager
         this.isMouseDown = false;
         this.isMouseClicked = false;
         this.isMouseClickedTwice = false;
+        this.isMouseWheel = false;
         this.mouseX = 0;
         this.mouseY = 0;
         this.prevMouseX = 0;
         this.prevMouseY = 0;
-        this.clickOffset = undefined;
+        this.clickOffsetRef = undefined;
 
         // Initialize event listeners
         this.initEventListeners(glCanvas, sceneManager);
@@ -56,25 +63,17 @@ export class InputManager
             const rect = glCanvas.getBoundingClientRect();
             this.mouseX = e.clientX - rect.left;
             this.mouseY = e.clientY - rect.top;
+
+            this.mouseClientX = e.clientX;
+            this.mouseClientY = e.clientY;
          });
     
         glCanvas.addEventListener("keyup", (e) => {
-            // Reset active obj info
-            /*
-                if (e.keyCode === 27)
-                {
-                    console.log("Reseting active obj!");
-    
-                    // Reset active obj
-                    app.activeObjID = -1;
-                    app.activeObjArrIndx = 1;
-                }
-            */
-    
             this.keyPressed.delete(e.key);
         });
     
         glCanvas.addEventListener("keydown", (e) => {
+            // Should be in eventhandler function
             if (!this.keyPressed.has(e.key)) this.keyPressed.add(e.key);
 
             const activeObjID = sceneManager.getActiveObjID();
@@ -93,82 +92,187 @@ export class InputManager
         });
     
          glCanvas.addEventListener("mousedown", (e) => {
-            if (app.isMouseDown === false) {
-                app.isMouseDown = true;
+            if (this.isMouseDown === false) {
+                this.isMouseDown = true;
             }
          });
     
          glCanvas.addEventListener("click", (e) => {
-            app.isMouseClicked = true;
+            this.isMouseClicked = true;
          });
     
          glCanvas.addEventListener("dblclick", (e) => {
-            app.isMouseClickedTwice = true;
-            // app.isMouseClicked = true;
+            this.isMouseClickedTwice = true;
          });
     
-         glCanvas.addEventListener("mouseup", (e) => {
-            app.isMouseDown = false;
-    
-            if (app.objectIDtoDrag >= 0 && app.objectToDragArrIndx >= 0)
+         glCanvas.addEventListener("mouseup", (sceneManager : SceneManager, e) => {
+            // Should be in eventhandler function
+            this.isMouseDown = false;
+
+            const objIdToDrag = sceneManager.getObjIDToDrag();
+            if (objIdToDrag.id >= 0 && objIdToDrag.arrIndx >= 0)
             {
-                const obj = app.objsToDraw[app.objectToDragArrIndx].objs[app.objectIDtoDrag];
+                const obj = sceneManager.getActiveObj();
                 if (obj && obj.handlers.onMouseUp)
                 {
-                    obj.handlers.onMouseUp.call(obj.handlers, app.objUnderMouseID);
+                    obj.handlers.onMouseUp.call(obj.handlers, sceneManager.getObjUnderMouseID());
                 }
             }
-    
-            sceneManager.objectIDtoDrag = -1;
-            sceneManager.objectToDragArrIndx = -1;
+
+            // Mouse up -> reset state of active object
+            sceneManager.setObjIDToDrag(-1,-1);
          });
     
          glCanvas.addEventListener("wheel", (e) => {
             // based on greggman implementation:
             // https://webglfundamentals.org/webgl/lessons/webgl-qna-how-to-implement-zoom-from-mouse-in-2d-webgl.html
             e.preventDefault();
-    
-            const viewportOffset = {
-                x: app.UI.viewport.position[0],
-                y: -app.UI.viewport.position[1]
+
+            this.isMouseWheel = true;
+            this.wheelYDelta = e.deltaY;
+        });
+        }
+
+        // Getters
+        public getKeyPressed(): Set<string> {
+            return new Set(this.keyPressed); // Clone to prevent external modifications
+        }
+
+        public getIsMouseDown(): boolean {
+            return this.isMouseDown;
+        }
+
+        public getIsMouseClicked(): boolean {
+            return this.isMouseClicked;
+        }
+
+        public getIsMouseClickedTwice(): boolean {
+            return this.isMouseClickedTwice;
+        }
+
+        public getIsMouseWheel(): boolean {
+            return this.isMouseWheel;
+        }
+
+        public getWheelYDelta(): number {
+            return this.wheelYDelta;
+        }
+
+        public getMouseX(): number {
+            return this.mouseX;
+        }
+
+        public getMouseY(): number {
+            return this.mouseY;
+        }
+
+        public getClickOffset(): { x: number; y: number } | undefined {
+            return this.clickOffsetRef;
+        }
+
+        public getMouseTimer(): number {
+            return this.mouseTimer;
+        }
+
+        public getMousePos()
+        {
+            return {
+                x: this.mouseX,
+                y: this.mouseY
+            }
+        }
+
+        public getPrevMousePos()
+        {
+            return {
+                x: this.prevMouseX,
+                y: this.prevMouseY
+            }
+        }
+
+        public getMouseClient()
+        {
+            return {
+                x: this.mouseClientX,
+                y: this.mouseClientY
+            }
+        }
+
+        public getCurrentState(): InputManagerState {
+            return {
+                keyPressed: new Set(this.keyPressed), // Clone to prevent external modifications
+                isMouseDown: this.isMouseDown,
+                isMouseClicked: this.isMouseClicked,
+                isMouseClickedTwice: this.isMouseClickedTwice,
+                isMouseWheel: this.isMouseWheel,
+                wheelYDelta: this.wheelYDelta,
+                mouseX: this.mouseX,
+                mouseY: this.mouseY,
+                clickOffsetRef: this.clickOffsetRef ? this.clickOffsetRef : undefined, // Not cloning here, using ref
+                prevMouseX: this.prevMouseX,
+                prevMouseY: this.prevMouseY
             };
-    
-            const [clipX, clipY] = getClipSpaceMousePosition(app,e, viewportOffset);
-        
-            console.log(clipY);
-    
-            let compCamera;
-            if (clipY > 0) compCamera = app.activeComp.camera;
-            else compCamera = app.UI.viewer.camera;
-    
-            // const compCamera = app.activeComp.camera;
-            const projectionMat = getProjectionMat(app.gl);
-            let viewMat = m3.inverse(compCamera.matrix);
-            let viewProjectionMat = m3.multiply(projectionMat, viewMat);
-    
-            // position before zooming
-            const [preZoomX, preZoomY] = m3.transformPoint(
-                m3.inverse(viewProjectionMat), 
-                [clipX, clipY]);
-    
-            console.log(e.deltaY);
-            const newZoom = compCamera.zoom * Math.pow(1.85, e.deltaY * -0.01);
-            compCamera.setZoom(Math.max(0.02, Math.min(100,newZoom) ));
-    
-            viewMat = m3.inverse(compCamera.matrix);
-            viewProjectionMat = m3.multiply(projectionMat, viewMat);
-    
-            // position after zooming
-            const [postZoomX, postZoomY] = m3.transformPoint(
-                m3.inverse(viewProjectionMat), 
-                [clipX, clipY]);
-    
-            // camera needs to be moved the difference of before and after
-    
-            const newCamPosX = compCamera.position[0] + ( preZoomX - postZoomX );
-            const newCamPosY = compCamera.position[1] + ( preZoomY - postZoomY );
-    
-            compCamera.setPosition( [newCamPosX, newCamPosY]);
-         });
-    }
+        }
+
+        public setClickOffset(x: number, y:number)
+        {
+            if (!this.clickOffsetRef)
+            {
+                this.clickOffsetRef = {
+                    x: 0,
+                    y: 0
+                }
+            }
+
+            this.clickOffsetRef.x = x;
+            this.clickOffsetRef.y = y;
+        }
+
+        // Setters
+        public addKeyPressed(key: string): void {
+            this.keyPressed.add(key);
+        }
+
+        public removeKeyPressed(key: string): void {
+            this.keyPressed.delete(key);
+        }
+
+        public setIsMouseDown(isDown: boolean): void {
+            this.isMouseDown = isDown;
+        }
+
+        public setIsMouseClicked(isClicked: boolean): void {
+            this.isMouseClicked = isClicked;
+        }
+
+        public setIsMouseClickedTwice(isClickedTwice: boolean): void {
+            this.isMouseClickedTwice = isClickedTwice;
+        }
+
+        public setIsMouseWheel(isWheel: boolean): void {
+            this.isMouseWheel = isWheel;
+        }
+
+        public setWheelYDelta(delta: number): void {
+            this.wheelYDelta = delta;
+        }
+
+        public setMousePos(x: number, y: number): void {
+            this.mouseX = x;
+            this.mouseY = y;
+        }
+
+        public setPrevMousePos(x: number, y: number): void {
+            this.prevMouseX = x;
+            this.prevMouseY = y;
+        }
+
+        public setClickOffsetRef(offset: { x: number; y: number } | undefined): void {
+            this.clickOffsetRef = offset;
+        }
+
+
+        public setMouseTimer(timer: number): void {
+            this.mouseTimer = timer;
+        }
 }

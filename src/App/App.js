@@ -1,10 +1,9 @@
 import { RenderableObject } from "../RenderableObject.js";
 import { initalizeApp } from "./initializeApp.js";
-import { initInputListeners } from "./initializeApp.js";
 import { prepareForFirstPass, prepareForScndPass, retrieveRenderObjs, addNewComposition, resetMouseClick, resizeCanvas } from "./AppHelper.js";
 import { drawPass } from "./AppDraw.js";
 
-import { handleEvents } from "./AppHandlers.js";
+import { handleEvents } from "./AppEvents.js";
 
 import { UI } from "../UI/UI.js";
 import { UINodeParam } from "../UI/NodeEditor/UINodeParam.js";
@@ -15,41 +14,28 @@ import { Component } from "../UI/NodeEditor/Component.js";
 
 import { procc } from "../animation/animation_operations.js";
 
-import { RoundedRectangleBuffer } from "../Primitives/RoundedRectangleBuffer.js";
-
 import { InputManager } from "./InputManager.js";
+import { SceneManager } from "./SceneManager.js";
 
 export class App
 {
+    // Reference to WebGl and HTML objects
     gl = {};
     programs = [];
-    canvas = {};
     document = {};
 
     time = 0.;
     fps = 0.;
 
-    primitiveBuffers = undefined;
+    // App managers
+    sceneManager;
+    inputManager;
 
-    objsToDraw = [];
+    primitiveBuffers = undefined;
 
     framebuffer = {};
     depthBuffer = {};
     renderTexture = {};
-
-    isMouseDown = false;
-    isMouseClicked = false;
-    isMouseClickedTwice = false;
-    clickOffset = undefined;
-    mouseX = 0;
-    mouseY = 0;
-
-    prevMouseX = 0;
-    prevMouseY = 0;
-
-    inputState = {
-        keyPressed: [],
-    }
 
     settings = {
         render:
@@ -58,36 +44,18 @@ export class App
         }
     }
 
-    pickingData = new Uint8Array(4);
-
     comps = [];
-    activeComp = {};
 
     UI;
     fontUI = undefined;
 
-    activeObjID = -1;
-    activeObjArrIndx = -1;
-
-    prevActiveObjID = -1;
-    prevActiveObjArrIndx = -1;
-
-    objectIDtoDrag = -1;
-    objectToDragArrIndx = -1;
-
-    objUnderMouseID = -1;
-    objUnderMouseArrIndx = -1;
-
     animationCounter = 0;
-
     shouldAnimate = false;
     animationTimer = 0.;
-
     lastTime = 0.;
-
     drawCalls = 0;
 
-    constructor(gl, canvas, programsInfo, framebuffer, depthBuffer, renderTexture)
+    constructor(gl, programsInfo, framebuffer, depthBuffer, renderTexture)
     {
 
         // save gl for local use
@@ -95,14 +63,14 @@ export class App
         this.ext = this.gl.getExtension('GMAN_webgl_memory');
         this.document = gl.canvas.parentNode;
         this.programs = programsInfo;
-        this.canvas = canvas;
 
         this.framebuffer = framebuffer;
         this.depthBuffer = depthBuffer;
         this.renderTexture = renderTexture;
 
-        // All input listeners initialized here
-        initInputListeners(this);
+        // Create managers for the app
+        this.sceneManager = new SceneManager();
+        this.inputManager = new InputManager(gl.canvas, this.sceneManager);
 
         // Start the app
         this.start();
@@ -170,21 +138,7 @@ export class App
         obj1.setScale([1,1]);
         obj1.name = "myCircle";
 
-        const obj2 = new RenderableObject(this.primitiveBuffers.circle);
-        obj2.setPosition([100,0]);
-        obj2.setScale([0.5,1]);
-        obj2.name = "circle2";
-
-        obj2.setParent(obj1);
-
-        const roundedRectBuff = new RoundedRectangleBuffer(this.gl, this.programs[5]);
-        const roundedRect = new RenderableObject(roundedRectBuff);
-        roundedRect.properties.resolution = [this.gl.canvas.width,this.gl.canvas.height];
-
-        roundedRect.setPosition([500,500]);
-        roundedRect.setScale([7,3.5]);
-
-        this.activeComp.addObj([solid,obj1,obj2,roundedRect]);
+        this.activeComp.addObj([obj1]);
 
         const simParams = [
             new UINodeParam("position", "TEXT_READ", [0,0]),
@@ -199,14 +153,8 @@ export class App
 
         
         const sobj = this.activeComp.objects[1];
-        const sobj2 = this.activeComp.objects[2];
-        const sobj3 = this.activeComp.objects[3];
-
         const newObjNode = this.UI.addObjNode(sobj);
-        const newObjNode2 = this.UI.addObjNode(sobj2);
-        const newObjNode3 = this.UI.addObjNode(sobj3);
         newObjNode.setPosition([500,550]);
-
 
         const fnc = (in1) => { return [[100,500]]; };
         const effectorFunction = new Effector("Custom function", fnc, 2, 2);
@@ -289,10 +237,12 @@ export class App
         const viewerObjs = retrieveRenderObjs(this.UI.viewer);
         const activeCompObjs = retrieveRenderObjs(this.activeComp.viewport);
 
-        this.objsToDraw = [
+        const objsToDraw = [
             { mask: [ this.UI.viewer ], objs: [ ...viewerObjs ] },
             { mask: [ this.UI.viewport ], objs: [ ...activeCompObjs] },
         ];
+
+        this.sceneManager.setObjsToDraw(objsToDraw);
     }
 
     drawFrame()
@@ -312,7 +262,7 @@ export class App
         this.drawUI(UIList, pickingShader, this.UI.viewer.camera );
         this.drawComp(activeCompList, pickingShader, this.activeComp.camera);
 
-        handleEvents(this);
+        handleEvents(this.gl, this.document.style, this.UI, this.inputManager, this.sceneManager);
 
         // 2nd Pass - Draw "normally"
         prepareForScndPass(this.gl);

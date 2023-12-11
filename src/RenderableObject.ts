@@ -1,7 +1,7 @@
-import { GeometryObject } from "./GeometryObject";
-import { UINodeParam } from "./UI/NodeEditor/UINodeParam";
+import { GeometryObject } from "./GeometryObject.js";
+import { UINodeParam } from "./UI/NodeEditor/UINodeParam.js";
 
-import { anyObj } from "./types/globalTypes";
+import { anyObj } from "./types/globalTypes.js";
 
 export class RenderableObject extends GeometryObject
 {
@@ -17,7 +17,7 @@ export class RenderableObject extends GeometryObject
     buffer;
     name : string;
     
-    constructor(objBuffer, extraParams : anyObj)
+    constructor(objBuffer, extraParams : anyObj | undefined)
     {
         super();
 

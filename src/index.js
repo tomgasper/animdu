@@ -224,7 +224,7 @@ function main()
     const fb = setUpPickingFramebuffer(gl, targetTexture, depthStencilBuffer);
 
     // Set up new application
-    const app = new App(gl,canvas,programsInfo, fb, depthStencilBuffer, targetTexture);
+    const app = new App(gl,programsInfo, fb, depthStencilBuffer, targetTexture);
 
     // Set up render loop
     const renderLoop = new RenderLoop( app.doFrame.bind(app) );

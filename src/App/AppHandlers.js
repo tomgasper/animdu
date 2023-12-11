@@ -42,7 +42,7 @@ export const handleEvents = (app) =>
         handleHandleOnMouseMove(app);
 }
 
-export const handleHandleOnMouseMove = (app) =>
+const handleHandleOnMouseMove = (app) =>
 {
     if (app.objectIDtoDrag < 0 && app.objectToDragArrIndx < 0) return;
 
@@ -54,7 +54,7 @@ export const handleHandleOnMouseMove = (app) =>
         }
 }
 
-export const handleUnderMouseCursor = (app, id) =>
+const handleUnderMouseCursor = (app, id) =>
 {
     if (id.id > 0)
         {
