@@ -19,18 +19,22 @@ export const resetMousePointer = (documentStyle) =>
     }
 };
 
-export const getPosFromMat = (obj : RenderableObject | number[] )  =>
+export const getPosFromMat = (obj : RenderableObject | number[] ) : number[] =>
 {
     // accept node instance or matrix
-    if ( obj instanceof GeometryObject )
+    let pos : number[];
+    if ( (obj instanceof GeometryObject) )
     {
-        let pos : number[];
-
-        if (obj.worldMatrix) pos = [obj.worldMatrix[6], obj.worldMatrix[7]];
-        else pos = [obj[6], obj[7]];
+        pos = [obj.worldMatrix[6], obj.worldMatrix[7]];
 
         return pos;
-    } else throw Error("Wrong input object!");
+    } else if ( obj instanceof Array)
+    {
+        pos = [obj[6], obj[7]];
+
+        return pos;
+    }
+    else throw Error("Wrong input object!");
 }
 
 // should only pass state manager
@@ -47,9 +51,7 @@ export const moveObjectWithCoursor = (  inputManager : InputManager,
 
         if (!clickOffset)
         {
-            let curr_pos = [ objToDrag.worldMatrix[6], objToDrag.worldMatrix[7] ];
-
-            curr_pos = getPosFromMat(m3.multiply(m3.inverse(camera), objToDrag.worldMatrix));
+            let curr_pos = getPosFromMat(m3.multiply(m3.inverse(camera), objToDrag.worldMatrix))!;
             
             inputManager.setClickOffset(mousePos.x - curr_pos[0], mousePos.y - curr_pos[1]);
         }

@@ -52,6 +52,10 @@ export const drawObjects = (app, objsToDraw, objsArrIndx, programInfo = undefine
                 obj.setColor(obj.properties.originalColor);
         })} else {  // Use object's shader when shader hasn't been specified
             objsToDraw.forEach((obj, ii) => {
+                // Sometimes we will be erasing object during "EventHandler" phase
+                // this check is here to ignore mid-frame deleted object
+                if (!obj || !obj.buffer) return;
+
                 let objProgram = obj.buffer.renderInfo.programInfo;
 
                 // Switch shader if the cached one doesn't work
@@ -103,17 +107,19 @@ export const drawObjects = (app, objsToDraw, objsArrIndx, programInfo = undefine
 
 const drawInMask = (appRef, objsArrIndx, program,camera) =>
 {
+    const objsToDraw = appRef.sceneManager.getObjsToDraw();
+
     appRef.gl.clear(appRef.gl.STENCIL_BUFFER_BIT);
     appRef.gl.enable(appRef.gl.STENCIL_TEST);
     
     appRef.gl.stencilFunc(appRef.gl.ALWAYS,1,0xFF);
     appRef.gl.stencilOp(appRef.gl.REPLACE, appRef.gl.REPLACE, appRef.gl.REPLACE);
-    drawObjects(appRef, appRef.objsToDraw[objsArrIndx].mask, objsArrIndx, program, camera);
+    drawObjects(appRef, objsToDraw[objsArrIndx].mask, objsArrIndx, program, camera);
     
     // appRef.gl.stencilMask(0xFF);
     appRef.gl.stencilFunc(appRef.gl.EQUAL, 1, 0xFF);
     appRef.gl.stencilOp(appRef.gl.KEEP, appRef.gl.KEEP, appRef.gl.KEEP);
-    drawObjects(appRef, appRef.objsToDraw[objsArrIndx].objs, objsArrIndx, program, camera);
+    drawObjects(appRef, objsToDraw[objsArrIndx].objs, objsArrIndx, program, camera);
     appRef.gl.disable(appRef.gl.STENCIL_TEST);
 }
 

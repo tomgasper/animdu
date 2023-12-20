@@ -10,7 +10,7 @@ import { TextData } from "./TextData.js";
 
 export class ObjNode extends UINode
 {
-    type = "_NODE_OBJ";
+    type : string = "_NODE_OBJ";
     txtArr : TextData[];
     obj : RenderableObject;
 

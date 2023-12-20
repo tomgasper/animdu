@@ -64,8 +64,8 @@ export function getIdFromCurrentPixel(glRef, pickingDataRef, mouseX, mouseY)
       pixelY,            // y
       1,                 // width
       1,                 // height
-      appRef.gl.RGBA,           // format
-      appRef.gl.UNSIGNED_BYTE,  // type
+      glRef.RGBA,           // format
+      glRef.UNSIGNED_BYTE,  // type
       pickingDataRef);             // typed array to hold result
   
       const arrIndx = pickingDataRef[0];

@@ -7,19 +7,19 @@ export class SceneManager
     // Object state
     private objsToDraw : RenderQueueType;
 
-    private activeObjID : number;
-    private activeObjArrIndx : number;
+    private activeObjID : number = -1;
+    private activeObjArrIndx : number = -1;
     private prevActiveObjID : number;
     private prevActiveObjArrIndx : number;
 
-    private objectIDtoDrag : number;
-    private objectToDragArrIndx : number;
+    private objectIDtoDrag : number = -1;
+    private objectToDragArrIndx : number = -1;
 
-    private objUnderMouseId : number;
-    private objUnderMouseArrIndx : number;
+    private objUnderMouseId : number = -1;
+    private objUnderMouseArrIndx : number =-1;
 
     // Picking data
-    private pickingData : Uint8Array[4];
+    private pickingData : Uint8Array = new Uint8Array(4);
 
     // Camera state
     private activeComp : Composition;
@@ -80,6 +80,11 @@ export class SceneManager
         this.objectToDragArrIndx = arrIndx;
     }
 
+    public getObjsToDraw()
+    {
+        return this.objsToDraw;
+    }
+
     public setPrevActiveObjID(id:number, arrIndx:number)
     {
         this.prevActiveObjID = id;
@@ -126,7 +131,7 @@ export class SceneManager
 
     public getObjByID(ID : IDType)
     {
-        return this.objsToDraw[ID.arrIndx].obj[ID.id];
+        return this.objsToDraw[ID.arrIndx].objs[ID.id];
     }
 
     public setActiveCamera(comp : Composition)

@@ -4,10 +4,13 @@ import { InputManagerState } from "../types/globalTypes.js";
 export class InputManager
 {
     // Keyboard state
+    private isKeyPressed : boolean;
     private keyPressed: Set<string>;
+    private prevKeyPressed: Set<string>;
 
     // Mouse State
     private isMouseDown: boolean;
+    private isMouseUp: boolean;
     private isMouseClicked: boolean;
     private isMouseClickedTwice: boolean;
     private isMouseWheel : boolean;
@@ -25,7 +28,7 @@ export class InputManager
     private mouseClientX : number;
     private mouseClientY : number;
 
-    constructor(glCanvas, sceneManager : SceneManager)
+    constructor(glCanvas, htmlDocument)
     {
         this.keyPressed = new Set();
         this.isMouseDown = false;
@@ -39,10 +42,10 @@ export class InputManager
         this.clickOffsetRef = undefined;
 
         // Initialize event listeners
-        this.initEventListeners(glCanvas, sceneManager);
+        this.initEventListeners(glCanvas, htmlDocument);
     }
 
-    private initEventListeners(glCanvas, sceneManager : SceneManager)
+    private initEventListeners(glCanvas, htmlDocument )
     {
         glCanvas.addEventListener("mousemove", (e) => {
             const DELAY = 10;
@@ -68,27 +71,17 @@ export class InputManager
             this.mouseClientY = e.clientY;
          });
     
-        glCanvas.addEventListener("keyup", (e) => {
+        htmlDocument.addEventListener("keyup", (e) => {
+            this.prevKeyPressed = new Set(this.keyPressed);
             this.keyPressed.delete(e.key);
         });
     
-        glCanvas.addEventListener("keydown", (e) => {
+        htmlDocument.addEventListener("keydown", (e) => {
             // Should be in eventhandler function
-            if (!this.keyPressed.has(e.key)) this.keyPressed.add(e.key);
+            this.isKeyPressed = true;
 
-            const activeObjID = sceneManager.getActiveObjID();
-            let activeObj;
-    
-            // No scene object selected
-            if (activeObjID.id < 0 || activeObjID.arrIndx < 0) return;
-    
-            // Some scene object selected
-            if ( activeObj = sceneManager.getActiveObj() && activeObj.handlers.onInputKey )
-            {
-                let currObj = activeObj.handlers;
-                
-                currObj.onInputKey.call(currObj,e);
-            }
+            this.prevKeyPressed = new Set(this.keyPressed);
+            if (!this.keyPressed.has(e.key)) this.addKeyPressed(e.key);
         });
     
          glCanvas.addEventListener("mousedown", (e) => {
@@ -105,22 +98,10 @@ export class InputManager
             this.isMouseClickedTwice = true;
          });
     
-         glCanvas.addEventListener("mouseup", (sceneManager : SceneManager, e) => {
+         glCanvas.addEventListener("mouseup", () => {
             // Should be in eventhandler function
             this.isMouseDown = false;
-
-            const objIdToDrag = sceneManager.getObjIDToDrag();
-            if (objIdToDrag.id >= 0 && objIdToDrag.arrIndx >= 0)
-            {
-                const obj = sceneManager.getActiveObj();
-                if (obj && obj.handlers.onMouseUp)
-                {
-                    obj.handlers.onMouseUp.call(obj.handlers, sceneManager.getObjUnderMouseID());
-                }
-            }
-
-            // Mouse up -> reset state of active object
-            sceneManager.setObjIDToDrag(-1,-1);
+            this.isMouseUp = true;
          });
     
          glCanvas.addEventListener("wheel", (e) => {
@@ -140,6 +121,10 @@ export class InputManager
 
         public getIsMouseDown(): boolean {
             return this.isMouseDown;
+        }
+        
+        public getIsMouseUp(): boolean {
+            return this.isMouseUp;
         }
 
         public getIsMouseClicked(): boolean {
@@ -200,6 +185,8 @@ export class InputManager
 
         public getCurrentState(): InputManagerState {
             return {
+                isKeyPressed : this.isKeyPressed,
+                prevKeyPressed: this.prevKeyPressed,
                 keyPressed: new Set(this.keyPressed), // Clone to prevent external modifications
                 isMouseDown: this.isMouseDown,
                 isMouseClicked: this.isMouseClicked,
@@ -214,8 +201,15 @@ export class InputManager
             };
         }
 
-        public setClickOffset(x: number, y:number)
+        public setClickOffset(x: number | undefined, y:number | undefined)
         {
+            // Reset clickoffset
+            if (!x || !y)
+            {
+                this.clickOffsetRef = undefined;
+                return;
+            }
+
             if (!this.clickOffsetRef)
             {
                 this.clickOffsetRef = {
@@ -239,6 +233,10 @@ export class InputManager
 
         public setIsMouseDown(isDown: boolean): void {
             this.isMouseDown = isDown;
+        }
+
+        public setIsMouseUp(isUp : boolean): void {
+            this.isMouseUp = isUp;
         }
 
         public setIsMouseClicked(isClicked: boolean): void {
@@ -274,5 +272,13 @@ export class InputManager
 
         public setMouseTimer(timer: number): void {
             this.mouseTimer = timer;
+        }
+
+        public getIsKeyPressed() : boolean {
+            return this.isKeyPressed;
+        }
+
+        public setIsKeyPressed(isKeyPressed : boolean) {
+            this.isKeyPressed = isKeyPressed;
         }
 }
