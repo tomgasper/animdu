@@ -55,6 +55,8 @@ export class App
     lastTime = 0.;
     drawCalls = 0;
 
+    // test
+
     constructor(gl, programsInfo, framebuffer, depthBuffer, renderTexture)
     {
 
