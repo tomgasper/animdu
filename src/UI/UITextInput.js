@@ -5,7 +5,7 @@ import { UIObject } from "./UIObject.js";
 
 import { changeValueNumeric } from "../utils.js";
 
-import { hexToRgb } from "../utils.js";
+import { hexToRgb, areSetsEqual } from "../utils.js";
 
 export class UITextInput extends UIObject
 {
@@ -69,22 +69,23 @@ export class UITextInput extends UIObject
         // centre the text
         txt.setPosition([this.width/2-txtWidth/2, 0 ]);
 
-        this.handlers.onInputKey = (e) => { this.handleInput(e); };
-        txt.handlers.onInputKey = (e) => { this.handleInput(e); };
+        this.handlers.onInputKey = (keyPressed) => { this.handleInput( keyPressed); };
+        txt.handlers.onInputKey = (keyPressed) => { this.handleInput(keyPressed); };
 
         // set hierarchy
         if (this.parent) this.setParent(this.parent);
         txt.setParent(this);
     }
 
-    handleInput(e)
+    handleInput(keyPressed)
     {
         // Get rid of placeholder txt on click
         const currStr = this.txtObj.getText();
 
-        const newStr = changeValueNumeric(this.placeholder, currStr, e.key);
+        const key = keyPressed.values().next().value;
 
-        console.log(newStr);
+        const newStr = changeValueNumeric(this.placeholder, currStr, key);
+        
         if ((typeof newStr !== "string")) return;
 
         this.txtObj.updateText(newStr);

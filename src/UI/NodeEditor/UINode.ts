@@ -1,5 +1,4 @@
 import { getProjectionMat, hexToRgb } from "../../utils.js";
-import { createNewText } from "../../Text/textHelper.js";
 
 import { UIObject } from "../UIObject.js";
 

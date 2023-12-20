@@ -17,6 +17,11 @@ export class UINodeEditor extends UIObject
         container: {
             colour: undefined
         },
+    };
+
+    elements = {
+        ...this.elements,
+        lines:[]
     }
 
     constructor(appRef, UIRef, dims)

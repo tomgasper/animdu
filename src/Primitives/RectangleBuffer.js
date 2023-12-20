@@ -69,6 +69,8 @@ export class RectangleBuffer {
         // set custom size
         if (size && size.length == 2)
         {
+            if (!size[0] || !size[1]) throw new Error("Incorrect input rectangle size");
+            
             this.bufferData = [
                 0, 0,
                 size[0], 0,

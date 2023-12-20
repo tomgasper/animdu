@@ -456,3 +456,5 @@ export const changeValueNumeric = (startVal, target, inputKey) =>
 
     return [newCoords[6], newCoords[7]];
   }
+
+  export const areSetsEqual = (a : Set<string>, b: Set<string>) => a.size === b.size && [...a].every(value => b.has(value));

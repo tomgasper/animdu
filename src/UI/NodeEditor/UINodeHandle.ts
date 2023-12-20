@@ -130,7 +130,12 @@ export class UINodeHandle extends RenderableObject
 
     handleHandleMouseUp(objUnderMouseID : number)
     {
-        const objUnderMouse = this._ref.app.objsToDraw[this._ref.app.objUnderMouseArrIndx].objs[objUnderMouseID];
+        const objsToDraw = this._ref.app.sceneManager.getObjsToDraw();
+        const objUnderMouseID2 = this._ref.app.sceneManager.getObjUnderMouseID();
+        const objUnderMouse = this._ref.app.sceneManager.getObjByID(objUnderMouseID2);
+
+
+        //const objUnderMouse = objsToDraw[this._ref.app.objUnderMouseArrIndx].objs[objUnderMouseID];
 
         if (objUnderMouse instanceof UINodeHandle && this != objUnderMouse)
         {
@@ -157,9 +162,6 @@ export class UINodeHandle extends RenderableObject
             this.line.update(this.line, data);
         } else {
             // no handle under the mouse on release so get rid of preview line
-
-            // yeah but we still got reference to old connection?
-
             // handle disconect here
             if (this.line.connection.isConnected)
             {

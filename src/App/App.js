@@ -70,7 +70,7 @@ export class App
 
         // Create managers for the app
         this.sceneManager = new SceneManager();
-        this.inputManager = new InputManager(gl.canvas, this.sceneManager);
+        this.inputManager = new InputManager(gl.canvas, this.document);
 
         // Start the app
         this.start();
@@ -122,9 +122,11 @@ export class App
 
         // Create main comp and set it as active
         const mainComp = addNewComposition(this, "Main comp", this.UI.viewport);
+        this.sceneManager.setActiveCamera(mainComp);
 
         // Background
-        const solidBuffer = new RectangleBuffer(this.gl, this.programs[0], [this.activeComp.viewport.width, this.activeComp.viewport.height]);
+        const activeComp = this.sceneManager.getActiveComp();
+        const solidBuffer = new RectangleBuffer(this.gl, this.programs[0], [activeComp.viewportRef.width, activeComp.viewportRef.height]);
         const solid = new RenderableObject(solidBuffer);
         solid.name = "solid";
 
@@ -138,7 +140,7 @@ export class App
         obj1.setScale([1,1]);
         obj1.name = "myCircle";
 
-        this.activeComp.addObj([obj1]);
+        activeComp.addMultipleObjs([solid, obj1]);
 
         const simParams = [
             new UINodeParam("position", "TEXT_READ", [0,0]),
@@ -152,7 +154,7 @@ export class App
 
 
         
-        const sobj = this.activeComp.objects[1];
+        const sobj = activeComp.objects[1];
         const newObjNode = this.UI.addObjNode(sobj);
         newObjNode.setPosition([500,550]);
 
@@ -195,7 +197,7 @@ export class App
         this.fps = fps;
 
         if (this.shouldAnimate) this.processAnimationFrame(elapsedTime);
-        this.createDrawList(this.UI, this.activeComp.objects);
+        this.createDrawList(this.UI.viewer, this.sceneManager.getActiveComp());
         this.drawFrame();
     }
 
@@ -228,14 +230,14 @@ export class App
         this.shouldAnimate = false;
     }
 
-    createDrawList()
+    createDrawList(UI, activeComp)
     {
         // need to:
         // 1. calc world matrices for each object
         // 2. render via tree traversal
 
-        const viewerObjs = retrieveRenderObjs(this.UI.viewer);
-        const activeCompObjs = retrieveRenderObjs(this.activeComp.viewport);
+        const viewerObjs = retrieveRenderObjs(UI);
+        const activeCompObjs = retrieveRenderObjs(activeComp.viewportRef);
 
         const objsToDraw = [
             { mask: [ this.UI.viewer ], objs: [ ...viewerObjs ] },
@@ -258,12 +260,14 @@ export class App
         const pickingShader = 1;
 
         // Draw to texture - PASS 1
-        prepareForFirstPass(this, this.framebuffer, [this.mouseX, this.mouseY]);
+        const mousePos = [ this.inputManager.getMouseX(), this.inputManager.getMouseY() ];
+        prepareForFirstPass(this, this.framebuffer, mousePos);
         this.drawUI(UIList, pickingShader, this.UI.viewer.camera );
         this.drawComp(activeCompList, pickingShader, this.activeComp.camera);
 
         handleEvents(this.gl, this.document.style, this.UI, this.inputManager, this.sceneManager);
 
+        
         // 2nd Pass - Draw "normally"
         prepareForScndPass(this.gl);
         // passing undefined program so each object uses its own shader
@@ -277,7 +281,7 @@ export class App
     {
         const renderSettings = {
             appRef: this,
-            objsToDraw: [ this.objsToDraw[listToUse] ],
+            objsToDraw: [ this.sceneManager.getObjsToDraw()[listToUse] ],
             program: this.programs[programIndx],
             listIndx: listToUse,
             camera: camera
@@ -292,7 +296,7 @@ export class App
 
         const renderSettings = {
             appRef: this,
-            objsToDraw: [ this.objsToDraw[listToUse] ],
+            objsToDraw: [ this.sceneManager.getObjsToDraw()[listToUse] ],
             program: this.programs[programIndx],
             listIndx: listToUse,
             camera: camera

@@ -76,7 +76,7 @@ export class Component extends UIObject
         super(appRef, buffInfo);
 
         this.addExtraParam({
-            resolution: [this._ref.app.canvas.width,this._ref.app.canvas.height
+            resolution: [this._ref.app.gl.width,this._ref.app.gl.height
         ]});
 
         this.setName(name);

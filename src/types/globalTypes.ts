@@ -15,11 +15,13 @@ export interface SceneManagerState {
     activeObjID: IDType;
     objToDragID: IDType;
     objUnderMouse: IDType;
-    pickingData: Uint8Array[4]; // Assuming it's a Uint8Array of length 4
+    pickingData: Uint8Array; // Assuming it's a Uint8Array of length 4
     activeComp: Composition;
 }
 
 export interface InputManagerState {
+    isKeyPressed: boolean;
+    prevKeyPressed: Set<string>;
     keyPressed: Set<string>;
     isMouseDown: boolean;
     isMouseClicked: boolean;

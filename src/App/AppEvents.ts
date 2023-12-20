@@ -25,7 +25,14 @@ export const handleEvents = (
 
     // Moving app view camera when holding space
     // Cancel other events if true
-    if ( moveViewCamera(inputEntryState, documentStyleRef, activeComp.getCamera(), UI.viewer.camera) ) return;
+    const canvasDims = {height: glRef.canvas.clientHeight,
+                        width: glRef.canvas.clientWidth};
+
+    if ( moveViewCamera(inputEntryState,
+                        documentStyleRef,
+                        activeComp.getCamera(),
+                        UI.viewer.camera,
+                        canvasDims) ) return;
 
     // Handle mouse wheel
     const isMouseWheelAction = inputManager.getIsMouseWheel();
@@ -33,6 +40,9 @@ export const handleEvents = (
     {
         handleMouseWheel(glRef, inputManager, sceneManager, UI);
     }
+
+    // Handle key down or key pressed
+    handleKeyDown(sceneManager, inputEntryState.isKeyPressed, inputEntryState.keyPressed);
 
     // Look up id of the object under mouse cursor
     const underMouseObjId = getIdFromCurrentPixel(  glRef,
@@ -54,6 +64,9 @@ export const handleEvents = (
     // Handle UI Node handles events
     handleHandleOnMouseMove( inputManager, sceneManager);
 
+    // Handle mouse up
+    handleMouseUp( inputManager, sceneManager);
+
     // Reset inputs
     resetInputs(inputManager, sceneManager);
 }
@@ -63,12 +76,14 @@ const resetInputs = (inputManager : InputManager, sceneManager : SceneManager) =
     inputManager.setIsMouseWheel(false);
     inputManager.setIsMouseClicked(false);
     inputManager.setIsMouseClickedTwice(false);
+    inputManager.setIsKeyPressed(false);
 }
 
-const moveViewCamera = (inputState, documentStyleRef, activeCamera : Camera, UICamera : Camera) =>
+const moveViewCamera = (inputState, documentStyleRef, activeCamera : Camera, UICamera : Camera, glClientDimension) =>
 {
-    if (inputState.keyPressed.indexOf(" ") !== -1)
+    if (inputState.keyPressed.has(" "))
     {
+        console.log("Space!");
         // movingCamera = true;
         // app.document.style.cursor = "grab";
         documentStyleRef.cursor = "grab";
@@ -79,7 +94,7 @@ const moveViewCamera = (inputState, documentStyleRef, activeCamera : Camera, UIC
             const dist_y = inputState.mouseY - inputState.prevMouseY;
 
             let cam : Camera;
-            if (inputState.mouseY < inputState.gl.canvas.clientHeight/2) cam = activeCamera;
+            if (inputState.mouseY < glClientDimension.height/2) cam = activeCamera;
             else cam = UICamera;
 
             cam.setPosition([cam.position[0] - ( dist_x * 1/cam.zoom ), cam.position[1] - ( dist_y * 1/cam.zoom) ]);
@@ -98,13 +113,33 @@ const handleHandleOnMouseMove = (inputManager : InputManager,
     const objIDToDrag = sceneManager.getObjIDToDrag();
     if (objIDToDrag.id < 0 && objIDToDrag.arrIndx < 0) return;
 
-    const objToMove = sceneManager.getActiveObj();
+    const objToMove = sceneManager.getObjByID(objIDToDrag);
     const mousePos = inputManager.getMousePos();
     if (objToMove.handlers.onMouseMove)
         {
 
             objToMove.handlers.onMouseMove.call(objToMove, [mousePos.x, mousePos.y]);
         }
+}
+
+const handleMouseUp = ( inputManager : InputManager, sceneManager : SceneManager) =>
+{
+    if (!inputManager.getIsMouseUp()) return;
+    const objIdToDrag = sceneManager.getObjIDToDrag();
+            if (objIdToDrag.id >= 0 && objIdToDrag.arrIndx >= 0)
+            {
+                const obj = sceneManager.getObjByID(objIdToDrag);
+                if (obj && obj.handlers.onMouseUp)
+                {
+                    obj.handlers.onMouseUp.call(obj.handlers, sceneManager.getObjUnderMouseID());
+                }
+            }
+
+            // Mouse up -> reset state of active object
+            sceneManager.setObjIDToDrag(-1,-1);
+
+            inputManager.setClickOffset(undefined, undefined);
+            inputManager.setIsMouseUp(false);
 }
 
 const handleUnderMouseCursor = (documentStyleRef,
@@ -214,4 +249,23 @@ const handleMouseWheel = (glRef, inputManager: InputManager, sceneManager : Scen
             const newCamPosY = compCamera.position[1] + ( preZoomY - postZoomY );
     
             compCamera.setPosition( [newCamPosX, newCamPosY]);
+}
+
+const handleKeyDown = (sceneManager: SceneManager, isKeyPressed : boolean,  keyPressed : Set<string>) =>
+{
+    if (keyPressed.size < 1) return;
+
+    const activeObjID = sceneManager.getActiveObjID();
+
+    // No scene object selected
+    if (activeObjID.id < 0 || activeObjID.arrIndx < 0) return;
+
+    let activeObj = sceneManager.getActiveObj();
+    // Some scene object selected
+    if ( activeObj && (isKeyPressed === true) && activeObj.handlers.onInputKey )
+    {
+        let currObj = activeObj.handlers;
+        
+        currObj.onInputKey.call(currObj, keyPressed);
+    }
 }
