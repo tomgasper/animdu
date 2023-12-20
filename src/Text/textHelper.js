@@ -1,5 +1,5 @@
-import { TextObject } from "./TextObject.js";
-import { TextBuffer } from "./TextBuffer.js";
+import { TextObject } from './TextObject';
+import { TextBuffer } from './TextBuffer';
 
 export function createNewText(gl, program, text, textSize, font, txtColor)
 {

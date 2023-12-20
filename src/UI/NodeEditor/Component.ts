@@ -1,26 +1,26 @@
-import { RenderableObject } from "../../RenderableObject.js";
-import { UIObject } from "../UIObject.js";
+import { RenderableObject } from '../../RenderableObject';
+import { UIObject } from '../UIObject';
 
-import { ParamNode } from "./ParamNode.js";
-import { FunctionNode } from "./FunctionNode.js";
-import { Button } from "../Button.js";
+import { ParamNode } from './ParamNode';
+import { FunctionNode } from './FunctionNode';
+import { Button } from '../Button';
 
-import { ComponentNode } from "./ComponentNode.js";
-import { UITextInput } from "../UITextInput.js";
+import { ComponentNode } from './ComponentNode';
+import { UITextInput } from '../UITextInput';
 
-import { createNewText } from "../../Text/textHelper.js";
+import { createNewText } from '../../Text/textHelper';
 
-import { isNumeric } from "../../utils.js";
+import { isNumeric } from '../../utils';
 
-import { hexToRgb } from "../../utils.js";
+import { hexToRgb } from '../../utils';
 
-import { UINode } from "./UINode.js";
-import { UINodeParam } from "./UINodeParam.js";
-import { TextData } from "./TextData.js";
-import { UINodeHandle } from "./UINodeHandle.js";
-import { TextObject } from "../../Text/TextObject.js";
-import { anyFnc } from "../../types/globalTypes.js";
-import { Effector } from "./Effector.js";
+import { UINode } from './UINode';
+import { UINodeParam } from './UINodeParam';
+import { TextData } from './TextData';
+import { UINodeHandle } from './UINodeHandle';
+import { TextObject } from '../../Text/TextObject';
+import { anyFnc } from '../../types/globalTypes';
+import { Effector } from './Effector';
 
 interface ComponentElements {
             nodes: {

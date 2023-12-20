@@ -1,12 +1,12 @@
-import { getProjectionMat, m3 } from "../utils.js";
-import { RenderableObject } from "../RenderableObject.js";
-import { renderObject } from "../utils.js";
-import { TextObject } from "../Text/TextObject.js";
+import { getProjectionMat, m3 } from '../utils';
+import { RenderableObject } from '../RenderableObject';
+import { renderObject } from '../utils';
+import { TextObject } from '../Text/TextObject';
 
-import { calcViewProjMat } from "../utils.js";
-import { UISceneViewport } from "../UI/UISceneViewport.js";
+import { calcViewProjMat } from '../utils';
+import { UISceneViewport } from '../UI/UISceneViewport';
 
-import { UINodeEditor } from "../UI/UINodeEditor.js";
+import { UINodeEditor } from '../UI/UINodeEditor';
 
 // Draw functions
 export const drawObjects = (app, objsToDraw, objsArrIndx, programInfo = undefined, camera) =>

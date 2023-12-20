@@ -1,11 +1,11 @@
-import { getProjectionMat } from "../utils.js";
-import { createNewText } from "../Text/textHelper.js";
+import { getProjectionMat } from '../utils';
+import { createNewText } from '../Text/textHelper';
 
-import { UIObject } from "./UIObject.js";
+import { UIObject } from './UIObject';
 
-import { changeValueNumeric } from "../utils.js";
+import { changeValueNumeric } from '../utils';
 
-import { hexToRgb, areSetsEqual } from "../utils.js";
+import { hexToRgb, areSetsEqual } from '../utils';
 
 export class UITextInput extends UIObject
 {

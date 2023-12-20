@@ -1,5 +1,5 @@
-import { RenderableObject } from "../RenderableObject.js";
-import { UIObject } from "./UIObject.js";
+import { RenderableObject } from '../RenderableObject';
+import { UIObject } from './UIObject';
 
 export class Button extends UIObject
 {

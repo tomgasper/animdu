@@ -1,4 +1,4 @@
-import { computeTransform } from "../utils.js";
+import { computeTransform } from '../utils';
 
 export class Camera
 {

@@ -1,11 +1,11 @@
-import { RenderableObject } from "../../RenderableObject.js";
-import { InstancedLineBuffer } from "../../Primitives/InstancedLineBuffer.js";
-import { hexToRgb } from "../../utils.js";
-import {  getPosFromMat } from "../../App/AppHelper.js";
-import { m3, transformToParentSpace } from "../../utils.js";
-import { UINodeParam } from "./UINodeParam.js";
+import { RenderableObject } from '../../RenderableObject';
+import { InstancedLineBuffer } from '../../Primitives/InstancedLineBuffer';
+import { hexToRgb } from '../../utils';
+import {  getPosFromMat } from '../../App/AppHelper';
+import { m3, transformToParentSpace } from '../../utils';
+import { UINodeParam } from './UINodeParam';
 
-import { Line } from "./NodeEditorTypes.js";
+import { Line } from './NodeEditorTypes';
 
 export class UINodeHandle extends RenderableObject
 {

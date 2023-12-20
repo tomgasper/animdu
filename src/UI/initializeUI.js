@@ -1,10 +1,13 @@
-import { TextFont } from "../Text/TextFont.js";
+import { TextFont } from '../Text/TextFont';
 
-import { ubuntu_font } from "../fonts/ubuntu.js";
-import { ubuntu_bold_font } from "../fonts/ubuntu-bold.js";
+import { ubuntu_font } from '../fonts/ubuntu';
+import { ubuntu_bold_font } from '../fonts/ubuntu-bold';
 
-import { roboto_bold_font } from "../fonts/roboto-bold.js";
-import { roboto_font } from "../fonts/roboto.js";
+import { roboto_bold_font } from '../fonts/roboto-bold';
+import { roboto_font } from '../fonts/roboto';
+
+import robotoTexture from "../fonts/robotoTex.png"
+import robotoBoldTexture from '../fonts/roboto-boldTex.png';
 
 export const setUpMainFont = (app, UI) =>
     {
@@ -12,7 +15,7 @@ export const setUpMainFont = (app, UI) =>
 
      // Regular
     const fontSettings = {
-        textureSrc: "./src/fonts/roboto.png",
+        textureSrc: robotoTexture,
         texResolution: [1024,1024],
         color: [1,1,1.3,1],
         subpixel: 1,
@@ -22,7 +25,7 @@ export const setUpMainFont = (app, UI) =>
 
      // Bold
      const fontBoldSettings = {
-        textureSrc: "./src/fonts/roboto-bold.png",
+        textureSrc: robotoBoldTexture,
         texResolution: [1024,1024],
         color: [1,1,1.3,1],
         subpixel: 1,

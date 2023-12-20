@@ -1,10 +1,10 @@
-import { RenderableObject } from "../RenderableObject.js";
-import { Camera } from "./Camera.js";
+import { RenderableObject } from '../RenderableObject';
+import { Camera } from './Camera';
 
-import { ObjNode } from "../UI/NodeEditor/ObjNode.js";
+import { ObjNode } from '../UI/NodeEditor/ObjNode';
 
-import { anyObj } from "../types/globalTypes.js";
-import { UISceneViewport } from "../UI/UISceneViewport.js";
+import { anyObj } from '../types/globalTypes';
+import { UISceneViewport } from '../UI/UISceneViewport';
 
 export class Composition
 {

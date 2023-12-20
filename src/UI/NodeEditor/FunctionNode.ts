@@ -1,10 +1,10 @@
-import { UINode } from "./UINode.js";
-import { createNewText } from "../../Text/textHelper.js";
-import { hexToRgb } from "../../utils.js";
-import { Effector } from "./Effector.js";
-import { UINodeParam } from "./UINodeParam.js";
-import { TextData } from "./TextData.js";
-import { Component } from "./Component.js";
+import { UINode } from './UINode';
+import { createNewText } from '../../Text/textHelper';
+import { hexToRgb } from '../../utils';
+import { Effector } from './Effector';
+import { UINodeParam } from './UINodeParam';
+import { TextData } from './TextData';
+import { Component } from './Component';
 
 export class FunctionNode extends UINode
 {

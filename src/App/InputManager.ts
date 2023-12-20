@@ -1,5 +1,5 @@
-import { SceneManager } from "./SceneManager.js";
-import { InputManagerState } from "../types/globalTypes.js";
+import { SceneManager } from './SceneManager';
+import { InputManagerState } from '../types/globalTypes';
 
 export class InputManager
 {
@@ -71,12 +71,12 @@ export class InputManager
             this.mouseClientY = e.clientY;
          });
     
-        htmlDocument.addEventListener("keyup", (e) => {
+        window.addEventListener("keyup", (e) => {
             this.prevKeyPressed = new Set(this.keyPressed);
             this.keyPressed.delete(e.key);
         });
     
-        htmlDocument.addEventListener("keydown", (e) => {
+        window.addEventListener("keydown", (e) => {
             // Should be in eventhandler function
             this.isKeyPressed = true;
 

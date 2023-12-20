@@ -1,5 +1,5 @@
-import { CustomBuffer } from "../Primitives/CustomBuffer.js";
-import { UIObject } from "./UIObject.js";
+import { CustomBuffer } from '../Primitives/CustomBuffer';
+import { UIObject } from './UIObject';
 
 export class UISceneViewport extends UIObject
 {

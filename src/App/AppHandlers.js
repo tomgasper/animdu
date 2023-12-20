@@ -1,6 +1,6 @@
-import { getIdFromCurrentPixel } from "../pickingFramebuffer.js";
-import { resetMousePointer, highlightObjUnderCursor } from "./AppHelper.js";
-import { canMoveObj, moveObjectWithCoursor } from "./AppHelper.js";
+import { getIdFromCurrentPixel } from '../pickingFramebuffer';
+import { resetMousePointer, highlightObjUnderCursor } from './AppHelper';
+import { canMoveObj, moveObjectWithCoursor } from './AppHelper';
 
 export const handleEvents = (app) =>
 {

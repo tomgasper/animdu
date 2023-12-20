@@ -1,5 +1,5 @@
-import { UINodeParam } from "./UI/NodeEditor/UINodeParam.js";
-import { m3, computeTransform } from "./utils.js";
+import { UINodeParam } from './UI/NodeEditor/UINodeParam';
+import { m3, computeTransform } from './utils';
 
 export class GeometryObject
 {

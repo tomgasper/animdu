@@ -1,9 +1,9 @@
-import { UIObject } from "./UIObject.js";
-import { CustomBuffer } from "../Primitives/CustomBuffer.js";
+import { UIObject } from './UIObject';
+import { CustomBuffer } from '../Primitives/CustomBuffer';
 
-import { Component } from "./NodeEditor/Component.js";
+import { Component } from './NodeEditor/Component';
 
-import { hexToRgb } from "../utils.js";
+import { hexToRgb } from '../utils';
 
 export class UINodeEditor extends UIObject
 {

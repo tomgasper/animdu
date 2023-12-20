@@ -1,16 +1,16 @@
-import { getIdFromCurrentPixel } from "../pickingFramebuffer.js";
-import { resetMousePointer, highlightObjUnderCursor } from "./AppHelper.js";
-import { canMoveObj, moveObjectWithCoursor } from "./AppHelper.js";
+import { getIdFromCurrentPixel } from '../pickingFramebuffer';
+import { resetMousePointer, highlightObjUnderCursor } from './AppHelper';
+import { canMoveObj, moveObjectWithCoursor } from './AppHelper';
 
-import { m3,getClipSpaceMousePosition,getProjectionMat } from "../utils.js";
+import { m3,getClipSpaceMousePosition,getProjectionMat } from '../utils';
 
-import { IDType } from "../types/globalTypes.js";
+import { IDType } from '../types/globalTypes';
 
-import { Camera } from "../Composition/Camera.js";
-import { SceneManager } from "./SceneManager.js";
-import { InputManager } from "./InputManager.js";
+import { Camera } from '../Composition/Camera';
+import { SceneManager } from './SceneManager';
+import { InputManager } from './InputManager';
 
-import { Composition } from "../Composition/Composition.js";
+import { Composition } from '../Composition/Composition';
 
 
 export const handleEvents = (

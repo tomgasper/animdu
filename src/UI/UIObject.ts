@@ -1,6 +1,6 @@
-import { RenderableObject } from "../RenderableObject.js";
+import { RenderableObject } from '../RenderableObject';
 
-import { ContainerStyle } from "./NodeEditor/NodeEditorStyleTypes.js";
+import { ContainerStyle } from './NodeEditor/NodeEditorStyleTypes';
 
 interface RefType {
     [key: string] : any

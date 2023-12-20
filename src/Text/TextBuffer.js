@@ -1,4 +1,4 @@
-import { fontMetrics, writeString } from "../../lib/webgl_fonts/textutils.js";
+import { fontMetrics, writeString } from '../../lib/webgl_fonts/textutils';
 
 export class TextBuffer {
     VAO = undefined;

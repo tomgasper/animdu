@@ -1,21 +1,19 @@
-import { RenderableObject } from "../RenderableObject.js";
+import { RenderableObject } from '../RenderableObject';
 
-import { UINode } from "./NodeEditor/UINode.js";
-import { ObjNode } from "./NodeEditor/ObjNode.js";
-import { FunctionNode } from "./NodeEditor/FunctionNode.js";
-import { ParamNode } from "./NodeEditor/ParamNode.js";
-import { UINodeParamList } from "./NodeEditor/UINodeParamList.js";
+import { UINode } from './NodeEditor/UINode';
+import { ObjNode } from './NodeEditor/ObjNode';
+import { FunctionNode } from './NodeEditor/FunctionNode';
+import { ParamNode } from './NodeEditor/ParamNode';
+import { UIBuffers } from './UIBuffers';
 
-import { UIBuffers } from "./UIBuffers.js";
+import { setUpMainFont } from './initializeUI';
 
-import { setUpMainFont } from "./initializeUI.js";
+import { UISceneViewport } from './UISceneViewport';
+import { UINodeEditor } from './UINodeEditor';
 
-import { UISceneViewport } from "./UISceneViewport.js";
-import { UINodeEditor } from "./UINodeEditor.js";
+import { percToFraction } from '../utils';
 
-import { percToFraction } from "../utils.js";
-
-import { Camera } from "../Composition/Camera.js";
+import { Camera } from '../Composition/Camera';
 
 export class UI
 {
@@ -238,6 +236,8 @@ export class UI
         this.UIBuffers = UIBuffersStore;
     }
 
+    /*
+
     addNode(paramList, pos = [0,0])
     {
         let params = paramList;
@@ -259,6 +259,7 @@ export class UI
 
         return node;
     }
+    */
 
     resize()
     {

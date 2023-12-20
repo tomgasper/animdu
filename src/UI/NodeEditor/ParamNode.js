@@ -1,9 +1,9 @@
-import { UINode } from "./UINode.js";
-import { createNewText } from "../../Text/textHelper.js";
+import { UINode } from './UINode';
+import { createNewText } from '../../Text/textHelper';
 
-import { hexToRgb } from "../../utils.js";
-import { CustomBuffer } from "../../Primitives/CustomBuffer.js";
-import { RenderableObject } from "../../RenderableObject.js";
+import { hexToRgb } from '../../utils';
+import { CustomBuffer } from '../../Primitives/CustomBuffer';
+import { RenderableObject } from '../../RenderableObject';
 
 export class ParamNode extends UINode
 {

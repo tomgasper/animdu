@@ -1,7 +1,7 @@
-import { GeometryObject } from "./GeometryObject.js";
-import { UINodeParam } from "./UI/NodeEditor/UINodeParam.js";
+import { GeometryObject } from './GeometryObject';
+import { UINodeParam } from './UI/NodeEditor/UINodeParam';
 
-import { anyObj } from "./types/globalTypes.js";
+import { anyObj } from './types/globalTypes';
 
 export class RenderableObject extends GeometryObject
 {

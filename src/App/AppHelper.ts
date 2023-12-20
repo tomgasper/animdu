@@ -1,15 +1,15 @@
-import { RectangleBuffer } from "../Primitives/RectangleBuffer.js";
-import { RenderableObject } from "../RenderableObject.js";
-import { getProjectionMat } from "../utils.js";
-import { m3, resizeCanvasToDisplaySize } from "../utils.js";
+import { RectangleBuffer } from '../Primitives/RectangleBuffer';
+import { RenderableObject } from '../RenderableObject';
+import { getProjectionMat } from '../utils';
+import { m3, resizeCanvasToDisplaySize } from '../utils';
 
-import { setFramebufferAttachmentSizes } from "../pickingFramebuffer.js";
+import { setFramebufferAttachmentSizes } from '../pickingFramebuffer';
 
-import { Composition } from "../Composition/Composition.js";
-import { GeometryObject } from "../GeometryObject.js";
-import { IDType, InputManagerState, SceneManagerState } from "../types/globalTypes.js";
-import { SceneManager } from "./SceneManager.js";
-import { InputManager } from "./InputManager.js";
+import { Composition } from '../Composition/Composition';
+import { GeometryObject } from '../GeometryObject';
+import { IDType, InputManagerState, SceneManagerState } from '../types/globalTypes';
+import { SceneManager } from './SceneManager';
+import { InputManager } from './InputManager';
 
 export const resetMousePointer = (documentStyle) =>
 {

@@ -1,21 +1,21 @@
-import { RenderableObject } from "../RenderableObject.js";
-import { initalizeApp } from "./initializeApp.js";
-import { prepareForFirstPass, prepareForScndPass, retrieveRenderObjs, addNewComposition, resetMouseClick, resizeCanvas } from "./AppHelper.js";
-import { drawPass } from "./AppDraw.js";
+import { RenderableObject } from '../RenderableObject';
+import { initalizeApp } from './initializeApp';
+import { prepareForFirstPass, prepareForScndPass, retrieveRenderObjs, addNewComposition, resetMouseClick, resizeCanvas } from './AppHelper';
+import { drawPass } from './AppDraw';
 
-import { handleEvents } from "./AppEvents.js";
+import { handleEvents } from './AppEvents';
 
-import { UI } from "../UI/UI.js";
-import { UINodeParam } from "../UI/NodeEditor/UINodeParam.js";
-import { RectangleBuffer } from "../Primitives/RectangleBuffer.js";
+import { UI } from '../UI/UI';
+import { UINodeParam } from '../UI/NodeEditor/UINodeParam';
+import { RectangleBuffer } from '../Primitives/RectangleBuffer';
 
-import { Effector } from "../UI/NodeEditor/Effector.js";
-import { Component } from "../UI/NodeEditor/Component.js";
+import { Effector } from '../UI/NodeEditor/Effector';
+import { Component } from '../UI/NodeEditor/Component';
 
-import { procc } from "../animation/animation_operations.js";
+import { procc } from '../animation/animation_operations';
 
-import { InputManager } from "./InputManager.js";
-import { SceneManager } from "./SceneManager.js";
+import { InputManager } from './InputManager';
+import { SceneManager } from './SceneManager';
 
 export class App
 {
@@ -63,7 +63,7 @@ export class App
         // save gl for local use
         this.gl = gl;
         this.ext = this.gl.getExtension('GMAN_webgl_memory');
-        this.document = gl.canvas.parentNode;
+        this.document = document.getElementById("root");
         this.programs = programsInfo;
 
         this.framebuffer = framebuffer;

@@ -47,6 +47,7 @@ export class TextFont
         gl.texImage2D(gl.TEXTURE_2D, 0, this.textureFormat, 1, 1, 0, this.textureFormat, gl.UNSIGNED_BYTE, new Uint8Array([0,0,255,255]));
 
         img.addEventListener("load", () =>{
+            console.log("Loaded texture!");
             gl.bindTexture(gl.TEXTURE_2D, this.texture);
             gl.texImage2D(gl.TEXTURE_2D, 0, this.textureFormat, this.textureFormat, gl.UNSIGNED_BYTE, img);
 

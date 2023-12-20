@@ -1,6 +1,6 @@
-import { RectangleBuffer } from "../Primitives/RectangleBuffer.js";
-import { CircleBuffer } from "../Primitives/CircleBuffer.js";
-import { RoundedRectangleBuffer } from "../Primitives/RoundedRectangleBuffer.js";
+import { RectangleBuffer } from '../Primitives/RectangleBuffer';
+import { CircleBuffer } from '../Primitives/CircleBuffer';
+import { RoundedRectangleBuffer } from '../Primitives/RoundedRectangleBuffer';
 
 export class UIBuffers
 {

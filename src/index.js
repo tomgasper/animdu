@@ -1,19 +1,25 @@
 "use strict";
-import { vertexShaderSource, fragmentShaderSource } from "./Shaders/BasicShaders.js";
-import { pickVertexShaderSource, pickfragmentShaderSource } from "./Shaders/PickerShader.js";
-import { textSDFVertexShaderSource, textSDFFragmentShaderSource } from "./Shaders/TextShader.js";
-import { instancedLineFragmentShaderSource, instancedLineVertexShaderSource } from "./Shaders/InstancedLineShader.js";
-import { instancedLineCapFragmentShaderSource, instancedLineCapVertexShaderSource } from "./Shaders/InstancedLineCapShader.js";
-import { initShaderProgram } from "./Shaders/ShaderUtils.js";
-import { roundedRectShaderSource, roundedRectFragmentShaderSource } from "./Shaders/RoundedRectangleShader.js";
-import { App } from "./App/App.js";
+import { vertexShaderSource, fragmentShaderSource } from './Shaders/BasicShaders';
+import { pickVertexShaderSource, pickfragmentShaderSource } from './Shaders/PickerShader';
+import { textSDFVertexShaderSource, textSDFFragmentShaderSource } from './Shaders/TextShader';
+import { instancedLineFragmentShaderSource, instancedLineVertexShaderSource } from './Shaders/InstancedLineShader';
+import { instancedLineCapFragmentShaderSource, instancedLineCapVertexShaderSource } from './Shaders/InstancedLineCapShader';
+import { initShaderProgram } from './Shaders/ShaderUtils';
+import { roundedRectShaderSource, roundedRectFragmentShaderSource } from './Shaders/RoundedRectangleShader';
+import { App } from './App/App';
 
-import { RenderLoop } from "./RenderLoop.js";
+import { RenderLoop } from './RenderLoop';
 
-import { setUpPickingFramebuffer, createDepthBuffer, createPickingTargetTexture } from "./pickingFramebuffer.js";
+import { setUpPickingFramebuffer, createDepthBuffer, createPickingTargetTexture } from './pickingFramebuffer';
+
+import React from 'react';
+import ReactDOM from 'react-dom';
+import ReactApp from './frontend/ReactApp';
+
+ReactDOM.render(<ReactApp />, document.getElementById('root'));
 
 // attribute = global variable
-function main()
+export function main()
   {
     const originalRes = [1400,800];
     window.originalRes = originalRes;

@@ -1,20 +1,20 @@
-import { computeTransform, findNodesOfType } from "../utils.js";
+import { computeTransform, findNodesOfType } from '../utils';
 
-import { ObjNode } from "../UI/NodeEditor/ObjNode.js";
+import { ObjNode } from '../UI/NodeEditor/ObjNode';
 
-import { ObjAnimation } from "./ObjAnimation.js";
-import { ComponentNode } from "../UI/NodeEditor/ComponentNode.js";
+import { ObjAnimation } from './ObjAnimation';
+import { ComponentNode } from '../UI/NodeEditor/ComponentNode';
 
-import { Digraph } from "../DataStructures/Digraph.js";
+import { Digraph } from '../DataStructures/Digraph';
 
-import { UINode } from "../UI/NodeEditor/UINode.js";
-import { UINodeHandle } from "../UI/NodeEditor/UINodeHandle.js";
-import { ParamNode } from "../UI/NodeEditor/ParamNode.js";
+import { UINode } from '../UI/NodeEditor/UINode';
+import { UINodeHandle } from '../UI/NodeEditor/UINodeHandle';
+import { ParamNode } from '../UI/NodeEditor/ParamNode';
 
-import { FunctionNode } from "../UI/NodeEditor/FunctionNode.js";
-import { UINodeParam } from "../UI/NodeEditor/UINodeParam.js";
+import { FunctionNode } from '../UI/NodeEditor/FunctionNode';
+import { UINodeParam } from '../UI/NodeEditor/UINodeParam';
 
-import { Line,LineConnection } from "../UI/NodeEditor/NodeEditorTypes.js";
+import { Line,LineConnection } from '../UI/NodeEditor/NodeEditorTypes';
 
 export const createComponentList = (startOffset : number, componentNode) => {
     // Obj to return

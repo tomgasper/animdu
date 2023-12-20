@@ -1,11 +1,11 @@
-import { TriangleBuffer } from "../Primitives/TriangleBuffer.js";
-import { CircleBuffer } from "../Primitives/CircleBuffer.js";
-import { RectangleBuffer } from "../Primitives/RectangleBuffer.js";
+import { TriangleBuffer } from '../Primitives/TriangleBuffer';
+import { CircleBuffer } from '../Primitives/CircleBuffer';
+import { RectangleBuffer } from '../Primitives/RectangleBuffer';
 
-import { getProjectionMat, m3 } from "../utils.js";
+import { getProjectionMat, m3 } from '../utils';
 
-import { getClipSpaceMousePosition } from "../utils.js";
-import { RoundedRectangleBuffer } from "../Primitives/RoundedRectangleBuffer.js";
+import { getClipSpaceMousePosition } from '../utils';
+import { RoundedRectangleBuffer } from '../Primitives/RoundedRectangleBuffer';
 
 export const initalizeApp = (app) =>
 {

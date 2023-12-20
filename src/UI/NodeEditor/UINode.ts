@@ -1,20 +1,20 @@
-import { getProjectionMat, hexToRgb } from "../../utils.js";
+import { getProjectionMat, hexToRgb } from '../../utils';
 
-import { UIObject } from "../UIObject.js";
+import { UIObject } from '../UIObject';
 
-import { RenderableObject } from "../../RenderableObject.js";
+import { RenderableObject } from '../../RenderableObject';
 
-import { UINodeHandle } from "./UINodeHandle.js";
-import { getPosFromMat } from "../../App/AppHelper.js";
+import { UINodeHandle } from './UINodeHandle';
+import { getPosFromMat } from '../../App/AppHelper';
 
-import { transformToParentSpace } from "../../utils.js";
-import { Line } from "./NodeEditorTypes.js";
-import { UINodeParam } from "./UINodeParam.js";
+import { transformToParentSpace } from '../../utils';
+import { Line } from './NodeEditorTypes';
+import { UINodeParam } from './UINodeParam';
 
-import { TextArray, LineConnection } from "./NodeEditorTypes.js";
+import { TextArray, LineConnection } from './NodeEditorTypes';
 
-import { Style } from "./NodeEditorStyleTypes.js";
-import { GeometryObject } from "../../GeometryObject.js";
+import { Style } from './NodeEditorStyleTypes';
+import { GeometryObject } from '../../GeometryObject';
 
 export class UINode extends UIObject
 {

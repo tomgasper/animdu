@@ -1,4 +1,4 @@
-import { RenderableObject } from "./RenderableObject.js";
+import { RenderableObject } from './RenderableObject';
 
 interface ProgramInfo {
     uniforms: {

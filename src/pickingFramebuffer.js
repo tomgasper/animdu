@@ -1,4 +1,4 @@
-import { readPixelsAsync } from "../lib/asyncreadpixels.js";
+import { readPixelsAsync } from '../lib/asyncreadpixels';
 
 export function setUpPickingFramebuffer(gl, targetTexture, depthStencilBuffer)
 {

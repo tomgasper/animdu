@@ -1,9 +1,9 @@
-import { UINode } from "./UINode.js";
-import { createNewText } from "../../Text/textHelper.js";
+import { UINode } from './UINode';
+import { createNewText } from '../../Text/textHelper';
 
-import { ObjNode } from "./ObjNode.js";
+import { ObjNode } from './ObjNode';
 
-import { hexToRgb } from "../../utils.js";
+import { hexToRgb } from '../../utils';
 
 export class ComponentNode extends UINode
 {

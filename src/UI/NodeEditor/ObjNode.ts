@@ -1,12 +1,12 @@
-import { UINode } from "./UINode.js";
+import { UINode } from './UINode';
 
-import { UINodeHandle } from "./UINodeHandle.js";
+import { UINodeHandle } from './UINodeHandle';
 
-import { createNewText } from "../../Text/textHelper.js";
+import { createNewText } from '../../Text/textHelper';
 
-import { hexToRgb } from "../../utils.js";
-import { RenderableObject } from "../../RenderableObject.js";
-import { TextData } from "./TextData.js";
+import { hexToRgb } from '../../utils';
+import { RenderableObject } from '../../RenderableObject';
+import { TextData } from './TextData';
 
 export class ObjNode extends UINode
 {
