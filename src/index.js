@@ -19,15 +19,8 @@ import ReactApp from './frontend/ReactApp';
 ReactDOM.render(<ReactApp />, document.getElementById('root'));
 
 // attribute = global variable
-export function main()
+export function main(gl, canvas, inputManager, sceneManager, out_appRef)
   {
-    const originalRes = [1400,800];
-    window.originalRes = originalRes;
-
-    // Initialize the GL context
-    const canvas = document.querySelector("#glcanvas")
-    const gl = canvas.getContext("webgl2", {stencil: true});
-
     // Extensions
     let ext;
     // const ext = gl.getExtension('GMAN_webgl_memory');
@@ -64,8 +57,6 @@ export function main()
         }
     }
     };
-
-    console.log(pickingProgramInfo);
 
     const programInfo = {
         program: shaderProgram,
@@ -230,7 +221,15 @@ export function main()
     const fb = setUpPickingFramebuffer(gl, targetTexture, depthStencilBuffer);
 
     // Set up new application
-    const app = new App(gl,programsInfo, fb, depthStencilBuffer, targetTexture);
+    const app = new App(gl,
+                      programsInfo,
+                      fb,
+                      depthStencilBuffer,
+                      targetTexture,
+                      inputManager,
+                      sceneManager);
+
+    out_appRef.ref = app;
 
     // Set up render loop
     const renderLoop = new RenderLoop( app.doFrame.bind(app) );
@@ -244,5 +243,3 @@ export function main()
     // Start rendering
     renderLoop.render();
 }
-  
-main();

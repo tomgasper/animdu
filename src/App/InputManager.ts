@@ -3,6 +3,9 @@ import { InputManagerState } from '../types/globalTypes';
 
 export class InputManager
 {
+    // Events observers
+    private observers = {};
+
     // Keyboard state
     private isKeyPressed : boolean;
     private keyPressed: Set<string>;
@@ -45,6 +48,27 @@ export class InputManager
         this.initEventListeners(glCanvas, htmlDocument);
     }
 
+    public subscribe(eventType, callback)
+    {
+        if (!this.observers[eventType])
+        {
+            this.observers[eventType] = [];
+        }
+
+        this.observers[eventType].push(callback);
+    }
+
+    public unsubscribe(eventType, callback) {
+        if (!this.observers[eventType]) return;
+        this.observers[eventType] = this.observers[eventType].filter(observer => observer !== callback);
+    }
+
+    emit(eventType, data)
+    {
+        if(!this.observers[eventType]) return;
+        this.observers[eventType].forEach( cb => cb(data) );
+    }
+
     private initEventListeners(glCanvas, htmlDocument )
     {
         glCanvas.addEventListener("mousemove", (e) => {
@@ -77,11 +101,15 @@ export class InputManager
         });
     
         window.addEventListener("keydown", (e) => {
+            // e.preventDefault();
             // Should be in eventhandler function
             this.isKeyPressed = true;
 
             this.prevKeyPressed = new Set(this.keyPressed);
             if (!this.keyPressed.has(e.key)) this.addKeyPressed(e.key);
+
+            // FOR FRONTEND
+            this.emit("keyEvent", { type:"keyDown", key:e.key });
         });
     
          glCanvas.addEventListener("mousedown", (e) => {

@@ -57,7 +57,7 @@ export class App
 
     // test
 
-    constructor(gl, programsInfo, framebuffer, depthBuffer, renderTexture)
+    constructor(gl, programsInfo, framebuffer, depthBuffer, renderTexture, inputManager, sceneManager)
     {
 
         // save gl for local use
@@ -71,8 +71,10 @@ export class App
         this.renderTexture = renderTexture;
 
         // Create managers for the app
-        this.sceneManager = new SceneManager();
-        this.inputManager = new InputManager(gl.canvas, this.document);
+        // this.sceneManager = new SceneManager();
+        // this.inputManager = new InputManager(gl.canvas, this.document);
+        this.inputManager = inputManager;
+        this.sceneManager = sceneManager;
 
         // Start the app
         this.start();
@@ -80,7 +82,8 @@ export class App
 
     changeEffectorFunction(appRef, value)
     {
-        const activeObj = appRef.objsToDraw[this.activeObjArrIndx].objs[this.activeObjID];
+        const activeObj = appRef.sceneManager.getActiveObj();
+        // const activeObj = appRef.objsToDraw[this.activeObjArrIndx].objs[this.activeObjID];
 
         if (activeObj.effector)
         {
@@ -322,5 +325,21 @@ export class App
         this.settings.render.blendingEnabled = isEnable;
 
         return this.settings.render.blendingEnabled;
+    }
+
+    // short thing
+    createRectangle()
+    {
+        const activeComp = this.sceneManager.getActiveComp();
+
+        const rectangle = new RenderableObject(this.primitiveBuffers.rectangle);
+        rectangle.setPosition([0,0]);
+        rectangle.setScale([1,1]);
+        rectangle.name = "Rectangle" + this.sceneManager.getObjsToDraw()[1].objs.length;
+
+        activeComp.addObj(rectangle);
+        this.UI.addObjNode(rectangle);
+
+        return rectangle;
     }
 }

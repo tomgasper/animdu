@@ -5,6 +5,14 @@ html,body, #root {
     margin: 0;
 }
 
+#objPanel {
+    height:100%;
+    width:20%;
+    margin:0;
+    padding:0;
+    position:fixed;
+}
+
 #webGLAppContainer
 {
     height: 100%;

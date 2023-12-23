@@ -35,6 +35,10 @@ module.exports = {
           },
         ],
       },
+      {
+        test: /\.css$/,
+        use: ["style-loader", "css-loader"]
+      },
     ],
   },
   resolve: {
@@ -51,5 +55,9 @@ module.exports = {
       ],
     }),
   ],
-  devtool: 'eval-source-map'
+  devtool: 'eval-source-map',
+  devServer: {
+    contentBase: './dist',
+    open: true
+  }
 };

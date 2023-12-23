@@ -4,6 +4,9 @@ import { IDType, RenderQueueType, SceneManagerState } from "../types/globalTypes
 
 export class SceneManager
 {
+    // Observers
+    private observers = {};
+
     // Object state
     private objsToDraw : RenderQueueType;
 
@@ -25,6 +28,27 @@ export class SceneManager
     private activeComp : Composition;
 
     constructor(){};
+
+    public subscribe(eventType, callback)
+    {
+        if (!this.observers[eventType])
+        {
+            this.observers[eventType] = [];
+        }
+
+        this.observers[eventType].push(callback);
+    }
+
+    public unsubscribe(eventType, callback) {
+        if (!this.observers[eventType]) return;
+        this.observers[eventType] = this.observers[eventType].filter(observer => observer !== callback);
+    }
+
+    emit(eventType, data)
+    {
+        if(!this.observers[eventType]) return;
+        this.observers[eventType].forEach( cb => cb(data) );
+    }
 
     // Getters
     public getActiveComp() : Composition
@@ -72,6 +96,8 @@ export class SceneManager
     {
         this.activeObjID = id;
         this.activeObjArrIndx = arrIndx;
+
+        this.emit("changeActiveObjID", {type:"newActiveObjID", key:{ id:this.activeObjID, arrIndx: this.activeObjArrIndx} });
     }
 
     public setObjIDToDrag(id: number, arrIndx: number)
